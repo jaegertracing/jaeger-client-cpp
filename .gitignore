@@ -1,3 +1,17 @@
+# Build directory
+/build
+
+# Exclude anything in src other than jaegertracing
+/src/*
+!/src/jaegertracing
+
+# Personal YCM config
+.ycm_extra_conf.py
+
+# vim swap files
+*.swo
+*.swp
+
 # Prerequisites
 *.d
 

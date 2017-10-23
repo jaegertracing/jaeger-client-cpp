@@ -1,0 +1,108 @@
+/*
+ * Copyright (c) 2017 Uber Technologies, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "jaegertracing/UDPTransport.h"
+
+#include "jaegertracing/Tracer.h"
+
+namespace jaegertracing {
+namespace {
+
+template <typename ThriftType>
+int calcSizeOfSerializedThrift(
+    const ThriftType& base,
+    const boost::shared_ptr<apache::thrift::protocol::TProtocol>& protocol,
+    int maxPacketSize)
+{
+    apache::thrift::transport::TMemoryBuffer buffer(maxPacketSize);
+    buffer.resetBuffer();
+    base.write(protocol.get());
+    uint8_t* data = nullptr;
+    uint32_t size = 0;
+    buffer.getBuffer(&data, &size);
+    return size;
+}
+
+}  // anonymous namespace
+
+UDPTransport::UDPTransport(const net::IPAddress& ip, int maxPacketSize)
+    : _client(new utils::UDPClient(ip, maxPacketSize))
+    , _maxSpanBytes(maxPacketSize - kEmitBatchOverhead)
+    , _byteBufferSize(0)
+    , _spanBuffer()
+    , _protocol(_client->protocol())
+    , _process()
+    , _processByteSize(calcSizeOfSerializedThrift(
+          _process, _protocol, _client->maxPacketSize()))
+{
+}
+
+int UDPTransport::append(const Span& span)
+{
+    if (_process.serviceName.empty()) {
+        const auto& tracer = static_cast<const Tracer&>(span.tracer());
+        _process.serviceName = tracer.serviceName();
+
+        const auto& tracerTags = tracer.tags();
+        std::vector<thrift::Tag> thriftTags;
+        thriftTags.reserve(tracerTags.size());
+        std::transform(std::begin(tracerTags),
+                       std::end(tracerTags),
+                       std::back_inserter(thriftTags),
+                       [](const Tag& tag) { return tag.thrift(); });
+        _process.__set_tags(thriftTags);
+    }
+    const auto jaegerSpan = span.thrift();
+    const auto spanSize = calcSizeOfSerializedThrift(
+        jaegerSpan, _protocol, _client->maxPacketSize());
+    if (spanSize > _maxSpanBytes) {
+        std::ostringstream oss;
+        throw Transport::Exception("Span is too large", 1);
+    }
+
+    _byteBufferSize += spanSize;
+    if (_byteBufferSize <= _maxSpanBytes) {
+        _spanBuffer.push_back(jaegerSpan);
+        if (_byteBufferSize < _maxSpanBytes) {
+            return 0;
+        }
+        return flush();
+    }
+
+    // Flush currently full buffer, then append this span to buffer.
+    const auto flushed = flush();
+    _spanBuffer.push_back(jaegerSpan);
+    _byteBufferSize = spanSize + _processByteSize;
+    return flushed;
+}
+
+int UDPTransport::flush()
+{
+    if (_spanBuffer.empty()) {
+        return 0;
+    }
+
+    thrift::Batch batch;
+    batch.__set_process(_process);
+    batch.__set_spans(_spanBuffer);
+    _client->emitBatch(batch);
+
+    resetBuffers();
+
+    return batch.spans.size();
+}
+
+}  // namespace jaegertracing

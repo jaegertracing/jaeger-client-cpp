@@ -1,0 +1,37 @@
+language: cpp
+sudo: false
+dist: trusty
+compiler:
+  - clang++
+
+matrix:
+  include:
+    os:
+      - linux
+    addons:
+      apt:
+        sources:
+          - llvm-toolchain-trusty-4.0
+        packages:
+          - clang-4.0
+          - llvm-4.0
+    env:
+      - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0 && GCOV_TOOL=llvm-cov && COVERAGE=OFF"
+
+branches:
+  only:
+    - master
+
+before_install:
+  - eval "${MATRIX_EVAL}"
+
+script: ./scripts/build.sh
+
+after_success:
+  - if [ -n "$COVERAGE" ]; then exit 0; fi
+  - cd build
+  - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+
+env:
+  global:
+    - LANG="en_US.UTF-8"
