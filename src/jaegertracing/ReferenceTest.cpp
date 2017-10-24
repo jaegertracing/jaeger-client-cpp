@@ -16,22 +16,19 @@
 
 #include <gtest/gtest.h>
 
-#include "jaegertracing/Span.h"
+#include "jaegertracing/Reference.h"
 
 namespace jaegertracing {
 
-TEST(Span, testThriftConversion)
+TEST(Reference, testThriftConversion)
 {
-    const Span span(std::shared_ptr<Tracer>(),
-                    SpanContext(),
-                    "",
-                    Span::Clock::now(),
-                    Span::Clock::duration(),
-                    std::vector<Tag>(),
-                    std::vector<Reference>(),
-                    false);
-    ASSERT_TRUE(span.serviceName().empty());
-    ASSERT_NO_THROW(span.thrift());
+    const SpanContext context;
+    const Reference childRef(context, Reference::Type::ChildOfRef);
+    ASSERT_NO_THROW(childRef.thrift());
+    const Reference followsFromRef(context, Reference::Type::FollowsFromRef);
+    ASSERT_NO_THROW(followsFromRef.thrift());
+    const Reference invalidRef(context, static_cast<Reference::Type>(-1));
+    ASSERT_THROW(invalidRef.thrift(), std::invalid_argument);
 }
 
 }  // namespace jaegertracing

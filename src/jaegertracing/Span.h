@@ -37,7 +37,7 @@ class Span : public opentracing::Span {
   public:
     using Clock = std::chrono::steady_clock;
 
-    Span(const std::weak_ptr<const Tracer>& tracer,
+    Span(const std::shared_ptr<const Tracer>& tracer,
          const SpanContext& context,
          const std::string& operationName,
          const Clock::time_point& startTime,
@@ -260,7 +260,7 @@ class Span : public opentracing::Span {
         _logs.push_back(log);
     }
 
-    std::weak_ptr<const Tracer> _tracer;
+    std::shared_ptr<const Tracer> _tracer;
     SpanContext _context;
     std::string _operationName;
     Clock::time_point _startTime;

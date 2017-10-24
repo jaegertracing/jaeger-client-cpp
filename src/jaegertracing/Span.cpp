@@ -24,8 +24,7 @@ void Span::SetBaggageItem(opentracing::string_view restrictedKey,
                           opentracing::string_view value) noexcept
 {
     std::lock_guard<std::mutex> lock(_mutex);
-    std::shared_ptr<const Tracer> tracer(_tracer.lock());
-    const auto& baggageSetter = tracer->baggageSetter();
+    const auto& baggageSetter = _tracer->baggageSetter();
     auto baggage = _context.baggage();
     baggageSetter.setBaggage(*this,
                              baggage,
@@ -47,7 +46,7 @@ void Span::FinishWithOptions(
         if (_context.isSampled()) {
             _duration = finishSpanOptions.finish_steady_timestamp - _startTime;
         }
-        tracer = _tracer.lock();
+        tracer = _tracer;
     }
 
     // Call `reportSpan` even for non-sampled traces.
@@ -59,11 +58,10 @@ void Span::FinishWithOptions(
 const opentracing::Tracer& Span::tracer() const noexcept
 {
     std::lock_guard<std::mutex> lock(_mutex);
-    std::shared_ptr<const opentracing::Tracer> tracer(_tracer.lock());
-    if (tracer) {
-        return *tracer;
+    if (_tracer) {
+        return *_tracer;
     }
-    tracer = opentracing::Tracer::Global();
+    auto tracer = opentracing::Tracer::Global();
     assert(tracer);
     return *tracer;
 }
@@ -76,11 +74,10 @@ std::string Span::serviceName() const noexcept
 
 std::string Span::serviceNameNoLock() const noexcept
 {
-    std::shared_ptr<const Tracer> tracer(_tracer.lock());
-    if (!tracer) {
+    if (!_tracer) {
         return std::string();
     }
-    return tracer->serviceName();
+    return _tracer->serviceName();
 }
 
 }  // namespace jaegertracing

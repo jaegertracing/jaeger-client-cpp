@@ -54,7 +54,7 @@ class FakeTransport : public Transport {
     std::mutex& _mutex;
 };
 
-const Span span(std::weak_ptr<Tracer>(),
+const Span span(std::shared_ptr<Tracer>(),
                 SpanContext(),
                 "",
                 Span::Clock::now(),
@@ -78,14 +78,6 @@ TEST(Reporter, testRemoteReporter)
         std::unique_ptr<Transport>(new FakeTransport(spans, mutex)),
         *logger,
         *metrics);
-    const Span span(std::weak_ptr<Tracer>(),
-                    SpanContext(),
-                    "",
-                    Span::Clock::now(),
-                    Span::Clock::duration(),
-                    {},
-                    {},
-                    false);
     constexpr auto kNumReports = 100;
     for (auto i = 0; i < kNumReports; ++i) {
         reporter.report(span);

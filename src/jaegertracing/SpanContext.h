@@ -36,7 +36,13 @@ class SpanContext : public opentracing::SpanContext {
 
     static SpanContext fromStream(std::istream& in);
 
-    SpanContext() = default;
+    SpanContext()
+        : _traceID(0, 0)
+        , _spanID(0)
+        , _parentID(0)
+        , _flags(0)
+    {
+    }
 
     SpanContext(const TraceID& traceID,
                 uint64_t spanID,

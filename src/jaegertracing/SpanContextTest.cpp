@@ -52,11 +52,23 @@ TEST(SpanContext, testFromStream)
     };
 
     for (auto&& testCase : testCases) {
-        std::stringstream ss;
-        ss << testCase._input;
-        auto spanContext = SpanContext::fromStream(ss);
-        ASSERT_EQ(testCase._success, spanContext.isValid())
-            << "input=" << testCase._input;
+        SpanContext spanContext;
+        {
+            std::stringstream ss;
+            ss << testCase._input;
+            spanContext = SpanContext::fromStream(ss);
+            ASSERT_EQ(testCase._success, spanContext.isValid())
+                << "input=" << testCase._input;
+        }
+
+        SpanContext spanContextFromStreamOp;
+        {
+            std::stringstream ss;
+            ss << testCase._input;
+            ss >> spanContextFromStreamOp;
+        }
+
+        ASSERT_EQ(spanContext, spanContextFromStreamOp);
     }
 }
 
@@ -66,6 +78,42 @@ TEST(SpanContext, testFormatting)
     std::ostringstream oss;
     oss << spanContext;
     ASSERT_EQ("ff00000000000000ff:0:0:0", oss.str());
+}
+
+TEST(SpanContext, testBaggage)
+{
+    const SpanContext spanContext(
+        TraceID(0, 0),
+        0,
+        0,
+        0,
+        SpanContext::StrMap({
+            {"key1", "value1"},
+            {"key2", "value2"}
+        }));
+    std::string keyCopy;
+    std::string valueCopy;
+    spanContext.ForeachBaggageItem(
+        [&keyCopy, &valueCopy](
+            const std::string& key, const std::string& value) {
+            keyCopy = key;
+            valueCopy = value;
+            return false;
+        });
+    ASSERT_TRUE(keyCopy == "key1" || keyCopy == "key2");
+    if (keyCopy == "key1") {
+       ASSERT_EQ("value1", valueCopy);
+    }
+    else {
+       ASSERT_EQ("value2", valueCopy);
+    }
+}
+
+TEST(SpanContext, testDebug)
+{
+    const SpanContext spanContext;
+    ASSERT_FALSE(spanContext.isDebug());
+    ASSERT_FALSE(spanContext.isDebugIDContainerOnly());
 }
 
 }  // namespace jaegertracing

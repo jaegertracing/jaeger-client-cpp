@@ -114,7 +114,6 @@ Tracer::startSpanInternal(const SpanContext& context,
                           bool newTrace,
                           const std::vector<Reference>& references) const
 {
-    std::weak_ptr<const Tracer> weakPtr(shared_from_this());
     const auto firstInProcess = (context.parentID() == 0);
 
     std::vector<Tag> spanTags;
@@ -127,7 +126,7 @@ Tracer::startSpanInternal(const SpanContext& context,
     spanTags.insert(
         std::end(spanTags), std::begin(internalTags), std::end(internalTags));
 
-    std::unique_ptr<Span> span(new Span(weakPtr,
+    std::unique_ptr<Span> span(new Span(shared_from_this(),
                                         context,
                                         operationName,
                                         startTime,

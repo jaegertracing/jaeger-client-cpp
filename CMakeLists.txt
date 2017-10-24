@@ -213,6 +213,7 @@ if(BUILD_TESTING)
         src/jaegertracing/testutils/TUDPTransportTest.cpp
         src/jaegertracing/testutils/MockAgentTest.cpp
         src/jaegertracing/ConfigTest.cpp
+        src/jaegertracing/ReferenceTest.cpp
         src/jaegertracing/TagTest.cpp)
     add_executable(UnitTest ${TEST_SRC})
     target_compile_definitions(UnitTest PUBLIC
