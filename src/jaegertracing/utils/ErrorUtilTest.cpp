@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+
 #include <gtest/gtest.h>
 
 #include <spdlog/sinks/ostream_sink.h>
@@ -22,6 +24,20 @@
 
 namespace jaegertracing {
 namespace utils {
+namespace {
+
+bool endsWith(const std::string& str, const std::string& suffix)
+{
+    if (str.size() < suffix.size()) {
+        return false;
+    }
+
+    return std::equal(std::begin(suffix),
+                      std::end(suffix),
+                      std::end(str) - suffix.size());
+}
+
+}  // anonymous namespace
 
 TEST(ErrorUtil, test)
 {
@@ -58,10 +74,7 @@ TEST(ErrorUtil, test)
                           logStrNoDate);
             } break;
             case 1: {
-                ASSERT_EQ(
-                    " [test_logger] [warning] test: Unknown error: -1"
-                    ", code=-1\n",
-                    logStrNoDate);
+                ASSERT_TRUE(endsWith(logStrNoDate, ", code=-1\n"));
             } break;
             case 2: {
                 ASSERT_EQ(" [test_logger] [warning] test: test, numFailed=5\n",

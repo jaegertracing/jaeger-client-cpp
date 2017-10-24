@@ -44,6 +44,13 @@ TEST(Tracer, testTracer)
                   false,
                   baggage::RestrictionsConfig());
     auto tracer = Tracer::make("test-service", config);
+    auto span = tracer->StartSpanWithOptions("test-operation", {});
+    span->SetOperationName("test-set-operation");
+    span->SetTag("tag-key", "tag-value");
+    span->SetBaggageItem("test-baggage-item-key", "test-baggage-item-value");
+    span->Log({ { "log-bool", true } });
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    span->Finish();
     opentracing::Tracer::InitGlobal(tracer);
 }
 

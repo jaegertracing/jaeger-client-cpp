@@ -71,6 +71,11 @@ const opentracing::Tracer& Span::tracer() const noexcept
 std::string Span::serviceName() const noexcept
 {
     std::lock_guard<std::mutex> lock(_mutex);
+    return serviceNameNoLock();
+}
+
+std::string Span::serviceNameNoLock() const noexcept
+{
     std::shared_ptr<const Tracer> tracer(_tracer.lock());
     if (!tracer) {
         return std::string();

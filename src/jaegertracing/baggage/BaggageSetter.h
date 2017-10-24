@@ -43,7 +43,7 @@ class BaggageSetter {
     {
         auto truncated = false;
         const auto restriction =
-            _restrictionManager.getRestriction(span.serviceName(), key);
+            _restrictionManager.getRestriction(span.serviceNameNoLock(), key);
         if (!restriction.keyAllowed()) {
             logFields(span,
                       key,
@@ -65,7 +65,12 @@ class BaggageSetter {
         auto itr = baggage.find(key);
         const auto prevItem =
             (itr == std::end(baggage) ? std::string() : itr->second);
-        itr->second = value;
+        if (itr == std::end(baggage)) {
+            baggage[key] = value;
+        }
+        else {
+            itr->second = value;
+        }
         logFields(span,
                   key,
                   value,
@@ -86,7 +91,7 @@ class BaggageSetter {
                    bool valid,
                    LoggingFunction logFn) const
     {
-        if (!span.context().isSampled()) {
+        if (!span.contextNoLock().isSampled()) {
             return;
         }
 

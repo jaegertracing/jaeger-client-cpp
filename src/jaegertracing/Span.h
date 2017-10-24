@@ -238,12 +238,20 @@ class Span : public opentracing::Span {
         return _context;
     }
 
+
+    const SpanContext& contextNoLock() const noexcept
+    {
+        return _context;
+    }
+
     const opentracing::Tracer& tracer() const noexcept override;
 
     std::string serviceName() const noexcept;
 
+    std::string serviceNameNoLock() const noexcept;
+
   private:
-    bool isFinished() const { return _duration == Clock::duration(); }
+    bool isFinished() const { return _duration != Clock::duration(); }
 
     template <typename FieldIterator>
     void logFieldsNoLocking(FieldIterator first, FieldIterator last) noexcept
