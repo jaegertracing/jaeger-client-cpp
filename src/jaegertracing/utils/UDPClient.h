@@ -67,12 +67,6 @@ class UDPClient : public agent::thrift::AgentIf {
 
     int maxPacketSize() const { return _maxPacketSize; }
 
-    boost::shared_ptr<apache::thrift::protocol::TProtocol> protocol() const
-    {
-        apache::thrift::protocol::TCompactProtocolFactory protocolFactory;
-        return protocolFactory.getProtocol(_buffer);
-    }
-
     void close() { _socket.close(); }
 
   private:

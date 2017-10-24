@@ -60,6 +60,7 @@ class Span : public opentracing::Span {
         std::lock_guard<std::mutex> lock(_mutex, std::adopt_lock);
         std::lock_guard<std::mutex> spanLock(span._mutex, std::adopt_lock);
 
+        _tracer = span._tracer;
         _context = span._context;
         _operationName = span._operationName;
         _startTime = span._startTime;
@@ -84,6 +85,7 @@ class Span : public opentracing::Span {
         std::lock_guard<std::mutex> lock(_mutex, std::adopt_lock);
         std::lock_guard<std::mutex> spanLock(span._mutex, std::adopt_lock);
 
+        swap(_tracer, span._tracer);
         swap(_context, span._context);
         swap(_operationName, span._operationName);
         swap(_startTime, span._startTime);

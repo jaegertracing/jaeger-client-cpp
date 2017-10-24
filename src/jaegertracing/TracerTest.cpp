@@ -46,6 +46,7 @@ TEST(Tracer, testTracer)
     auto tracer = Tracer::make("test-service",
                                config,
                                logging::consoleLogger());
+    opentracing::Tracer::InitGlobal(tracer);
     auto span = tracer->StartSpanWithOptions("test-operation", {});
     ASSERT_EQ(static_cast<opentracing::Tracer*>(tracer.get()), &span->tracer());
     span->SetOperationName("test-set-operation");
@@ -54,8 +55,7 @@ TEST(Tracer, testTracer)
     span->Log({ { "log-bool", true } });
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     span->Finish();
-    //std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    opentracing::Tracer::InitGlobal(tracer);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     opentracing::Tracer::InitGlobal(opentracing::MakeNoopTracer());
 }
 

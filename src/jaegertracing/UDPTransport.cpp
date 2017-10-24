@@ -24,15 +24,16 @@ namespace {
 template <typename ThriftType>
 int calcSizeOfSerializedThrift(
     const ThriftType& base,
-    const boost::shared_ptr<apache::thrift::protocol::TProtocol>& protocol,
     int maxPacketSize)
 {
-    apache::thrift::transport::TMemoryBuffer buffer(maxPacketSize);
-    buffer.resetBuffer();
+    boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> buffer(
+        new apache::thrift::transport::TMemoryBuffer(maxPacketSize));
+    apache::thrift::protocol::TCompactProtocolFactory factory;
+    auto protocol = factory.getProtocol(buffer);
     base.write(protocol.get());
     uint8_t* data = nullptr;
     uint32_t size = 0;
-    buffer.getBuffer(&data, &size);
+    buffer->getBuffer(&data, &size);
     return size;
 }
 
@@ -40,13 +41,12 @@ int calcSizeOfSerializedThrift(
 
 UDPTransport::UDPTransport(const net::IPAddress& ip, int maxPacketSize)
     : _client(new utils::UDPClient(ip, maxPacketSize))
-    , _maxSpanBytes(maxPacketSize - kEmitBatchOverhead)
+    , _maxSpanBytes(_client->maxPacketSize() - kEmitBatchOverhead)
     , _byteBufferSize(0)
     , _spanBuffer()
-    , _protocol(_client->protocol())
     , _process()
     , _processByteSize(calcSizeOfSerializedThrift(
-          _process, _protocol, _client->maxPacketSize()))
+          _process, _client->maxPacketSize()))
 {
 }
 
@@ -67,7 +67,7 @@ int UDPTransport::append(const Span& span)
     }
     const auto jaegerSpan = span.thrift();
     const auto spanSize = calcSizeOfSerializedThrift(
-        jaegerSpan, _protocol, _client->maxPacketSize());
+        jaegerSpan, _client->maxPacketSize());
     if (spanSize > _maxSpanBytes) {
         std::ostringstream oss;
         throw Transport::Exception("Span is too large", 1);
