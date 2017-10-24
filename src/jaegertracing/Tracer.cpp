@@ -130,10 +130,8 @@ Tracer::startSpanInternal(const SpanContext& context,
                                         context,
                                         operationName,
                                         startTime,
-                                        Clock::duration(),
                                         spanTags,
-                                        references,
-                                        firstInProcess));
+                                        references));
 
     _metrics->spansStarted().inc(1);
     if (span->context().isSampled()) {

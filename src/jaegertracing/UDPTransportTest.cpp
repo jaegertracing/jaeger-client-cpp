@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-#include <sstream>
-
 #include <gtest/gtest.h>
 
+#include "jaegertracing/Config.h"
 #include "jaegertracing/Tracer.h"
+#include "jaegertracing/UDPTransport.h"
 #include "jaegertracing/testutils/MockAgent.h"
+#include "jaegertracing/utils/ErrorUtil.h"
 
 namespace jaegertracing {
 
-TEST(Tracer, testTracer)
+TEST(UDPTransport, testManyMessages)
 {
     auto mockAgent = testutils::MockAgent::make();
     mockAgent->start();
     std::ostringstream samplingServerURLStream;
     samplingServerURLStream << "http://"
                             << mockAgent->samplingServerAddr().authority();
+
     Config config(false,
                   samplers::Config("const",
                                    1,
@@ -46,25 +48,16 @@ TEST(Tracer, testTracer)
     auto tracer = Tracer::make("test-service",
                                config,
                                logging::consoleLogger());
-    opentracing::Tracer::InitGlobal(tracer);
-    std::unique_ptr<Span> span(static_cast<Span*>(
-        tracer->StartSpanWithOptions("test-operation", {}).release()));
-    ASSERT_TRUE(static_cast<bool>(span));
-    ASSERT_EQ(static_cast<opentracing::Tracer*>(tracer.get()), &span->tracer());
-    span->SetOperationName("test-set-operation");
-    span->SetTag("tag-key", "tag-value");
-    span->SetBaggageItem("test-baggage-item-key", "test-baggage-item-value");
-    ASSERT_EQ("test-baggage-item-value",
-              span->BaggageItem("test-baggage-item-key"));
-    span->Log({ { "log-bool", true } });
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    span->Finish();
-    ASSERT_GE(Span::Clock::now(), span->startTime() + span->duration());
-    span->SetOperationName("test-set-operation-after-finish");
-    ASSERT_EQ("test-set-operation", span->operationName());
-    span->SetTag("tagged-after-finish-key", "tagged-after-finish-value");
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    opentracing::Tracer::InitGlobal(opentracing::MakeNoopTracer());
+
+    UDPTransport sender(net::IPAddress::v4("127.0.0.1:0"), 0);
+    constexpr auto kNumMessages = 2000;
+    const auto logger = logging::consoleLogger();
+    logger->set_level(spdlog::level::info);
+    for (auto i = 0; i < kNumMessages; ++i) {
+        Span span(std::static_pointer_cast<const Tracer>(tracer));
+        span.SetOperationName("test" + std::to_string(i));
+        ASSERT_NO_THROW(sender.append(span));
+    }
 }
 
 }  // namespace jaegertracing

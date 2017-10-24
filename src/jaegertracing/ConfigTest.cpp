@@ -37,6 +37,12 @@ baggage_restrictions: 6
     ASSERT_EQ("probabilistic", config.sampler().type());
 }
 
+TEST(Config, testDefaultSamplingProbability)
+{
+    ASSERT_EQ(samplers::Config::kDefaultSamplingProbability,
+              Config().sampler().param());
+}
+
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
 }  // namespace jaegertracing

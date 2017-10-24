@@ -192,29 +192,30 @@ target_link_libraries(jaegertracing ${LIBS})
 if(BUILD_TESTING)
     add_subdirectory("${CMAKE_SOURCE_DIR}/src/jaegertracing/testutils")
     set(TEST_SRC
-        src/jaegertracing/utils/ErrorUtilTest.cpp
-        src/jaegertracing/utils/UDPClientTest.cpp
-        src/jaegertracing/utils/RateLimiterTest.cpp
-        src/jaegertracing/reporters/ReporterTest.cpp
-        src/jaegertracing/SpanTest.cpp
-        src/jaegertracing/SpanContextTest.cpp
-        src/jaegertracing/propagation/PropagatorTest.cpp
-        src/jaegertracing/metrics/NullStatsFactoryTest.cpp
-        src/jaegertracing/metrics/MetricsTest.cpp
-        src/jaegertracing/samplers/SamplerTest.cpp
-        src/jaegertracing/net/SocketTest.cpp
-        src/jaegertracing/net/http/MethodTest.cpp
-        src/jaegertracing/net/http/HeaderTest.cpp
-        src/jaegertracing/net/http/ResponseTest.cpp
-        src/jaegertracing/net/IPAddressTest.cpp
-        src/jaegertracing/net/URITest.cpp
-        src/jaegertracing/TracerTest.cpp
-        src/jaegertracing/TraceIDTest.cpp
-        src/jaegertracing/testutils/TUDPTransportTest.cpp
-        src/jaegertracing/testutils/MockAgentTest.cpp
         src/jaegertracing/ConfigTest.cpp
         src/jaegertracing/ReferenceTest.cpp
-        src/jaegertracing/TagTest.cpp)
+        src/jaegertracing/SpanContextTest.cpp
+        src/jaegertracing/SpanTest.cpp
+        src/jaegertracing/TagTest.cpp
+        src/jaegertracing/TraceIDTest.cpp
+        src/jaegertracing/TracerTest.cpp
+        src/jaegertracing/UDPTransportTest.cpp
+        src/jaegertracing/metrics/MetricsTest.cpp
+        src/jaegertracing/metrics/NullStatsFactoryTest.cpp
+        src/jaegertracing/net/IPAddressTest.cpp
+        src/jaegertracing/net/SocketTest.cpp
+        src/jaegertracing/net/URITest.cpp
+        src/jaegertracing/net/http/HeaderTest.cpp
+        src/jaegertracing/net/http/MethodTest.cpp
+        src/jaegertracing/net/http/ResponseTest.cpp
+        src/jaegertracing/propagation/PropagatorTest.cpp
+        src/jaegertracing/reporters/ReporterTest.cpp
+        src/jaegertracing/samplers/SamplerTest.cpp
+        src/jaegertracing/testutils/MockAgentTest.cpp
+        src/jaegertracing/testutils/TUDPTransportTest.cpp
+        src/jaegertracing/utils/ErrorUtilTest.cpp
+        src/jaegertracing/utils/RateLimiterTest.cpp
+        src/jaegertracing/utils/UDPClientTest.cpp)
     add_executable(UnitTest ${TEST_SRC})
     target_compile_definitions(UnitTest PUBLIC
         GTEST_HAS_TR1_TUPLE=0

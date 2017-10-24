@@ -15,3 +15,12 @@
  */
 
 #include "jaegertracing/reporters/Config.h"
+
+namespace jaegertracing {
+namespace reporters {
+
+constexpr int Config::kDefaultQueueSize;
+constexpr const char* Config::kDefaultLocalAgentHostPort;
+
+}  // namespace reporters
+}  // namespace jaegertracing

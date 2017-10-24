@@ -35,8 +35,6 @@ class UDPTransport : public Transport {
     void close() override { _client->close(); }
 
   private:
-    static constexpr auto kEmitBatchOverhead = 30;
-
     void resetBuffers()
     {
         _spanBuffer.clear();

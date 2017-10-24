@@ -54,14 +54,7 @@ class FakeTransport : public Transport {
     std::mutex& _mutex;
 };
 
-const Span span(std::shared_ptr<Tracer>(),
-                SpanContext(),
-                "",
-                Span::Clock::now(),
-                Span::Clock::duration(),
-                std::vector<Tag>(),
-                std::vector<Reference>(),
-                false);
+const Span span;
 
 }  // anonymous namespace
 

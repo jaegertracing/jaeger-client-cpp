@@ -15,3 +15,12 @@
  */
 
 #include "jaegertracing/samplers/Config.h"
+
+namespace jaegertracing {
+namespace samplers {
+
+constexpr double Config::kDefaultSamplingProbability;
+constexpr const char* Config::kDefaultSamplingServerURL;
+
+}  // namespace samplers
+}  // namespace jaegertracing

@@ -115,11 +115,11 @@ TEST(Sampler, testProbabilisticSampler)
     CMP_TAGS(testProbablisticExpectedTags, result.tags());
 }
 
-TEST(Sampler, DISABLED_testProbabilisticSamplerPerformance)
+TEST(Sampler, testProbabilisticSamplerPerformance)
 {
-    constexpr auto kNumSamples = static_cast<uint64_t>(100000000);
+    constexpr auto kNumSamples = static_cast<uint64_t>(10000);
 
-    ProbabilisticSampler sampler(0.01);
+    ProbabilisticSampler sampler(0.001);
     std::random_device randomDevice;
     std::default_random_engine randomGenerator(randomDevice());
     std::uniform_int_distribution<uint64_t> distribution;

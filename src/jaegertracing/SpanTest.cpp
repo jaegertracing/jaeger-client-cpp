@@ -22,14 +22,7 @@ namespace jaegertracing {
 
 TEST(Span, testThriftConversion)
 {
-    const Span span(std::shared_ptr<Tracer>(),
-                    SpanContext(),
-                    "",
-                    Span::Clock::now(),
-                    Span::Clock::duration(),
-                    std::vector<Tag>(),
-                    std::vector<Reference>(),
-                    false);
+    const Span span;
     ASSERT_TRUE(span.serviceName().empty());
     ASSERT_TRUE(span.operationName().empty());
     ASSERT_NO_THROW(span.thrift());

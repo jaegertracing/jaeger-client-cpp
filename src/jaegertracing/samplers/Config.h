@@ -40,7 +40,8 @@ class Config {
   public:
     using Clock = std::chrono::steady_clock;
 
-    static constexpr auto kDefaultSamplingProbability = 0.001;
+    static constexpr auto kDefaultSamplingProbability =
+        static_cast<double>(0.001);
     static constexpr auto kDefaultSamplingServerURL = "http://127.0.0.1:5778";
 
     static Clock::duration defaultSamplingRefreshInterval()

@@ -21,6 +21,8 @@
 namespace jaegertracing {
 namespace {
 
+constexpr auto kEmitBatchOverhead = 30;
+
 template <typename ThriftType>
 int calcSizeOfSerializedThrift(
     const ThriftType& base,
@@ -41,12 +43,9 @@ int calcSizeOfSerializedThrift(
 
 UDPTransport::UDPTransport(const net::IPAddress& ip, int maxPacketSize)
     : _client(new utils::UDPClient(ip, maxPacketSize))
-    , _maxSpanBytes(_client->maxPacketSize() - kEmitBatchOverhead)
+    , _maxSpanBytes(0)
     , _byteBufferSize(0)
-    , _spanBuffer()
-    , _process()
-    , _processByteSize(calcSizeOfSerializedThrift(
-          _process, _client->maxPacketSize()))
+    , _processByteSize(0)
 {
 }
 
@@ -64,6 +63,11 @@ int UDPTransport::append(const Span& span)
                        std::back_inserter(thriftTags),
                        [](const Tag& tag) { return tag.thrift(); });
         _process.__set_tags(thriftTags);
+
+        _processByteSize = calcSizeOfSerializedThrift(
+            _process, _client->maxPacketSize());
+        _maxSpanBytes =
+            _client->maxPacketSize() - _processByteSize - kEmitBatchOverhead;
     }
     const auto jaegerSpan = span.thrift();
     const auto spanSize = calcSizeOfSerializedThrift(
