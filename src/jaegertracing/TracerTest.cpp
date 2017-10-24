@@ -47,14 +47,22 @@ TEST(Tracer, testTracer)
                                config,
                                logging::consoleLogger());
     opentracing::Tracer::InitGlobal(tracer);
-    auto span = tracer->StartSpanWithOptions("test-operation", {});
+    std::unique_ptr<Span> span(static_cast<Span*>(
+        tracer->StartSpanWithOptions("test-operation", {}).release()));
+    ASSERT_TRUE(static_cast<bool>(span));
     ASSERT_EQ(static_cast<opentracing::Tracer*>(tracer.get()), &span->tracer());
     span->SetOperationName("test-set-operation");
     span->SetTag("tag-key", "tag-value");
     span->SetBaggageItem("test-baggage-item-key", "test-baggage-item-value");
+    ASSERT_EQ("test-baggage-item-value",
+              span->BaggageItem("test-baggage-item-key"));
     span->Log({ { "log-bool", true } });
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     span->Finish();
+    ASSERT_GE(Span::Clock::now(), span->startTime() + span->duration());
+    span->SetOperationName("test-set-operation-after-finish");
+    ASSERT_EQ("test-set-operation", span->operationName());
+    span->SetTag("tagged-after-finish-key", "tagged-after-finish-value");
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     opentracing::Tracer::InitGlobal(opentracing::MakeNoopTracer());
 }

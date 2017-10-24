@@ -31,6 +31,7 @@ TEST(Span, testThriftConversion)
                     std::vector<Reference>(),
                     false);
     ASSERT_TRUE(span.serviceName().empty());
+    ASSERT_TRUE(span.operationName().empty());
     ASSERT_NO_THROW(span.thrift());
 }
 

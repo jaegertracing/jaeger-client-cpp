@@ -28,7 +28,7 @@ TEST(Config, testParse)
 disabled: true
 sampler:
     type: probabilistic
-    param: 0.01
+    param: 0.001
 reporter: 4
 headers: 5
 baggage_restrictions: 6

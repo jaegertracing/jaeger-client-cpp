@@ -253,7 +253,7 @@ class Tracer : public opentracing::Tracer,
     std::shared_ptr<reporters::Reporter> _reporter;
     std::shared_ptr<metrics::Metrics> _metrics;
     std::shared_ptr<spdlog::logger> _logger;
-    mutable std::mt19937 _randomNumberGenerator;
+    mutable std::mt19937_64 _randomNumberGenerator;
     mutable std::mutex _randomMutex;
     propagation::TextMapPropagator _textPropagator;
     propagation::HTTPHeaderPropagator _httpHeaderPropagator;

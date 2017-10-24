@@ -43,9 +43,7 @@ void Span::FinishWithOptions(
     std::shared_ptr<const Tracer> tracer;
     {
         std::lock_guard<std::mutex> lock(_mutex);
-        if (_context.isSampled()) {
-            _duration = finishSpanOptions.finish_steady_timestamp - _startTime;
-        }
+        _duration = finishSpanOptions.finish_steady_timestamp - _startTime;
         tracer = _tracer;
     }
 
