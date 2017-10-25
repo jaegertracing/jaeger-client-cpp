@@ -213,6 +213,7 @@ if(BUILD_TESTING)
         src/jaegertracing/reporters/ReporterTest.cpp
         src/jaegertracing/samplers/SamplerTest.cpp
         src/jaegertracing/testutils/MockAgentTest.cpp
+        src/jaegertracing/testutils/TracerUtil.cpp
         src/jaegertracing/testutils/TUDPTransportTest.cpp
         src/jaegertracing/utils/ErrorUtilTest.cpp
         src/jaegertracing/utils/RateLimiterTest.cpp

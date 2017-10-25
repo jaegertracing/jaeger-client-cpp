@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 
 #include "jaegertracing/Tracer.h"
-#include "jaegertracing/testutils/MockAgent.h"
+#include "jaegertracing/testutils/TracerUtil.h"
 
 namespace jaegertracing {
 namespace {
@@ -37,28 +37,9 @@ class FakeSpanContext : public opentracing::SpanContext {
 
 TEST(Tracer, testTracer)
 {
-    auto mockAgent = testutils::MockAgent::make();
-    mockAgent->start();
-    std::ostringstream samplingServerURLStream;
-    samplingServerURLStream << "http://"
-                            << mockAgent->samplingServerAddr().authority();
-    Config config(false,
-                  samplers::Config("const",
-                                   1,
-                                   samplingServerURLStream.str(),
-                                   0,
-                                   samplers::Config::Clock::duration()),
-                  reporters::Config(0,
-                                    reporters::Config::Clock::duration(),
-                                    false,
-                                    mockAgent->spanServerAddress().authority()),
-                  propagation::HeadersConfig(),
-                  baggage::RestrictionsConfig());
-
-    auto tracer = Tracer::make("test-service",
-                               config,
-                               logging::consoleLogger());
-    opentracing::Tracer::InitGlobal(tracer);
+    auto mockAgent = testutils::TracerUtil::installGlobalTracer();
+    auto tracer = std::static_pointer_cast<Tracer>(
+        opentracing::Tracer::Global());
 
     opentracing::StartSpanOptions options;
     options.tags.push_back({ "tag-key", 1.23 });
