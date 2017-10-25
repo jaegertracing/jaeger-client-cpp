@@ -161,7 +161,8 @@ function(SETUP_TARGET_FOR_COVERAGE)
         COMMAND ${LCOV_PATH} --base-directory ${CMAKE_SOURCE_DIR} --directory . --capture --output-file ${Coverage_NAME}.info --no-external
         COMMAND ${LCOV_PATH} --remove ${Coverage_NAME}.info ${COVERAGE_EXCLUDES} --output-file ${Coverage_NAME}.info.cleaned
         COMMAND ${GENHTML_PATH} --legend --demangle-cpp -o ${Coverage_NAME} ${Coverage_NAME}.info.cleaned
-        COMMAND ${CMAKE_COMMAND} -E remove ${Coverage_NAME}.info ${Coverage_NAME}.info.cleaned
+        COMMAND ${CMAKE_COMMAND} -E rename ${Coverage_NAME}.info.cleaned coverage.info
+        COMMAND ${CMAKE_COMMAND} -E remove ${Coverage_NAME}.info
 
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         DEPENDS ${Coverage_DEPENDENCIES}

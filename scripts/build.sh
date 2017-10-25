@@ -21,7 +21,7 @@ function working() {
 
 mkdir -p build
 cd build || exit
-cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake -DCMAKE_BUILD_TYPE=Debug -DJAEGERTRACING_COVERAGE=ON ..
 if make -j3 UnitTest; then
     true
 else
