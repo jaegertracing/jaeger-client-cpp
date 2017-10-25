@@ -43,6 +43,10 @@ void Span::FinishWithOptions(
     std::shared_ptr<const Tracer> tracer;
     {
         std::lock_guard<std::mutex> lock(_mutex);
+        if (isFinished()) {
+            // Already finished, so return immediately.
+            return;
+        }
         _duration = finishSpanOptions.finish_steady_timestamp - _startTime;
         tracer = _tracer;
     }

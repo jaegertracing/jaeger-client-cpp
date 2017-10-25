@@ -79,6 +79,8 @@ TEST(Tracer, testTracer)
                                0,
                                0,
                                static_cast<unsigned char>(
+                                   SpanContext::Flag::kSampled) |
+                               static_cast<unsigned char>(
                                    SpanContext::Flag::kDebug),
                                SpanContext::StrMap({
                                    {"debug-baggage-key", "debug-baggage-value"}
@@ -121,6 +123,8 @@ TEST(Tracer, testTracer)
     span.reset(static_cast<Span*>(
         tracer->StartSpanWithOptions(
             "test-span-with-debug-parent", options).release()));
+
+    span.reset();
 
     opentracing::Tracer::InitGlobal(opentracing::MakeNoopTracer());
 }

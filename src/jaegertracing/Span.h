@@ -76,6 +76,8 @@ class Span : public opentracing::Span {
         return *this;
     }
 
+    ~Span() { Finish(); }
+
     void swap(Span& span)
     {
         using std::swap;
