@@ -28,6 +28,8 @@ class UDPTransport : public Transport {
   public:
     UDPTransport(const net::IPAddress& ip, int maxPacketSize);
 
+    ~UDPTransport() { close(); }
+
     int append(const Span& span) override;
 
     int flush() override;

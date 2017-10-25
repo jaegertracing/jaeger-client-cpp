@@ -47,6 +47,7 @@ class Span : public opentracing::Span {
         , _context(context)
         , _operationName(operationName)
         , _startTime(startTime)
+        , _duration()
         , _tags(tags)
         , _references(references)
     {

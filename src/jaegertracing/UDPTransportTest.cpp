@@ -43,13 +43,12 @@ TEST(UDPTransport, testManyMessages)
                                     false,
                                     mockAgent->spanServerAddress().authority()),
                   propagation::HeadersConfig(),
-                  false,
                   baggage::RestrictionsConfig());
     auto tracer = Tracer::make("test-service",
                                config,
                                logging::consoleLogger());
 
-    UDPTransport sender(net::IPAddress::v4("127.0.0.1:0"), 0);
+    UDPTransport sender(mockAgent->spanServerAddress(), 0);
     constexpr auto kNumMessages = 2000;
     const auto logger = logging::consoleLogger();
     logger->set_level(spdlog::level::info);

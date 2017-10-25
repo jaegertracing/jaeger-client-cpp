@@ -28,42 +28,21 @@ Tracer::StartSpanWithOptions(string_view operationName,
     noexcept
 {
     try {
-        std::vector<Reference> references;
-        SpanContext parent;
-        auto hasParent = false;
-        for (auto&& ref : options.references) {
-            auto ctx = dynamic_cast<const SpanContext*>(ref.second);
-            if (!ctx) {
-                _logger->error(
-                    "Reference contains invalid type of SpanReference");
-                continue;
-            }
-            if (!ctx->isValid() || ctx->isDebugIDContainerOnly()) {
-                continue;
-            }
-            references.push_back(Reference(*ctx, ref.first));
-
-            if (!hasParent) {
-                parent = *ctx;
-                hasParent =
-                    (ref.first == opentracing::SpanReferenceType::ChildOfRef);
-            }
-        }
-
-        if (!hasParent && parent.isValid()) {
-            hasParent = true;
-        }
+        const auto result =
+            analyzeReferences(options.references);
+        const auto* parent = result._parent;
+        const auto& references = result._references;
 
         std::vector<Tag> samplerTags;
         auto newTrace = false;
         SpanContext ctx;
-        if (!hasParent || !parent.isValid()) {
+        if (!parent || !parent->isValid()) {
             newTrace = true;
             const TraceID traceID(randomID(), randomID());
             const auto spanID = traceID.low();
             const auto parentID = 0;
             auto flags = static_cast<unsigned char>(0);
-            if (hasParent && parent.isDebugIDContainerOnly()) {
+            if (parent && parent->isDebugIDContainerOnly()) {
                 flags |=
                     (static_cast<unsigned char>(SpanContext::Flag::kSampled) |
                      static_cast<unsigned char>(SpanContext::Flag::kDebug));
@@ -80,15 +59,15 @@ Tracer::StartSpanWithOptions(string_view operationName,
             ctx = SpanContext(traceID, spanID, parentID, flags, StrMap());
         }
         else {
-            const auto traceID = parent.traceID();
+            const auto traceID = parent->traceID();
             const auto spanID = randomID();
-            const auto parentID = parent.spanID();
-            const auto flags = parent.flags();
+            const auto parentID = parent->spanID();
+            const auto flags = parent->flags();
             ctx = SpanContext(traceID, spanID, parentID, flags, StrMap());
         }
 
-        if (hasParent && !parent.baggage().empty()) {
-            ctx = ctx.withBaggage(parent.baggage());
+        if (parent && !parent->baggage().empty()) {
+            ctx = ctx.withBaggage(parent->baggage());
         }
 
         return startSpanInternal(ctx,
@@ -114,8 +93,6 @@ Tracer::startSpanInternal(const SpanContext& context,
                           bool newTrace,
                           const std::vector<Reference>& references) const
 {
-    const auto firstInProcess = (context.parentID() == 0);
-
     std::vector<Tag> spanTags;
     spanTags.reserve(tags.size() + internalTags.size());
     std::transform(
@@ -139,21 +116,58 @@ Tracer::startSpanInternal(const SpanContext& context,
         if (newTrace) {
             _metrics->tracesStartedSampled().inc(1);
         }
-        else if (firstInProcess) {
-            _metrics->tracesJoinedSampled().inc(1);
-        }
     }
     else {
         _metrics->spansNotSampled().inc(1);
         if (newTrace) {
             _metrics->tracesStartedNotSampled().inc(1);
         }
-        else if (firstInProcess) {
-            _metrics->tracesJoinedNotSampled().inc(1);
-        }
     }
 
     return span;
+}
+
+Tracer::AnalyzedReferences Tracer::analyzeReferences(
+    const std::vector<OpenTracingRef>& references) const
+{
+    AnalyzedReferences result;
+    auto hasParent = false;
+    const auto* parent = result._parent;
+    for (auto&& ref : references) {
+        const auto* ctx = dynamic_cast<const SpanContext*>(ref.second);
+
+        if (!ctx) {
+            _logger->error(
+                "Reference contains invalid type of SpanReference");
+            continue;
+        }
+
+        if (!ctx->isValid() &&
+            !ctx->isDebugIDContainerOnly() &&
+            ctx->baggage().empty()) {
+            continue;
+        }
+
+        result._references.emplace_back(Reference(*ctx, ref.first));
+
+        if (!hasParent) {
+            parent = ctx;
+            hasParent =
+                (ref.first == opentracing::SpanReferenceType::ChildOfRef);
+        }
+    }
+
+    if (!hasParent && parent && parent->isValid()) {
+        // Use `FollowsFromRef` in place of `ChildOfRef`.
+        hasParent = true;
+    }
+
+    if (hasParent) {
+        assert(parent);
+        result._parent = parent;
+    }
+
+    return result;
 }
 
 }  // namespace jaegertracing

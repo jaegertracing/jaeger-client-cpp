@@ -82,7 +82,7 @@ TEST_F(MetricsTest, testTimer)
 
 TEST_F(MetricsTest, testReset)
 {
-    _metrics->tracesJoinedSampled().inc(1);
+    _metrics->tracesStartedSampled().inc(1);
     const auto& counters = _metricsReporter.counters();
     ASSERT_EQ(1, counters.size());
 

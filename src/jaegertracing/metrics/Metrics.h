@@ -50,10 +50,6 @@ class Metrics {
               "jaeger.traces", { { "state", "started" }, { "sampled", "y" } }))
         , _tracesStartedNotSampled(factory.createCounter(
               "jaeger.traces", { { "state", "started" }, { "sampled", "n" } }))
-        , _tracesJoinedSampled(factory.createCounter(
-              "jaeger.traces", { { "state", "joined" }, { "sampled", "y" } }))
-        , _tracesJoinedNotSampled(factory.createCounter(
-              "jaeger.traces", { { "state", "joined" }, { "sampled", "n" } }))
         , _spansStarted(factory.createCounter(
               "jaeger.spans",
               { { "state", "started" }, { "group", "lifecycle" } }))
@@ -109,13 +105,6 @@ class Metrics {
         return *_tracesStartedNotSampled;
     }
     Counter& tracesStartedNotSampled() { return *_tracesStartedNotSampled; }
-    const Counter& tracesJoinedSampled() const { return *_tracesJoinedSampled; }
-    Counter& tracesJoinedSampled() { return *_tracesJoinedSampled; }
-    const Counter& tracesJoinedNotSampled() const
-    {
-        return *_tracesJoinedNotSampled;
-    }
-    Counter& tracesJoinedNotSampled() { return *_tracesJoinedNotSampled; }
     const Counter& spansStarted() const { return *_spansStarted; }
     Counter& spansStarted() { return *_spansStarted; }
     const Counter& spansFinished() const { return *_spansFinished; }

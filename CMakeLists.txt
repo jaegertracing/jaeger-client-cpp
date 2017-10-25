@@ -129,6 +129,7 @@ set(SRC
     src/jaegertracing/net/http/Response.cpp
     src/jaegertracing/platform/Endian.cpp
     src/jaegertracing/platform/Hostname.cpp
+    src/jaegertracing/platform/UDP.cpp
     src/jaegertracing/propagation/Extractor.cpp
     src/jaegertracing/propagation/HeadersConfig.cpp
     src/jaegertracing/propagation/Injector.cpp
@@ -283,7 +284,13 @@ install(
 #   * src/jaegertracing/Tracer.h -> <prefix>/include/jaegertracing/Tracer.h
 install(DIRECTORY "src/jaegertracing"
         DESTINATION "${include_install_dir}"
-        FILES_MATCHING PATTERN "*.h")
+        FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "testutils/*.h" EXCLUDE)
+
+#   * build/src/jaegertracing/Constants.h -> <prefix>/include/jaegertracing/Constants.h
+install(FILES "${CMAKE_CURRNET_BINARY_DIR}/src/jaegertracing/Constants.h"
+        DESTINATION "${include_install_dir}/jaegertracing/Constants.h")
 
 # Config
 #   * <prefix>/lib/cmake/jaegertracing/jaegertracingConfig.cmake

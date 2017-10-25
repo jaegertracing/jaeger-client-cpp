@@ -43,8 +43,6 @@ class Config {
         const auto reporter = reporters::Config::parse(reporterNode);
         const auto headersNode = configYAML["headers"];
         const auto headers = propagation::HeadersConfig::parse(headersNode);
-        const auto rpcMetrics =
-            utils::yaml::findOrDefault<bool>(configYAML, "rpc_metrics", false);
         const auto baggageRestrictionsNode = configYAML["baggage_restrictions"];
         const auto baggageRestrictions =
             baggage::RestrictionsConfig::parse(baggageRestrictionsNode);
@@ -52,25 +50,22 @@ class Config {
                       sampler,
                       reporter,
                       headers,
-                      rpcMetrics,
                       baggageRestrictions);
     }
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
-    Config() = default;
-
-    Config(bool disabled,
-           const samplers::Config& sampler,
-           const reporters::Config& reporter,
-           const propagation::HeadersConfig& headers,
-           bool rpcMetrics,
-           const baggage::RestrictionsConfig& baggageRestrictions)
+    explicit Config(bool disabled = false,
+                    const samplers::Config& sampler = samplers::Config(),
+                    const reporters::Config& reporter = reporters::Config(),
+                    const propagation::HeadersConfig& headers =
+                        propagation::HeadersConfig(),
+                    const baggage::RestrictionsConfig& baggageRestrictions =
+                        baggage::RestrictionsConfig())
         : _disabled(disabled)
         , _sampler(sampler)
         , _reporter(reporter)
         , _headers(headers)
-        , _rpcMetrics(rpcMetrics)
         , _baggageRestrictions(baggageRestrictions)
     {
     }
@@ -83,8 +78,6 @@ class Config {
 
     const propagation::HeadersConfig& headers() const { return _headers; }
 
-    bool rpcMetrics() const { return _rpcMetrics; }
-
     const baggage::RestrictionsConfig& baggageRestrictions() const
     {
         return _baggageRestrictions;
@@ -95,7 +88,6 @@ class Config {
     samplers::Config _sampler;
     reporters::Config _reporter;
     propagation::HeadersConfig _headers;
-    bool _rpcMetrics;
     baggage::RestrictionsConfig _baggageRestrictions;
 };
 

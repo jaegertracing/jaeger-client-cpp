@@ -60,8 +60,12 @@ class UDPClient : public agent::thrift::AgentIf {
         }
         const auto numWritten = ::write(_socket.handle(), data, size);
         if (numWritten != size) {
+            std::ostringstream oss;
+            oss << "Failed to write message"
+                   ", numWritten=" << numWritten
+                << ", size=" << size;
             throw std::system_error(
-                errno, std::system_category(), "Failed to write message");
+                errno, std::system_category(), oss.str());
         }
     }
 

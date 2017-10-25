@@ -22,6 +22,18 @@
 #include "jaegertracing/testutils/MockAgent.h"
 
 namespace jaegertracing {
+namespace {
+
+class FakeSpanContext : public opentracing::SpanContext {
+    void ForeachBaggageItem(
+      std::function<bool(const std::string&,
+                         const std::string&)> /* unused */) const override
+    {
+        // Do nothing
+    }
+};
+
+}  // anonymous namespace
 
 TEST(Tracer, testTracer)
 {
@@ -41,30 +53,95 @@ TEST(Tracer, testTracer)
                                     false,
                                     mockAgent->spanServerAddress().authority()),
                   propagation::HeadersConfig(),
-                  false,
                   baggage::RestrictionsConfig());
+
     auto tracer = Tracer::make("test-service",
                                config,
                                logging::consoleLogger());
     opentracing::Tracer::InitGlobal(tracer);
+
+    opentracing::StartSpanOptions options;
+    options.tags.push_back({ "tag-key", 1.23 });
+
+    const FakeSpanContext fakeCtx;
+    options.references.emplace_back(
+        opentracing::SpanReferenceType::ChildOfRef, &fakeCtx);
+    const SpanContext emptyCtx(TraceID(), 0, 0, 0, SpanContext::StrMap());
+    options.references.emplace_back(
+        opentracing::SpanReferenceType::ChildOfRef, &emptyCtx);
+    const SpanContext parentCtx(
+        TraceID(0xDEAD, 0xBEEF), 0xBEEF, 1234, 0, SpanContext::StrMap());
+    options.references.emplace_back(
+        opentracing::SpanReferenceType::ChildOfRef, &parentCtx);
+    options.references.emplace_back(
+        opentracing::SpanReferenceType::FollowsFromRef, &parentCtx);
+    const SpanContext debugCtx(TraceID(),
+                               0,
+                               0,
+                               static_cast<unsigned char>(
+                                   SpanContext::Flag::kDebug),
+                               SpanContext::StrMap({
+                                   {"debug-baggage-key", "debug-baggage-value"}
+                               }),
+                               "123");
+    options.references.emplace_back(
+        opentracing::SpanReferenceType::ChildOfRef, &debugCtx);
+
     std::unique_ptr<Span> span(static_cast<Span*>(
-        tracer->StartSpanWithOptions("test-operation", {}).release()));
+        tracer->StartSpanWithOptions("test-operation", options).release()));
     ASSERT_TRUE(static_cast<bool>(span));
     ASSERT_EQ(static_cast<opentracing::Tracer*>(tracer.get()), &span->tracer());
+
     span->SetOperationName("test-set-operation");
     span->SetTag("tag-key", "tag-value");
     span->SetBaggageItem("test-baggage-item-key", "test-baggage-item-value");
     ASSERT_EQ("test-baggage-item-value",
               span->BaggageItem("test-baggage-item-key"));
     span->Log({ { "log-bool", true } });
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     span->Finish();
     ASSERT_GE(Span::Clock::now(), span->startTime() + span->duration());
     span->SetOperationName("test-set-operation-after-finish");
     ASSERT_EQ("test-set-operation", span->operationName());
     span->SetTag("tagged-after-finish-key", "tagged-after-finish-value");
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    span.reset(static_cast<Span*>(
+        tracer->StartSpanWithOptions(
+            "test-span-with-default-options", {}).release()));
+
+    options.references.clear();
+    options.references.emplace_back(
+        opentracing::SpanReferenceType::FollowsFromRef, &parentCtx);
+    span.reset(static_cast<Span*>(
+        tracer->StartSpanWithOptions(
+            "test-span-with-default-options", options).release()));
+
+    options.references.clear();
+    options.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef,
+                                    &debugCtx);
+    span.reset(static_cast<Span*>(
+        tracer->StartSpanWithOptions(
+            "test-span-with-debug-parent", options).release()));
+
     opentracing::Tracer::InitGlobal(opentracing::MakeNoopTracer());
+}
+
+TEST(Tracer, testConstructorFailure)
+{
+    Config config;
+    ASSERT_THROW(Tracer::make("", config), std::invalid_argument);
+}
+
+TEST(Tracer, testDisabledConfig)
+{
+    Config config(true,
+                  samplers::Config(),
+                  reporters::Config(),
+                  propagation::HeadersConfig(),
+                  baggage::RestrictionsConfig());
+    ASSERT_FALSE(
+        static_cast<bool>(
+            std::dynamic_pointer_cast<Tracer>(
+                Tracer::make("test-service", config))));
 }
 
 }  // namespace jaegertracing
