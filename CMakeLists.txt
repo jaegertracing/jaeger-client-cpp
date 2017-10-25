@@ -129,7 +129,6 @@ set(SRC
     src/jaegertracing/net/http/Response.cpp
     src/jaegertracing/platform/Endian.cpp
     src/jaegertracing/platform/Hostname.cpp
-    src/jaegertracing/platform/UDP.cpp
     src/jaegertracing/propagation/Extractor.cpp
     src/jaegertracing/propagation/HeadersConfig.cpp
     src/jaegertracing/propagation/Injector.cpp

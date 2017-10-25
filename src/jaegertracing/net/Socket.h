@@ -19,7 +19,6 @@
 
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/net/URI.h"
-#include "jaegertracing/platform/UDP.h"
 
 namespace jaegertracing {
 namespace net {
@@ -171,7 +170,7 @@ class Socket {
     int _type;
 };
 
-static constexpr auto kUDPPacketMaxLength = platform::kUDPPacketMaxLength;
+static constexpr auto kUDPPacketMaxLength = 65000;
 
 }  // namespace net
 }  // namespace jaegertracing
