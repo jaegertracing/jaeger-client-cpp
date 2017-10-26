@@ -38,7 +38,7 @@ class Config {
     using Clock = std::chrono::steady_clock;
 
     static constexpr auto kDefaultQueueSize = 100;
-    static constexpr auto kDefaultLocalAgentHostPort = "127.0.0.1:5775";
+    static constexpr auto kDefaultLocalAgentHostPort = "127.0.0.1:6831";
 
     static Clock::duration defaultBufferFlushInterval()
     {
