@@ -2,17 +2,44 @@ cmake_minimum_required(VERSION 3.1)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/cmake/toolchain.cmake")
+
+set(HUNTER_CACHE_SERVERS "https://github.com/isaachier/cpp-client-hunter-cache")
+
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.19.129.tar.gz"
-    SHA1 "3e190ff47df41cc16d32c479b9617309e01405bf"
+    URL "https://github.com/ruslo/hunter/archive/v0.19.136.tar.gz"
+    SHA1 "00e8ee66494a66cc2d4df0410ab3dd3948892a7a"
     LOCAL
 )
 
-project(jaegertracing VERSION 0.0.1)
+# Copied from [cpp-ethereum](https://github.com/ethereum/cpp-ethereum/blob/develop/CMakeLists.txt)
+# to upload packages to Hunter cache
+if(HUNTER_ENABLED)
+    find_package(PythonInterp QUIET)
+    if(PYTHONINTERP_FOUND)
+        hunter_gate_self(
+            "${HUNTER_CACHED_ROOT}"
+            "${HUNTER_VERSION}"
+            "${HUNTER_SHA1}"
+            hunter_dir
+        )
+        set(hunter_upload_script "${hunter_dir}/maintenance/upload-cache-to-github.py")
+        set(hunter_cache_dir "${HUNTER_GATE_ROOT}/_Base/Cache")
+        set(hunter_tmp_dir "${HUNTER_GATE_ROOT}/tmp")
+        add_custom_target(
+            hunter_upload_cache
+            ${PYTHON_EXECUTABLE} ${hunter_upload_script}
+            --username isaachier
+            --repo-owner isaachier
+            --repo cpp-client-hunter-cache
+            --cache-dir ${hunter_cache_dir}
+            --temp-dir ${hunter_tmp_dir}
+        )
+    endif()
+endif()
 
-set(CMAKE_CXX_STANDARD_REQUIRED true)
-set(CMAKE_CXX_STANDARD 11)
+project(jaegertracing VERSION 0.0.1)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
    CMAKE_CXX_COMPILER_ID MATCHES "Clang")

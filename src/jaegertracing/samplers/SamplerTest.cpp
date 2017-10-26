@@ -28,6 +28,7 @@
 #include "jaegertracing/samplers/RemotelyControlledSampler.h"
 #include "jaegertracing/samplers/Sampler.h"
 #include "jaegertracing/samplers/SamplingStatus.h"
+#include "jaegertracing/testutils/MockAgent.h"
 #include "jaegertracing/testutils/TUDPTransport.h"
 
 namespace jaegertracing {
@@ -283,6 +284,34 @@ TEST(Sampler, testAdaptiveSamplerUpdate)
         { updatedStrategy, newStrategy });
 
     sampler.update(newStrategies);
+}
+
+TEST(Sampler, testRemotelyControlledSampler)
+{
+    const auto mockAgent = testutils::MockAgent::make();
+    mockAgent->start();
+    const auto logger = logging::nullLogger();
+    const auto metrics = metrics::Metrics::makeNullMetrics();
+    RemotelyControlledSampler sampler(
+        "test-service",
+        "http://" + mockAgent->samplingServerAddr().authority(),
+        std::make_shared<ProbabilisticSampler>(
+            kTestDefaultSamplingProbability),
+        kTestDefaultMaxOperations,
+        std::chrono::milliseconds(100),
+        *logger,
+        *metrics);
+    std::random_device device;
+    std::mt19937_64 rng;
+    rng.seed(device());
+    for (auto startTime = RemotelyControlledSampler::Clock::now();
+         std::chrono::duration_cast<std::chrono::seconds>(
+            RemotelyControlledSampler::Clock::now() - startTime).count() < 1;) {
+        TraceID traceID(rng(), rng());
+        sampler.isSampled(traceID, kTestOperationName);
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+    sampler.close();
 }
 
 }  // namespace samplers
