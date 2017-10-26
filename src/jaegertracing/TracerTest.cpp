@@ -224,6 +224,28 @@ TEST(Tracer, testPropagation)
         ASSERT_TRUE(static_cast<bool>(extractedCtx));
         ASSERT_EQ(span->context(), *extractedCtx);
     }
+
+    // HTTP map
+    {
+        StrMap headerMap;
+        WriterMock<opentracing::HTTPHeadersWriter> headerWriter(headerMap);
+        ASSERT_TRUE(static_cast<bool>(tracer->Inject(span->context(),
+                                                     headerWriter)));
+        ASSERT_EQ(2, headerMap.size());
+        std::ostringstream oss;
+        oss << span->context();
+        ASSERT_EQ(oss.str(), headerMap.at(kTraceContextHeaderName));
+        ASSERT_EQ("test-baggage-item-value",
+                  headerMap.at(std::string(kTraceBaggageHeaderPrefix) +
+                               "test-baggage-item-key"));
+        ReaderMock<opentracing::HTTPHeadersReader> headerReader(headerMap);
+        auto result = tracer->Extract(headerReader);
+        ASSERT_TRUE(static_cast<bool>(result));
+        std::unique_ptr<const SpanContext> extractedCtx(
+            static_cast<SpanContext*>(result->release()));
+        ASSERT_TRUE(static_cast<bool>(extractedCtx));
+        ASSERT_EQ(span->context(), *extractedCtx);
+    }
 }
 
 }  // namespace jaegertracing
