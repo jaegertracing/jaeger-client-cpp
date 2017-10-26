@@ -30,11 +30,19 @@ sampler:
     type: probabilistic
     param: 0.001
 reporter: 4
-headers: 5
+headers:
+    jaegerDebugHeader: debug-id
+    jaegerBaggageHeader: baggage
+    TraceContextHeaderName: trace-id
+    traceBaggageHeaderPrefix: "testctx-"
 baggage_restrictions: 6
 )cfg";
     const auto config = Config::parse(YAML::Load(kConfigYAML));
     ASSERT_EQ("probabilistic", config.sampler().type());
+    ASSERT_EQ("debug-id", config.headers().jaegerDebugHeader());
+    ASSERT_EQ("baggage", config.headers().jaegerBaggageHeader());
+    ASSERT_EQ("trace-id", config.headers().traceContextHeaderName());
+    ASSERT_EQ("testctx-", config.headers().traceBaggageHeaderPrefix());
 }
 
 TEST(Config, testDefaultSamplingProbability)

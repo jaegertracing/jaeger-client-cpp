@@ -25,6 +25,7 @@
 #include <array>
 #include <cassert>
 #include <cstring>
+#include <functional>
 #include <memory>
 #include <sstream>
 #include <stdexcept>

@@ -59,6 +59,38 @@ class SpanContext : public opentracing::SpanContext {
     {
     }
 
+    SpanContext(const SpanContext& ctx)
+        : _traceID(ctx._traceID)
+        , _spanID(ctx._spanID)
+        , _parentID(ctx._parentID)
+        , _flags(ctx._flags)
+        , _baggage(ctx._baggage)
+        , _debugID(ctx._debugID)
+    {
+    }
+
+    SpanContext& operator=(SpanContext rhs)
+    {
+        swap(rhs);
+        return *this;
+    }
+
+    void swap(SpanContext& ctx)
+    {
+        using std::swap;
+        swap(_traceID, ctx._traceID);
+        swap(_spanID, ctx._spanID);
+        swap(_parentID, ctx._parentID);
+        swap(_flags, ctx._flags);
+        swap(_baggage, ctx._baggage);
+        swap(_debugID, ctx._debugID);
+    }
+
+    friend void swap(SpanContext& lhs, SpanContext& rhs)
+    {
+        lhs.swap(rhs);
+    }
+
     const TraceID& traceID() const { return _traceID; }
 
     uint64_t spanID() const { return _spanID; }

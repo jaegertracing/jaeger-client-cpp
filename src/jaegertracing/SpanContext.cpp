@@ -61,6 +61,7 @@ SpanContext SpanContext::fromStream(std::istream& in)
     }
     spanContext._flags = utils::HexParsing::decodeHex<unsigned char>(buffer);
 
+    in.clear();
     return spanContext;
 }
 

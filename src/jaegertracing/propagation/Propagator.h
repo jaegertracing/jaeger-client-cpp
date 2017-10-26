@@ -107,7 +107,12 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
         }
 
         return SpanContext(
-            ctx.traceID(), ctx.spanID(), ctx.parentID(), 0, baggage, debugID);
+            ctx.traceID(),
+            ctx.spanID(),
+            ctx.parentID(),
+            ctx.flags(),
+            baggage,
+            debugID);
     }
 
     void inject(const SpanContext& ctx, const Writer& writer) const override
