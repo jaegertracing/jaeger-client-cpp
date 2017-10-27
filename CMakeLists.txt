@@ -14,7 +14,6 @@ HunterGate(
 )
 
 # Copied from [cpp-ethereum](https://github.com/ethereum/cpp-ethereum/blob/develop/CMakeLists.txt)
-# to upload packages to Hunter cache
 if(HUNTER_ENABLED)
     find_package(PythonInterp QUIET)
     if(PYTHONINTERP_FOUND)
@@ -206,15 +205,27 @@ set(SRC
     src/jaegertracing/utils/UDPClient.cpp
     src/jaegertracing/utils/YAML.cpp)
 
-add_library(jaegertracing ${SRC})
-configure_file(src/jaegertracing/Constants.h.in
-               src/jaegertracing/Constants.h
-               @ONLY)
-set(CMAKE_INSTALL_CURRENT_DIR ON)
+add_library(jaegertracing SHARED ${SRC})
 target_include_directories(jaegertracing PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>)
 target_link_libraries(jaegertracing ${LIBS})
+set_target_properties(jaegertracing PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR})
+
+add_library(jaegertracing-static STATIC ${SRC})
+target_include_directories(jaegertracing-static PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>)
+target_link_libraries(jaegertracing-static ${LIBS})
+set_target_properties(jaegertracing-static PROPERTIES
+    OUTPUT_NAME jaegertracing)
+
+configure_file(src/jaegertracing/Constants.h.in
+               src/jaegertracing/Constants.h
+               @ONLY)
+set(CMAKE_INSTALL_CURRENT_DIR ON)
 
 if(BUILD_TESTING)
     add_subdirectory("${CMAKE_SOURCE_DIR}/src/jaegertracing/testutils")
@@ -296,10 +307,11 @@ configure_package_config_file(
 
 # Targets:
 #   * <prefix>/lib/libjaegertracing.a
+#   * <prefix>/lib/libjaegertracing.so
 #   * header location after install: <prefix>/include/jaegertracing/Tracer.h
 #   * headers can be included by C++ code `#include <jaegertracing/Tracer.h>`
 install(
-    TARGETS jaegertracing
+    TARGETS jaegertracing jaegertracing-static
     EXPORT "${TARGETS_EXPORT_NAME}"
     LIBRARY DESTINATION "lib"
     ARCHIVE DESTINATION "lib"

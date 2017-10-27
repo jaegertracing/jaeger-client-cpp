@@ -6,11 +6,13 @@ function main() {
     cd "$project_dir" || exit 1
 
     local srcs
-    srcs=$(git ls-files src | grep -E -v 'thrift-gen' | grep -E '\.(cpp|h)$')
+    srcs=$(git ls-files src |
+           grep -E -v 'thrift-gen|Test\.cpp' |
+           grep -E '\.(cpp|h)$')
 
     local cmd
     for src in $srcs; do
-        cmd="clang-format -i $src"
+        cmd="clang-tidy -p=build $src"
         echo "$cmd"
         eval "$cmd"
     done
