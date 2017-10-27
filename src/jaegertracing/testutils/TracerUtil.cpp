@@ -27,23 +27,21 @@ std::shared_ptr<ResourceHandle> installGlobalTracer()
     std::ostringstream samplingServerURLStream;
     samplingServerURLStream
         << "http://" << handle->_mockAgent->samplingServerAddr().authority();
-    Config config(false,
-                  samplers::Config("const",
-                                   1,
-                                   samplingServerURLStream.str(),
-                                   0,
-                                   samplers::Config::Clock::duration()),
-                  reporters::Config(
-                      0,
-                      reporters::Config::Clock::duration(),
-                      false,
-                      handle->_mockAgent->spanServerAddress().authority()),
-                  propagation::HeadersConfig(),
-                  baggage::RestrictionsConfig());
+    Config config(
+        false,
+        samplers::Config("const",
+                         1,
+                         samplingServerURLStream.str(),
+                         0,
+                         samplers::Config::Clock::duration()),
+        reporters::Config(0,
+                          reporters::Config::Clock::duration(),
+                          false,
+                          handle->_mockAgent->spanServerAddress().authority()),
+        propagation::HeadersConfig(),
+        baggage::RestrictionsConfig());
 
-    auto tracer = Tracer::make("test-service",
-                               config,
-                               logging::nullLogger());
+    auto tracer = Tracer::make("test-service", config, logging::nullLogger());
     opentracing::Tracer::InitGlobal(tracer);
     return handle;
 }

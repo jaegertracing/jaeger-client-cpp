@@ -86,10 +86,7 @@ class SpanContext : public opentracing::SpanContext {
         swap(_debugID, ctx._debugID);
     }
 
-    friend void swap(SpanContext& lhs, SpanContext& rhs)
-    {
-        lhs.swap(rhs);
-    }
+    friend void swap(SpanContext& lhs, SpanContext& rhs) { lhs.swap(rhs); }
 
     const TraceID& traceID() const { return _traceID; }
 

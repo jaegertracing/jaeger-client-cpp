@@ -17,8 +17,8 @@
 #ifndef JAEGERTRACING_TESTUTILS_TRACERUTIL_H
 #define JAEGERTRACING_TESTUTILS_TRACERUTIL_H
 
-#include "jaegertracing/testutils/MockAgent.h"
 #include "jaegertracing/Tracer.h"
+#include "jaegertracing/testutils/MockAgent.h"
 
 namespace jaegertracing {
 namespace testutils {

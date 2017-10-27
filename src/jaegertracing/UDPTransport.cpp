@@ -24,9 +24,7 @@ namespace {
 constexpr auto kEmitBatchOverhead = 30;
 
 template <typename ThriftType>
-int calcSizeOfSerializedThrift(
-    const ThriftType& base,
-    int maxPacketSize)
+int calcSizeOfSerializedThrift(const ThriftType& base, int maxPacketSize)
 {
     boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> buffer(
         new apache::thrift::transport::TMemoryBuffer(maxPacketSize));
@@ -64,14 +62,14 @@ int UDPTransport::append(const Span& span)
                        [](const Tag& tag) { return tag.thrift(); });
         _process.__set_tags(thriftTags);
 
-        _processByteSize = calcSizeOfSerializedThrift(
-            _process, _client->maxPacketSize());
+        _processByteSize =
+            calcSizeOfSerializedThrift(_process, _client->maxPacketSize());
         _maxSpanBytes =
             _client->maxPacketSize() - _processByteSize - kEmitBatchOverhead;
     }
     const auto jaegerSpan = span.thrift();
-    const auto spanSize = calcSizeOfSerializedThrift(
-        jaegerSpan, _client->maxPacketSize());
+    const auto spanSize =
+        calcSizeOfSerializedThrift(jaegerSpan, _client->maxPacketSize());
     if (spanSize > _maxSpanBytes) {
         std::ostringstream oss;
         throw Transport::Exception("Span is too large", 1);

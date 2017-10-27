@@ -247,9 +247,8 @@ class Tracer : public opentracing::Tracer,
                       bool newTrace,
                       const std::vector<Reference>& references) const;
 
-    using OpenTracingRef =
-        std::pair<opentracing::SpanReferenceType,
-                  const opentracing::SpanContext*>;
+    using OpenTracingRef = std::pair<opentracing::SpanReferenceType,
+                                     const opentracing::SpanContext*>;
 
     struct AnalyzedReferences {
         AnalyzedReferences()
@@ -262,8 +261,8 @@ class Tracer : public opentracing::Tracer,
         std::vector<Reference> _references;
     };
 
-    AnalyzedReferences analyzeReferences(
-        const std::vector<OpenTracingRef>& references) const;
+    AnalyzedReferences
+    analyzeReferences(const std::vector<OpenTracingRef>& references) const;
 
     std::string _serviceName;
     net::IPAddress _hostIPv4;

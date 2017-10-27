@@ -241,11 +241,7 @@ class Span : public opentracing::Span {
         return _context;
     }
 
-
-    const SpanContext& contextNoLock() const noexcept
-    {
-        return _context;
-    }
+    const SpanContext& contextNoLock() const noexcept { return _context; }
 
     const opentracing::Tracer& tracer() const noexcept override;
 

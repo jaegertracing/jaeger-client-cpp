@@ -64,8 +64,8 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
         SpanContext ctx;
         StrMap baggage;
         std::string debugID;
-        const auto result = reader.ForeachKey(
-            [this, &reader, &ctx, &debugID, &baggage](
+        const auto result =
+            reader.ForeachKey([this, &reader, &ctx, &debugID, &baggage](
                 const std::string& rawKey, const std::string& value) {
                 const auto key = normalizeKey(rawKey);
                 if (key == _headerKeys.traceContextHeaderName()) {
@@ -106,13 +106,12 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
             return SpanContext();
         }
 
-        return SpanContext(
-            ctx.traceID(),
-            ctx.spanID(),
-            ctx.parentID(),
-            ctx.flags(),
-            baggage,
-            debugID);
+        return SpanContext(ctx.traceID(),
+                           ctx.spanID(),
+                           ctx.parentID(),
+                           ctx.flags(),
+                           baggage,
+                           debugID);
     }
 
     void inject(const SpanContext& ctx, const Writer& writer) const override

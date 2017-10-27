@@ -28,8 +28,7 @@ Tracer::StartSpanWithOptions(string_view operationName,
     noexcept
 {
     try {
-        const auto result =
-            analyzeReferences(options.references);
+        const auto result = analyzeReferences(options.references);
         const auto* parent = result._parent;
         const auto& references = result._references;
 
@@ -127,8 +126,8 @@ Tracer::startSpanInternal(const SpanContext& context,
     return span;
 }
 
-Tracer::AnalyzedReferences Tracer::analyzeReferences(
-    const std::vector<OpenTracingRef>& references) const
+Tracer::AnalyzedReferences
+Tracer::analyzeReferences(const std::vector<OpenTracingRef>& references) const
 {
     AnalyzedReferences result;
     auto hasParent = false;
@@ -137,13 +136,11 @@ Tracer::AnalyzedReferences Tracer::analyzeReferences(
         const auto* ctx = dynamic_cast<const SpanContext*>(ref.second);
 
         if (!ctx) {
-            _logger->error(
-                "Reference contains invalid type of SpanReference");
+            _logger->error("Reference contains invalid type of SpanReference");
             continue;
         }
 
-        if (!ctx->isValid() &&
-            !ctx->isDebugIDContainerOnly() &&
+        if (!ctx->isValid() && !ctx->isDebugIDContainerOnly() &&
             ctx->baggage().empty()) {
             continue;
         }

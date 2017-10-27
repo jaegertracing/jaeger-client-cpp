@@ -295,8 +295,7 @@ TEST(Sampler, testRemotelyControlledSampler)
     RemotelyControlledSampler sampler(
         "test-service",
         "http://" + mockAgent->samplingServerAddr().authority(),
-        std::make_shared<ProbabilisticSampler>(
-            kTestDefaultSamplingProbability),
+        std::make_shared<ProbabilisticSampler>(kTestDefaultSamplingProbability),
         kTestDefaultMaxOperations,
         std::chrono::milliseconds(100),
         *logger,
@@ -306,7 +305,8 @@ TEST(Sampler, testRemotelyControlledSampler)
     rng.seed(device());
     for (auto startTime = RemotelyControlledSampler::Clock::now();
          std::chrono::duration_cast<std::chrono::seconds>(
-            RemotelyControlledSampler::Clock::now() - startTime).count() < 1;) {
+             RemotelyControlledSampler::Clock::now() - startTime)
+             .count() < 1;) {
         TraceID traceID(rng(), rng());
         sampler.isSampled(traceID, kTestOperationName);
         std::this_thread::sleep_for(std::chrono::milliseconds(20));

@@ -46,11 +46,8 @@ class Config {
         const auto baggageRestrictionsNode = configYAML["baggage_restrictions"];
         const auto baggageRestrictions =
             baggage::RestrictionsConfig::parse(baggageRestrictionsNode);
-        return Config(disabled,
-                      sampler,
-                      reporter,
-                      headers,
-                      baggageRestrictions);
+        return Config(
+            disabled, sampler, reporter, headers, baggageRestrictions);
     }
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP

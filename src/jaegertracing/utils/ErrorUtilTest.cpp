@@ -32,9 +32,8 @@ bool endsWith(const std::string& str, const std::string& suffix)
         return false;
     }
 
-    return std::equal(std::begin(suffix),
-                      std::end(suffix),
-                      std::end(str) - suffix.size());
+    return std::equal(
+        std::begin(suffix), std::end(suffix), std::end(str) - suffix.size());
 }
 
 }  // anonymous namespace

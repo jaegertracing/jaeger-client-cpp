@@ -62,10 +62,9 @@ class UDPClient : public agent::thrift::AgentIf {
         if (numWritten != size) {
             std::ostringstream oss;
             oss << "Failed to write message"
-                   ", numWritten=" << numWritten
-                << ", size=" << size;
-            throw std::system_error(
-                errno, std::system_category(), oss.str());
+                   ", numWritten="
+                << numWritten << ", size=" << size;
+            throw std::system_error(errno, std::system_category(), oss.str());
         }
     }
 

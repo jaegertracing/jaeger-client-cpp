@@ -29,8 +29,8 @@ namespace {
 
 class FakeSpanContext : public opentracing::SpanContext {
     void ForeachBaggageItem(
-      std::function<bool(const std::string&,
-                         const std::string&)> /* unused */) const override
+        std::function<bool(const std::string&,
+                           const std::string&)> /* unused */) const override
     {
         // Do nothing
     }
@@ -56,8 +56,8 @@ struct WriterMock : public BaseWriter {
 
 template <typename BaseReader>
 struct ReaderMock : public BaseReader {
-    using Function = std::function<bool(opentracing::string_view,
-                                        opentracing::string_view)>;
+    using Function =
+        std::function<bool(opentracing::string_view, opentracing::string_view)>;
 
     explicit ReaderMock(const StrMap& keyValuePairs)
         : _keyValuePairs(keyValuePairs)
@@ -65,8 +65,8 @@ struct ReaderMock : public BaseReader {
     }
 
     opentracing::expected<void> ForeachKey(
-        std::function<opentracing::expected<void>(
-            opentracing::string_view, opentracing::string_view)> f)
+        std::function<opentracing::expected<void>(opentracing::string_view,
+                                                  opentracing::string_view)> f)
         const override
     {
         for (auto&& pair : _keyValuePairs) {
@@ -86,37 +86,34 @@ struct ReaderMock : public BaseReader {
 TEST(Tracer, testTracer)
 {
     const auto handle = testutils::TracerUtil::installGlobalTracer();
-    const auto tracer = std::static_pointer_cast<Tracer>(
-        opentracing::Tracer::Global());
+    const auto tracer =
+        std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
 
     opentracing::StartSpanOptions options;
     options.tags.push_back({ "tag-key", 1.23 });
 
     const FakeSpanContext fakeCtx;
-    options.references.emplace_back(
-        opentracing::SpanReferenceType::ChildOfRef, &fakeCtx);
+    options.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef,
+                                    &fakeCtx);
     const SpanContext emptyCtx(TraceID(), 0, 0, 0, StrMap());
-    options.references.emplace_back(
-        opentracing::SpanReferenceType::ChildOfRef, &emptyCtx);
+    options.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef,
+                                    &emptyCtx);
     const SpanContext parentCtx(
         TraceID(0xDEAD, 0xBEEF), 0xBEEF, 1234, 0, StrMap());
-    options.references.emplace_back(
-        opentracing::SpanReferenceType::ChildOfRef, &parentCtx);
+    options.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef,
+                                    &parentCtx);
     options.references.emplace_back(
         opentracing::SpanReferenceType::FollowsFromRef, &parentCtx);
-    const SpanContext debugCtx(TraceID(),
-                               0,
-                               0,
-                               static_cast<unsigned char>(
-                                   SpanContext::Flag::kSampled) |
-                               static_cast<unsigned char>(
-                                   SpanContext::Flag::kDebug),
-                               StrMap({
-                                   {"debug-baggage-key", "debug-baggage-value"}
-                               }),
-                               "123");
-    options.references.emplace_back(
-        opentracing::SpanReferenceType::ChildOfRef, &debugCtx);
+    const SpanContext debugCtx(
+        TraceID(),
+        0,
+        0,
+        static_cast<unsigned char>(SpanContext::Flag::kSampled) |
+            static_cast<unsigned char>(SpanContext::Flag::kDebug),
+        StrMap({ { "debug-baggage-key", "debug-baggage-value" } }),
+        "123");
+    options.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef,
+                                    &debugCtx);
 
     std::unique_ptr<Span> span(static_cast<Span*>(
         tracer->StartSpanWithOptions("test-operation", options).release()));
@@ -136,22 +133,22 @@ TEST(Tracer, testTracer)
     span->SetTag("tagged-after-finish-key", "tagged-after-finish-value");
 
     span.reset(static_cast<Span*>(
-        tracer->StartSpanWithOptions(
-            "test-span-with-default-options", {}).release()));
+        tracer->StartSpanWithOptions("test-span-with-default-options", {})
+            .release()));
 
     options.references.clear();
     options.references.emplace_back(
         opentracing::SpanReferenceType::FollowsFromRef, &parentCtx);
     span.reset(static_cast<Span*>(
-        tracer->StartSpanWithOptions(
-            "test-span-with-default-options", options).release()));
+        tracer->StartSpanWithOptions("test-span-with-default-options", options)
+            .release()));
 
     options.references.clear();
     options.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef,
                                     &debugCtx);
     span.reset(static_cast<Span*>(
-        tracer->StartSpanWithOptions(
-            "test-span-with-debug-parent", options).release()));
+        tracer->StartSpanWithOptions("test-span-with-debug-parent", options)
+            .release()));
 
     span.reset();
 
@@ -171,20 +168,17 @@ TEST(Tracer, testDisabledConfig)
                   reporters::Config(),
                   propagation::HeadersConfig(),
                   baggage::RestrictionsConfig());
-    ASSERT_FALSE(
-        static_cast<bool>(
-            std::dynamic_pointer_cast<Tracer>(
-                Tracer::make("test-service", config))));
+    ASSERT_FALSE(static_cast<bool>(std::dynamic_pointer_cast<Tracer>(
+        Tracer::make("test-service", config))));
 }
 
 TEST(Tracer, testPropagation)
 {
     const auto handle = testutils::TracerUtil::installGlobalTracer();
-    const auto tracer = std::static_pointer_cast<Tracer>(
-        opentracing::Tracer::Global());
-    const std::unique_ptr<Span> span(
-        static_cast<Span*>(
-            tracer->StartSpanWithOptions("test-inject", {}).release()));
+    const auto tracer =
+        std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
+    const std::unique_ptr<Span> span(static_cast<Span*>(
+        tracer->StartSpanWithOptions("test-inject", {}).release()));
     span->SetBaggageItem("test-baggage-item-key", "test-baggage-item-value");
 
     // Binary
@@ -207,8 +201,8 @@ TEST(Tracer, testPropagation)
     {
         StrMap textMap;
         WriterMock<opentracing::TextMapWriter> textWriter(textMap);
-        ASSERT_TRUE(static_cast<bool>(tracer->Inject(span->context(),
-                                                     textWriter)));
+        ASSERT_TRUE(
+            static_cast<bool>(tracer->Inject(span->context(), textWriter)));
         ASSERT_EQ(2, textMap.size());
         std::ostringstream oss;
         oss << span->context();
@@ -229,8 +223,8 @@ TEST(Tracer, testPropagation)
     {
         StrMap headerMap;
         WriterMock<opentracing::HTTPHeadersWriter> headerWriter(headerMap);
-        ASSERT_TRUE(static_cast<bool>(tracer->Inject(span->context(),
-                                                     headerWriter)));
+        ASSERT_TRUE(
+            static_cast<bool>(tracer->Inject(span->context(), headerWriter)));
         ASSERT_EQ(2, headerMap.size());
         std::ostringstream oss;
         oss << span->context();

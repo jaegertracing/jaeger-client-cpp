@@ -87,25 +87,21 @@ TEST(SpanContext, testBaggage)
         0,
         0,
         0,
-        SpanContext::StrMap({
-            {"key1", "value1"},
-            {"key2", "value2"}
-        }));
+        SpanContext::StrMap({ { "key1", "value1" }, { "key2", "value2" } }));
     std::string keyCopy;
     std::string valueCopy;
-    spanContext.ForeachBaggageItem(
-        [&keyCopy, &valueCopy](
-            const std::string& key, const std::string& value) {
-            keyCopy = key;
-            valueCopy = value;
-            return false;
-        });
+    spanContext.ForeachBaggageItem([&keyCopy, &valueCopy](
+        const std::string& key, const std::string& value) {
+        keyCopy = key;
+        valueCopy = value;
+        return false;
+    });
     ASSERT_TRUE(keyCopy == "key1" || keyCopy == "key2");
     if (keyCopy == "key1") {
-       ASSERT_EQ("value1", valueCopy);
+        ASSERT_EQ("value1", valueCopy);
     }
     else {
-       ASSERT_EQ("value2", valueCopy);
+        ASSERT_EQ("value2", valueCopy);
     }
 }
 
