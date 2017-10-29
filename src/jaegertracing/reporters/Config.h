@@ -89,7 +89,7 @@ class Config {
     }
 
     std::unique_ptr<Reporter> makeReporter(const std::string& serviceName,
-                                           spdlog::logger& logger,
+                                           logging::Logger& logger,
                                            metrics::Metrics& metrics) const
     {
         std::unique_ptr<UDPTransport> sender(

@@ -41,7 +41,7 @@ class RemotelyControlledSampler : public Sampler {
                               const std::shared_ptr<Sampler>& sampler,
                               int maxOperations,
                               const Clock::duration& samplingRefreshInterval,
-                              spdlog::logger& logger,
+                              logging::Logger& logger,
                               metrics::Metrics& metrics);
 
     ~RemotelyControlledSampler() { close(); }
@@ -74,7 +74,7 @@ class RemotelyControlledSampler : public Sampler {
     std::shared_ptr<Sampler> _sampler;
     int _maxOperations;
     Clock::duration _samplingRefreshInterval;
-    spdlog::logger& _logger;
+    logging::Logger& _logger;
     metrics::Metrics& _metrics;
     std::shared_ptr<sampling_manager::thrift::SamplingManagerIf> _manager;
     bool _running;

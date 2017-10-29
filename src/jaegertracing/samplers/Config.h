@@ -100,7 +100,7 @@ class Config {
     }
 
     std::unique_ptr<Sampler> makeSampler(const std::string& serviceName,
-                                         spdlog::logger& logger,
+                                         logging::Logger& logger,
                                          metrics::Metrics& metrics) const
     {
         std::string samplerType;
@@ -119,10 +119,11 @@ class Config {
                     new ProbabilisticSampler(_param));
             }
             else {
-                logger.error(
-                    "Invalid parameter for probabilistic sampler: {0}"
-                    ", expecting value between 0 and 1",
-                    _param);
+                std::ostringstream oss;
+                oss << "Invalid parameter for probabilistic sampler: "
+                    << _param
+                    << ", expecting value between 0 and 1";
+                logger.error(oss.str());
                 return std::unique_ptr<Sampler>();
             }
         }
@@ -151,7 +152,9 @@ class Config {
                                               metrics));
         }
 
-        logger.error("Unknown sampler type {0}", _type);
+        std::ostringstream oss;
+        oss << "Unknown sampler type " << _type;
+        logger.error(oss.str());
         return std::unique_ptr<Sampler>();
     }
 

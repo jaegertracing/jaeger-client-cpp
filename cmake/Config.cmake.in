@@ -6,7 +6,6 @@ foreach(dep IN LISTS package_deps)
        dep STREQUAL "Threads")
         find_package(${dep} REQUIRED)
     elseif(dep STREQUAL "OpenTracing" OR
-           dep STREQUAL "spdlog" OR
            dep STREQUAL "yaml-cpp")
         find_package(${dep} CONFIG REQUIRED)
     else()

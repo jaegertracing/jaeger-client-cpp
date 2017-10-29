@@ -78,7 +78,7 @@ RemotelyControlledSampler::RemotelyControlledSampler(
     const std::shared_ptr<Sampler>& sampler,
     int maxOperations,
     const Clock::duration& samplingRefreshInterval,
-    spdlog::logger& logger,
+    logging::Logger& logger,
     metrics::Metrics& metrics)
     : _serviceName(serviceName)
     , _samplingServerURL(samplingServerURL)

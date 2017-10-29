@@ -33,7 +33,6 @@ TEST(UDPTransport, testManyMessages)
     UDPTransport sender(handle->_mockAgent->spanServerAddress(), 0);
     constexpr auto kNumMessages = 2000;
     const auto logger = logging::consoleLogger();
-    logger->set_level(spdlog::level::info);
     for (auto i = 0; i < kNumMessages; ++i) {
         Span span(tracer);
         span.SetOperationName("test" + std::to_string(i));

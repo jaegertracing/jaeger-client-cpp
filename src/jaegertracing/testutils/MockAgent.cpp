@@ -27,6 +27,7 @@
 #include "jaegertracing/net/http/Error.h"
 #include "jaegertracing/net/http/Request.h"
 #include "jaegertracing/net/http/Response.h"
+#include "jaegertracing/utils/ErrorUtil.h"
 #include "jaegertracing/utils/UDPClient.h"
 
 namespace jaegertracing {
@@ -105,9 +106,10 @@ void MockAgent::serveUDP(std::promise<void>& started)
             trans->write(&buffer[0], numRead);
             auto protocol = protocolFactory.getProtocol(trans);
             handler.process(protocol, protocol, nullptr);
-        } catch (const std::exception& ex) {
-            logging::consoleLogger()->error(
-                "An error occurred in MockAgent, {0}", ex.what());
+        } catch (...) {
+            auto logger = logging::consoleLogger();
+            utils::ErrorUtil::logError(
+                *logger, "An error occurred in MockAgent::serveUDP");
         }
     }
 }

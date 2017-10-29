@@ -18,13 +18,28 @@
 
 #include <gtest/gtest.h>
 
-#include <spdlog/sinks/ostream_sink.h>
-
 #include "jaegertracing/utils/ErrorUtil.h"
 
 namespace jaegertracing {
 namespace utils {
 namespace {
+
+class TestLogger : public logging::Logger {
+  public:
+    void info(const std::string&) override
+    {
+    }
+
+    void error(const std::string& message) override
+    {
+        _message = message;
+    }
+
+    const std::string& str() const { return _message; }
+
+  private:
+    std::string _message;
+};
 
 bool endsWith(const std::string& str, const std::string& suffix)
 {
@@ -41,9 +56,7 @@ bool endsWith(const std::string& str, const std::string& suffix)
 TEST(ErrorUtil, test)
 {
     std::ostringstream oss;
-    const auto sink =
-        std::make_shared<spdlog::sinks::ostream_sink_st>(oss, true);
-    const auto logger = spdlog::create("test_logger", sink);
+    TestLogger logger;
     std::runtime_error stdEx("runtime error");
     std::system_error sysEx(-1, std::generic_category());
     Transport::Exception transportEx("test", 5);
@@ -61,27 +74,20 @@ TEST(ErrorUtil, test)
                 throw 5;
             }
         } catch (...) {
-            ErrorUtil::logError(*logger, "test", spdlog::level::warn);
-            const auto logStr = oss.str();
-            const auto logStrNoDate = logStr.substr(logStr.find(']') + 1);
-            oss.clear();
-            oss.str("");
-
+            ErrorUtil::logError(logger, "test");
             switch (i) {
             case 0: {
-                ASSERT_EQ(" [test_logger] [warning] test: runtime error\n",
-                          logStrNoDate);
+                ASSERT_EQ("test: runtime error", logger.str());
             } break;
             case 1: {
-                ASSERT_TRUE(endsWith(logStrNoDate, ", code=-1\n"));
+                ASSERT_TRUE(endsWith(logger.str(), ", code=-1"));
             } break;
             case 2: {
-                ASSERT_EQ(" [test_logger] [warning] test: test, numFailed=5\n",
-                          logStrNoDate);
+                ASSERT_EQ("test: test, numFailed=5", logger.str());
             } break;
             default: {
                 ASSERT_EQ(3, i);
-                ASSERT_EQ(" [test_logger] [warning] test\n", logStrNoDate);
+                ASSERT_EQ("test", logger.str());
             } break;
             }
         }

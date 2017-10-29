@@ -26,8 +26,8 @@ namespace reporters {
 void LoggingReporter::report(const Span& span)
 {
     std::ostringstream oss;
-    oss << span;
-    _logger.info("Reporting span {0}", oss.str());
+    oss << "Reporting span " << span;
+    _logger.info(oss.str());
 }
 
 }  // namespace reporters

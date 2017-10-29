@@ -17,6 +17,7 @@
 #ifndef JAEGERTRACING_UTILS_ERRORUTIL_H
 #define JAEGERTRACING_UTILS_ERRORUTIL_H
 
+#include <sstream>
 #include <string>
 #include <system_error>
 
@@ -27,25 +28,29 @@ namespace jaegertracing {
 namespace utils {
 namespace ErrorUtil {
 
-inline void logError(spdlog::logger& logger,
-                     const std::string& message,
-                     spdlog::level::level_enum level = spdlog::level::err)
+inline void logError(logging::Logger& logger,
+                     const std::string& message)
 {
     try {
         throw;
     } catch (const Transport::Exception& ex) {
-        logger.log(level,
-                   "{0}: {1}, numFailed={2}",
-                   message,
-                   ex.what(),
-                   ex.numFailed());
+        std::ostringstream oss;
+        oss << message << ": " << ex.what() << ", numFailed=" << ex.numFailed();
+        logger.error(oss.str());
     } catch (const std::system_error& ex) {
-        logger.log(
-            level, "{0}: {1}, code={2}", message, ex.what(), ex.code().value());
+        std::ostringstream oss;
+        oss << message
+            << ": "
+            << ex.what()
+            << ", code="
+            << ex.code().value();
+        logger.error(oss.str());
     } catch (const std::exception& ex) {
-        logger.log(level, "{0}: {1}", message, ex.what());
+        std::ostringstream oss;
+        oss << message << ": " << ex.what();
+        logger.error(oss.str());
     } catch (...) {
-        logger.log(level, message);
+        logger.error(message);
     }
 }
 

@@ -16,13 +16,15 @@
 
 #include "jaegertracing/reporters/RemoteReporter.h"
 
+#include <sstream>
+
 namespace jaegertracing {
 namespace reporters {
 
 RemoteReporter::RemoteReporter(const Clock::duration& bufferFlushInterval,
                                int fixedQueueSize,
                                std::unique_ptr<Transport>&& sender,
-                               spdlog::logger& logger,
+                               logging::Logger& logger,
                                metrics::Metrics& metrics)
     : _bufferFlushInterval(bufferFlushInterval)
     , _fixedQueueSize(fixedQueueSize)
@@ -103,8 +105,10 @@ void RemoteReporter::sendSpan(const Span& span)
         }
     } catch (const Transport::Exception& ex) {
         _metrics.reporterFailure().inc(ex.numFailed());
-        _logger.error(fmt::format(
-            "error reporting span {0}: {1}", span.operationName(), ex.what()));
+        std::ostringstream oss;
+        oss << "error reporting span " << span.operationName()
+            << ": " << ex.what();
+        _logger.error(oss.str());
     }
 }
 

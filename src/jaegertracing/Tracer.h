@@ -53,13 +53,15 @@ class Tracer : public opentracing::Tracer,
     static std::shared_ptr<opentracing::Tracer>
     make(const std::string& serviceName, const Config& config)
     {
-        return make(serviceName, config, logging::nullLogger());
+        return make(serviceName,
+                    config,
+                    std::shared_ptr<logging::Logger>(logging::nullLogger()));
     }
 
     static std::shared_ptr<opentracing::Tracer>
     make(const std::string& serviceName,
          const Config& config,
-         const std::shared_ptr<spdlog::logger>& logger)
+         const std::shared_ptr<logging::Logger>& logger)
     {
         metrics::NullStatsFactory factory;
         return make(serviceName, config, logger, factory);
@@ -68,7 +70,7 @@ class Tracer : public opentracing::Tracer,
     static std::shared_ptr<opentracing::Tracer>
     make(const std::string& serviceName,
          const Config& config,
-         const std::shared_ptr<spdlog::logger>& logger,
+         const std::shared_ptr<logging::Logger>& logger,
          metrics::StatsFactory& statsFactory)
     {
         if (serviceName.empty()) {
@@ -189,7 +191,7 @@ class Tracer : public opentracing::Tracer,
     Tracer(const std::string& serviceName,
            const std::shared_ptr<samplers::Sampler>& sampler,
            const std::shared_ptr<reporters::Reporter>& reporter,
-           const std::shared_ptr<spdlog::logger>& logger,
+           const std::shared_ptr<logging::Logger>& logger,
            const std::shared_ptr<metrics::Metrics>& metrics)
         : _serviceName(serviceName)
         , _hostIPv4(net::IPAddress::host(AF_INET))
@@ -269,7 +271,7 @@ class Tracer : public opentracing::Tracer,
     std::shared_ptr<samplers::Sampler> _sampler;
     std::shared_ptr<reporters::Reporter> _reporter;
     std::shared_ptr<metrics::Metrics> _metrics;
-    std::shared_ptr<spdlog::logger> _logger;
+    std::shared_ptr<logging::Logger> _logger;
     mutable std::mt19937_64 _randomNumberGenerator;
     mutable std::mutex _randomMutex;
     propagation::TextMapPropagator _textPropagator;

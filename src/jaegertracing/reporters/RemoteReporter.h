@@ -39,7 +39,7 @@ class RemoteReporter : public Reporter {
     RemoteReporter(const Clock::duration& bufferFlushInterval,
                    int fixedQueueSize,
                    std::unique_ptr<Transport>&& sender,
-                   spdlog::logger& logger,
+                   logging::Logger& logger,
                    metrics::Metrics& metrics);
 
     ~RemoteReporter() { close(); }
@@ -63,7 +63,7 @@ class RemoteReporter : public Reporter {
     Clock::duration _bufferFlushInterval;
     int _fixedQueueSize;
     std::unique_ptr<Transport> _sender;
-    spdlog::logger& _logger;
+    logging::Logger& _logger;
     metrics::Metrics& _metrics;
     std::deque<Span> _queue;
     std::atomic<int> _queueLength;

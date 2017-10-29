@@ -16,24 +16,42 @@
 
 #include "jaegertracing/Logging.h"
 
-#include <mutex>
-
-#include <spdlog/sinks/null_sink.h>
+#include <iostream>
 
 namespace jaegertracing {
 namespace logging {
+namespace {
 
-std::shared_ptr<spdlog::logger> nullLogger()
+class NullLogger : public Logger {
+  public:
+    void error(const std::string&) override {}
+
+    void info(const std::string&) override {}
+};
+
+class ConsoleLogger : public Logger {
+  public:
+    void error(const std::string& message) override
+    {
+        std::cerr << "ERROR: " << message << '\n';
+    }
+
+    void info(const std::string& message) override
+    {
+        std::cout << "INFO: " << message << '\n';
+    }
+};
+
+}  // anonymous namespace
+
+std::unique_ptr<Logger> nullLogger()
 {
-    static auto logger =
-        spdlog::create("null", std::make_shared<spdlog::sinks::null_sink_mt>());
-    return logger;
+    return std::unique_ptr<Logger>(new NullLogger());
 }
 
-std::shared_ptr<spdlog::logger> consoleLogger()
+std::unique_ptr<Logger> consoleLogger()
 {
-    static auto logger = spdlog::stdout_color_mt("console");
-    return logger;
+    return std::unique_ptr<Logger>(new ConsoleLogger());
 }
 
 }  // namespace logging

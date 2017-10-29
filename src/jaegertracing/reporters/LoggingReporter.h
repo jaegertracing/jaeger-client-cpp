@@ -17,8 +17,7 @@
 #ifndef JAEGERTRACING_REPORTERS_LOGGINGREPORTER_H
 #define JAEGERTRACING_REPORTERS_LOGGINGREPORTER_H
 
-#include <spdlog/spdlog.h>
-
+#include "jaegertracing/Logging.h"
 #include "jaegertracing/reporters/Reporter.h"
 
 namespace jaegertracing {
@@ -26,7 +25,7 @@ namespace reporters {
 
 class LoggingReporter : public Reporter {
   public:
-    explicit LoggingReporter(spdlog::logger& logger)
+    explicit LoggingReporter(logging::Logger& logger)
         : _logger(logger)
     {
     }
@@ -36,7 +35,7 @@ class LoggingReporter : public Reporter {
     void close() override {}
 
   private:
-    spdlog::logger& _logger;
+    logging::Logger& _logger;
 };
 
 }  // namespace reporters

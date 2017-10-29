@@ -72,13 +72,6 @@ else()
 endif()
 list(APPEND package_deps thrift)
 
-hunter_add_package(spdlog)
-# Not `${hunter_config}` because spdlog provides its own
-# spdlogConfig.cmake file
-find_package(spdlog CONFIG REQUIRED)
-list(APPEND LIBS spdlog::spdlog)
-list(APPEND package_deps spdlog)
-
 hunter_add_package(opentracing-cpp)
 # Not `${hunter_config}` because OpenTracing provides its own
 # OpenTracingConfig.cmake file

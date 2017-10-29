@@ -17,14 +17,24 @@
 #ifndef JAEGERTRACING_LOGGING_H
 #define JAEGERTRACING_LOGGING_H
 
-#include <spdlog/spdlog.h>
+#include <memory>
+#include <string>
 
 namespace jaegertracing {
 namespace logging {
 
-std::shared_ptr<spdlog::logger> nullLogger();
+class Logger {
+  public:
+    virtual ~Logger() = default;
 
-std::shared_ptr<spdlog::logger> consoleLogger();
+    virtual void error(const std::string& message) = 0;
+
+    virtual void info(const std::string& message) = 0;
+};
+
+std::unique_ptr<Logger> nullLogger();
+
+std::unique_ptr<Logger> consoleLogger();
 
 }  // namespace logging
 }  // namespace jaegertracing
