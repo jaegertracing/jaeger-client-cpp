@@ -43,7 +43,7 @@ std::shared_ptr<ResourceHandle> installGlobalTracer()
 
     auto tracer = Tracer::make("test-service", config, logging::nullLogger());
     opentracing::Tracer::InitGlobal(tracer);
-    return handle;
+    return std::move(handle);
 }
 
 }  // namespace TracerUtil
