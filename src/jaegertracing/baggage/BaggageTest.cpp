@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2017 Uber Technologies, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <gtest/gtest.h>
+
+#include "jaegertracing/baggage/BaggageSetter.h"
+#include "jaegertracing/baggage/RestrictionManager.h"
+#include "jaegertracing/baggage/RestrictionsConfig.h"
+#include "jaegertracing/metrics/Metrics.h"
+
+namespace jaegertracing {
+namespace baggage {
+namespace {
+
+constexpr auto kDefaultMaxValueLength = 8;
+
+class TestRestrictionManager : public RestrictionManager {
+  public:
+    ~TestRestrictionManager() { close(); }
+
+    Restriction getRestriction(const std::string&,
+                               const std::string& key) override
+    {
+        const auto keyAllowed = (!key.empty() && key[0] == 'a');
+        return Restriction(keyAllowed, kDefaultMaxValueLength);
+    }
+};
+
+template <typename FieldIterator>
+void log(FieldIterator, FieldIterator)
+{
+}
+
+}  // anonymous namespace
+
+TEST(Baggage, restrictionManagerTest)
+{
+    auto logFn = &log<std::vector<Tag>::const_iterator>;
+    TestRestrictionManager manager;
+    auto metrics = metrics::Metrics::makeNullMetrics();
+    BaggageSetter setter(manager, *metrics);
+    Span span(nullptr,
+              SpanContext(
+                TraceID(),
+                123,
+                456,
+                static_cast<unsigned char>(SpanContext::Flag::kSampled),
+                SpanContext::StrMap()));
+    auto baggage = span.context().baggage();
+    setter.setBaggage(span, baggage, "abc", "123", logFn);
+    ASSERT_EQ(1, baggage.size());
+    ASSERT_EQ("123", baggage["abc"]);
+    setter.setBaggage(span, baggage, "bcd", "234", logFn);
+    ASSERT_EQ(1, baggage.size());
+    setter.setBaggage(span, baggage, "abc", "1234567890", logFn);
+    ASSERT_EQ("12345678", baggage["abc"]);
+}
+
+}  // namespace baggage
+}  // namespace jaegertracing

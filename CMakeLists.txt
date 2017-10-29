@@ -238,6 +238,7 @@ if(BUILD_TESTING)
         src/jaegertracing/TraceIDTest.cpp
         src/jaegertracing/TracerTest.cpp
         src/jaegertracing/UDPTransportTest.cpp
+        src/jaegertracing/baggage/BaggageTest.cpp
         src/jaegertracing/metrics/MetricsTest.cpp
         src/jaegertracing/metrics/NullStatsFactoryTest.cpp
         src/jaegertracing/net/IPAddressTest.cpp
