@@ -36,6 +36,8 @@ class RestrictionManager {
 
 class DefaultRestrictionManager : public RestrictionManager {
   public:
+    static constexpr auto kDefaultMaxValueLength = 2048;
+
     explicit DefaultRestrictionManager(int maxValueLength)
         : _defaultRestriction(true,
                               maxValueLength == 0 ? kDefaultMaxValueLength
@@ -50,8 +52,6 @@ class DefaultRestrictionManager : public RestrictionManager {
     }
 
   private:
-    static constexpr auto kDefaultMaxValueLength = 2048;
-
     Restriction _defaultRestriction;
 };
 

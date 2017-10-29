@@ -99,58 +99,115 @@ class Metrics {
     {
         return *_tracesStartedSampled;
     }
+
     Counter& tracesStartedSampled() { return *_tracesStartedSampled; }
+
     const Counter& tracesStartedNotSampled() const
     {
         return *_tracesStartedNotSampled;
     }
+
     Counter& tracesStartedNotSampled() { return *_tracesStartedNotSampled; }
+
     const Counter& spansStarted() const { return *_spansStarted; }
+
     Counter& spansStarted() { return *_spansStarted; }
+
     const Counter& spansFinished() const { return *_spansFinished; }
+
     Counter& spansFinished() { return *_spansFinished; }
+
     const Counter& spansSampled() const { return *_spansSampled; }
+
     Counter& spansSampled() { return *_spansSampled; }
+
     const Counter& spansNotSampled() const { return *_spansNotSampled; }
+
     Counter& spansNotSampled() { return *_spansNotSampled; }
+
     const Counter& decodingErrors() const { return *_decodingErrors; }
+
     Counter& decodingErrors() { return *_decodingErrors; }
+
     const Counter& reporterSuccess() const { return *_reporterSuccess; }
+
     Counter& reporterSuccess() { return *_reporterSuccess; }
+
     const Counter& reporterFailure() const { return *_reporterFailure; }
+
     Counter& reporterFailure() { return *_reporterFailure; }
+
     const Counter& reporterDropped() const { return *_reporterDropped; }
+
     Counter& reporterDropped() { return *_reporterDropped; }
+
     const Gauge& reporterQueueLength() const { return *_reporterQueueLength; }
+
     Gauge& reporterQueueLength() { return *_reporterQueueLength; }
+
     const Counter& samplerRetrieved() const { return *_samplerRetrieved; }
+
     Counter& samplerRetrieved() { return *_samplerRetrieved; }
+
     const Counter& samplerUpdated() const { return *_samplerUpdated; }
+
     Counter& samplerUpdated() { return *_samplerUpdated; }
+
     const Counter& samplerUpdateFailure() const
     {
         return *_samplerUpdateFailure;
     }
+
     Counter& samplerUpdateFailure() { return *_samplerUpdateFailure; }
+
     const Counter& samplerQueryFailure() const { return *_samplerQueryFailure; }
+
     Counter& samplerQueryFailure() { return *_samplerQueryFailure; }
+
     const Counter& samplerParsingFailure() const
     {
         return *_samplerParsingFailure;
     }
+
     Counter& samplerParsingFailure() { return *_samplerParsingFailure; }
+
     const Counter& baggageUpdateSuccess() const
     {
         return *_baggageUpdateSuccess;
     }
+
     Counter& baggageUpdateSuccess() { return *_baggageUpdateSuccess; }
+
     const Counter& baggageUpdateFailure() const
     {
         return *_baggageUpdateFailure;
     }
+
     Counter& baggageUpdateFailure() { return *_baggageUpdateFailure; }
+
     const Counter& baggageTruncate() const { return *_baggageTruncate; }
+
     Counter& baggageTruncate() { return *_baggageTruncate; }
+
+    const Counter& baggageRestrictionsUpdateSuccess() const
+    {
+        return *_baggageRestrictionsUpdateSuccess;
+    }
+
+    Counter& baggageRestrictionsUpdateSuccess()
+    {
+        return *_baggageRestrictionsUpdateSuccess;
+    }
+
+    const Counter& baggageRestrictionsUpdateFailure() const
+    {
+        return *_baggageRestrictionsUpdateFailure;
+    }
+
+    Counter& baggageRestrictionsUpdateFailure()
+    {
+        return *_baggageRestrictionsUpdateFailure;
+    }
 
   private:
     std::unique_ptr<Counter> _tracesStartedSampled;

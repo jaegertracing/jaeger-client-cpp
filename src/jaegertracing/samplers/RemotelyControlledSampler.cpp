@@ -38,9 +38,9 @@ class HTTPSamplingManager : public sampling_manager::thrift::SamplingManagerIf {
     using SamplingStrategyResponse =
         sampling_manager::thrift::SamplingStrategyResponse;
 
-    explicit HTTPSamplingManager(const std::string& serverURL)
+    HTTPSamplingManager(const std::string& serverURL, logging::Logger& logger)
         : _serverURI(net::URI::parse(serverURL))
-        , _serverAddr()
+        , _logger(logger)
     {
         net::Socket socket;
         socket.open(AF_INET, SOCK_STREAM);
@@ -53,6 +53,16 @@ class HTTPSamplingManager : public sampling_manager::thrift::SamplingManagerIf {
         auto uri = _serverURI;
         uri._query = "?service=" + net::URI::queryEscape(serviceName);
         const auto responseHTTP = net::http::get(uri);
+        if (responseHTTP.statusCode() != 200) {
+            std::ostringstream oss;
+            oss << "Received HTTP error response"
+                   ", uri=" << uri
+                << ", statusCode=" << responseHTTP.statusCode()
+                << ", reason=" << responseHTTP.reason();
+            _logger.error(oss.str());
+            return;
+        }
+
         boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transport(
             new apache::thrift::transport::TMemoryBuffer());
         apache::thrift::protocol::TJSONProtocol protocol(transport);
@@ -68,6 +78,7 @@ class HTTPSamplingManager : public sampling_manager::thrift::SamplingManagerIf {
   private:
     net::URI _serverURI;
     net::IPAddress _serverAddr;
+    logging::Logger& _logger;
 };
 
 }  // anonymous namespace
@@ -87,7 +98,8 @@ RemotelyControlledSampler::RemotelyControlledSampler(
     , _samplingRefreshInterval(samplingRefreshInterval)
     , _logger(logger)
     , _metrics(metrics)
-    , _manager(std::make_shared<HTTPSamplingManager>(_samplingServerURL))
+    , _manager(std::make_shared<HTTPSamplingManager>(_samplingServerURL,
+                                                     _logger))
     , _running(true)
     , _mutex()
     , _shutdownCV()

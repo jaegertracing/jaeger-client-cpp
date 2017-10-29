@@ -124,6 +124,7 @@ set(SRC
     src/jaegertracing/baggage/Restriction.cpp
     src/jaegertracing/baggage/RestrictionManager.cpp
     src/jaegertracing/baggage/RestrictionsConfig.cpp
+    src/jaegertracing/baggage/RemoteRestrictionManager.cpp
     src/jaegertracing/metrics/Counter.cpp
     src/jaegertracing/metrics/Gauge.cpp
     src/jaegertracing/metrics/InMemoryStatsReporter.cpp
