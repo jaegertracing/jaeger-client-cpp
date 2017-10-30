@@ -324,7 +324,7 @@ install(DIRECTORY "src/jaegertracing"
         PATTERN "testutils/*.h" EXCLUDE)
 
 #   * build/src/jaegertracing/Constants.h -> <prefix>/include/jaegertracing/Constants.h
-install(FILES "${CMAKE_CURRNET_BINARY_DIR}/src/jaegertracing/Constants.h"
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/src/jaegertracing/Constants.h"
         DESTINATION "${include_install_dir}/jaegertracing/Constants.h")
 
 # Config
