@@ -34,6 +34,14 @@ namespace jaegertracing {
 namespace testutils {
 namespace {
 
+bool startsWith(const std::string& str, const std::string& prefix)
+{
+    if (str.size() < prefix.size()) {
+        return false;
+    }
+    return std::equal(std::begin(prefix), std::end(prefix), std::begin(str));
+}
+
 }  // anonymous namespace
 
 MockAgent::~MockAgent() { close(); }
@@ -157,8 +165,9 @@ void MockAgent::serveHTTP(std::promise<void>& started)
             const auto target = request.target();
 
             auto resource = Resource::kSampler;
-            if (target == "/baggageRestrictions" ||
-                target == _httpAddress.authority() + "/baggageRestrictions") {
+            if (startsWith(target, "/baggageRestrictions") ||
+                startsWith(target,
+                           _httpAddress.authority() + "/baggageRestrictions")) {
                 resource = Resource::kBaggage;
             }
             std::smatch match;
