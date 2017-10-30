@@ -8,8 +8,8 @@ set(HUNTER_CACHE_SERVERS "https://github.com/isaachier/cpp-client-hunter-cache")
 
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.19.136.tar.gz"
-    SHA1 "00e8ee66494a66cc2d4df0410ab3dd3948892a7a"
+    URL "https://github.com/ruslo/hunter/archive/v0.19.141.tar.gz"
+    SHA1 "8d7162c0665aba01aaf6bf62f1ed015dc66c5e7c"
     LOCAL
 )
 
