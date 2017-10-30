@@ -64,6 +64,8 @@ class RemoteRestrictionManager : public RestrictionManager {
 
     void close() noexcept override;
 
+    const Clock::duration& refreshInterval() const { return _refreshInterval; }
+
   private:
     void poll() noexcept;
 

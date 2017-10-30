@@ -71,7 +71,25 @@ TEST(Baggage, restrictionManagerTest)
     ASSERT_EQ("12345678", baggage["abc"]);
 }
 
-TEST(Baggage, testRemoteRestrictionManager)
+TEST(Baggage, testRemoteRestrictionManagerDefaults)
+{
+    auto logger = logging::nullLogger();
+    auto metrics = metrics::Metrics::makeNullMetrics();
+    RemoteRestrictionManager manager(
+        "test-service",
+        "",
+        false,
+        RemoteRestrictionManager::Clock::duration(),
+        *logger,
+        *metrics);
+    ASSERT_EQ(RemoteRestrictionManager::defaultRefreshInterval(),
+              manager.refreshInterval());
+    ASSERT_EQ(Restriction(true,
+                          RemoteRestrictionManager::kDefaultMaxValueLength),
+              manager.getRestriction("test-service", "abc"));
+}
+
+TEST(Baggage, testRemoteRestrictionManagerFunctionality)
 {
     auto logger = logging::nullLogger();
     auto metrics = metrics::Metrics::makeNullMetrics();
@@ -80,14 +98,19 @@ TEST(Baggage, testRemoteRestrictionManager)
     RemoteRestrictionManager manager(
         "test-service",
         mockAgent->samplingServerAddress().authority(),
-        false,
+        true,
         std::chrono::milliseconds(100),
         *logger,
         *metrics);
+    ASSERT_EQ(Restriction(false, 0),
+              manager.getRestriction("test-service", "abc"));
     mockAgent->addBaggageRestriction("abc", Restriction(true, 1));
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     ASSERT_EQ(Restriction(true, 1),
               manager.getRestriction("test-service", "abc"));
+    ASSERT_EQ(Restriction(false, 0),
+              manager.getRestriction("test-service", "bcd"));
+    manager.close();
 }
 
 }  // namespace baggage

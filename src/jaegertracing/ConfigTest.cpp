@@ -24,25 +24,44 @@ namespace jaegertracing {
 
 TEST(Config, testParse)
 {
-    constexpr auto kConfigYAML = R"cfg(
+    {
+        constexpr auto kConfigYAML = R"cfg(
 disabled: true
 sampler:
     type: probabilistic
     param: 0.001
-reporter: 4
+reporter:
+    queueSize: 100
+    bufferFlushInterval: 10
+    logSpans: false
+    localAgentHostPort: 127.0.0.1:6831
 headers:
     jaegerDebugHeader: debug-id
     jaegerBaggageHeader: baggage
     TraceContextHeaderName: trace-id
     traceBaggageHeaderPrefix: "testctx-"
-baggage_restrictions: 6
+baggage_restrictions:
+    denyBaggageOnInitializationFailure: false
+    hostPort: 127.0.0.1:5778
+    refreshInterval: 60
 )cfg";
-    const auto config = Config::parse(YAML::Load(kConfigYAML));
-    ASSERT_EQ("probabilistic", config.sampler().type());
-    ASSERT_EQ("debug-id", config.headers().jaegerDebugHeader());
-    ASSERT_EQ("baggage", config.headers().jaegerBaggageHeader());
-    ASSERT_EQ("trace-id", config.headers().traceContextHeaderName());
-    ASSERT_EQ("testctx-", config.headers().traceBaggageHeaderPrefix());
+        const auto config = Config::parse(YAML::Load(kConfigYAML));
+        ASSERT_EQ("probabilistic", config.sampler().type());
+        ASSERT_EQ("debug-id", config.headers().jaegerDebugHeader());
+        ASSERT_EQ("baggage", config.headers().jaegerBaggageHeader());
+        ASSERT_EQ("trace-id", config.headers().traceContextHeaderName());
+        ASSERT_EQ("testctx-", config.headers().traceBaggageHeaderPrefix());
+    }
+
+    {
+        Config::parse(YAML::Load(R"cfg(
+disabled: false
+sampler: 1
+reporter: 2
+headers: 3
+baggage_restrictions: 4
+)cfg"));
+    }
 }
 
 TEST(Config, testDefaultSamplingProbability)
