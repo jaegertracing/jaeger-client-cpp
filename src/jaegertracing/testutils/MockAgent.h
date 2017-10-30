@@ -23,6 +23,7 @@
 #include <thread>
 #include <vector>
 
+#include "jaegertracing/baggage/RemoteRestrictionManager.h"
 #include "jaegertracing/testutils/SamplingManager.h"
 #include "jaegertracing/testutils/TUDPTransport.h"
 #include "jaegertracing/thrift-gen/Agent.h"
@@ -35,6 +36,9 @@ namespace testutils {
 class MockAgent : public agent::thrift::AgentIf,
                   public std::enable_shared_from_this<MockAgent> {
   public:
+    using KeyRestrictionMap =
+        baggage::RemoteRestrictionManager::KeyRestrictionMap;
+
     static std::shared_ptr<MockAgent> make()
     {
         // Avoid `make_shared` when `weak_ptr` might be used.
@@ -66,6 +70,12 @@ class MockAgent : public agent::thrift::AgentIf,
         _samplingMgr.addSamplingStrategy(std::forward<Args>(args)...);
     }
 
+    void addBaggageRestriction(const std::string& key,
+                               const baggage::Restriction& restriction)
+    {
+        _restrictions.insert(std::make_pair(key, restriction));
+    }
+
     std::vector<thrift::Batch> batches() const
     {
         std::lock_guard<std::mutex> lock(_mutex);
@@ -80,7 +90,7 @@ class MockAgent : public agent::thrift::AgentIf,
             new utils::UDPClient(spanServerAddress(), 0));
     }
 
-    net::IPAddress samplingServerAddr() const { return _httpAddress; }
+    net::IPAddress samplingServerAddress() const { return _httpAddress; }
 
     void resetBatches()
     {
@@ -100,6 +110,7 @@ class MockAgent : public agent::thrift::AgentIf,
     std::atomic<bool> _servingUDP;
     std::atomic<bool> _servingHTTP;
     SamplingManager _samplingMgr;
+    KeyRestrictionMap _restrictions;
     mutable std::mutex _mutex;
     std::thread _udpThread;
     std::thread _httpThread;

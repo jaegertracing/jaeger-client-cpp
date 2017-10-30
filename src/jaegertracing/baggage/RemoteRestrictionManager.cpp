@@ -43,7 +43,9 @@ RemoteRestrictionManager::RemoteRestrictionManager(
                         ? kDefaultHostPort
                         : hostPort))
     , _denyBaggageOnInitializationFailure(denyBaggageOnInitializationFailure)
-    , _refreshInterval(refreshInterval)
+    , _refreshInterval(refreshInterval == Clock::duration()
+                        ? defaultRefreshInterval()
+                        : refreshInterval)
     , _logger(logger)
     , _metrics(metrics)
     , _running(true)
@@ -87,7 +89,8 @@ void RemoteRestrictionManager::poll() noexcept
 {
     std::ostringstream oss;
     oss << "http://" << _serverAddress.authority()
-        << "/baggageRestrictions?" << net::URI::queryEscape(_serviceName);
+        << "/baggageRestrictions?service="
+        << net::URI::queryEscape(_serviceName);
     const auto remoteURI = net::URI::parse(oss.str());
     updateRestrictions(remoteURI);
     Clock::time_point lastUpdateTime = Clock::now();

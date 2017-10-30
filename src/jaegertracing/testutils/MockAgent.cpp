@@ -32,6 +32,9 @@
 
 namespace jaegertracing {
 namespace testutils {
+namespace {
+
+}  // anonymous namespace
 
 MockAgent::~MockAgent() { close(); }
 
@@ -68,13 +71,7 @@ void MockAgent::emitBatch(const thrift::Batch& batch)
 
 MockAgent::MockAgent()
     : _transport(net::IPAddress::v4("127.0.0.1", 0))
-    , _batches()
     , _servingUDP(false)
-    , _samplingMgr()
-    , _mutex()
-    , _udpThread()
-    , _httpThread()
-    , _httpAddress()
 {
 }
 
@@ -150,9 +147,20 @@ void MockAgent::serveHTTP(std::promise<void>& started)
         }
 
         try {
+            enum class Resource {
+                kSampler,
+                kBaggage
+            };
+
             std::istringstream iss(requestStr);
             const auto request = net::http::Request::parse(iss);
             const auto target = request.target();
+
+            auto resource = Resource::kSampler;
+            if (target == "/baggageRestrictions" ||
+                target == _httpAddress.authority() + "/baggageRestrictions") {
+                resource = Resource::kBaggage;
+            }
             std::smatch match;
             if (!std::regex_search(target, match, servicePattern)) {
                 throw net::http::ParseError("no 'service' parameter");
@@ -162,14 +170,40 @@ void MockAgent::serveHTTP(std::promise<void>& started)
                     "'service' parameter must occur only once");
             }
             const auto serviceName = match[1].str();
-            sampling_manager::thrift::SamplingStrategyResponse response;
-            _samplingMgr.getSamplingStrategy(response, serviceName);
-            const auto responseJSON =
-                apache::thrift::ThriftJSONString(response);
-            std::ostringstream oss;
-            oss << "HTTP/1.1 200 OK\r\n"
-                   "Content-Type: application/json\r\n\r\n"
-                << responseJSON;
+
+            std::string responseJSON;
+            switch (resource) {
+            case Resource::kSampler: {
+                sampling_manager::thrift::SamplingStrategyResponse response;
+                _samplingMgr.getSamplingStrategy(response, serviceName);
+                responseJSON =
+                    apache::thrift::ThriftJSONString(response);
+            } break;
+            default: {
+                assert(resource == Resource::kBaggage);
+                thrift::BaggageRestrictionManager_getBaggageRestrictions_result
+                    response;
+                std::vector<thrift::BaggageRestriction> restrictions;
+                restrictions.reserve(_restrictions.size());
+                std::transform(std::begin(_restrictions),
+                               std::end(_restrictions),
+                               std::back_inserter(restrictions),
+                               [](const KeyRestrictionMap::value_type& pair) {
+                                   thrift::BaggageRestriction restriction;
+                                   restriction.__set_baggageKey(pair.first);
+                                   restriction.__set_maxValueLength(
+                                       pair.second.maxValueLength());
+                                   return restriction;
+                               });
+                response.success = std::move(restrictions);
+                response.__isset.success = true;
+                responseJSON = apache::thrift::ThriftJSONString(response);
+            } break;
+            }
+                std::ostringstream oss;
+                oss << "HTTP/1.1 200 OK\r\n"
+                       "Content-Type: application/json\r\n\r\n"
+                    << responseJSON;
             const auto responseStr = oss.str();
             const auto numWritten = ::write(
                 clientSocket.handle(), responseStr.c_str(), responseStr.size());

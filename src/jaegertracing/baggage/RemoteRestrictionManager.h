@@ -38,6 +38,7 @@ namespace baggage {
 class RemoteRestrictionManager : public RestrictionManager {
   public:
     using Clock = std::chrono::steady_clock;
+    using KeyRestrictionMap = std::unordered_map<std::string, Restriction>;
 
     static constexpr auto kDefaultDenyBaggageOnInitializationFailure = false;
     static constexpr auto kDefaultMaxValueLength =
@@ -64,8 +65,6 @@ class RemoteRestrictionManager : public RestrictionManager {
     void close() noexcept override;
 
   private:
-    using KeyRestrictionMap = std::unordered_map<std::string, Restriction>;
-
     void poll() noexcept;
 
     void updateRestrictions(const net::URI& remoteURI) noexcept;

@@ -17,9 +17,11 @@
 #include <gtest/gtest.h>
 
 #include "jaegertracing/baggage/BaggageSetter.h"
+#include "jaegertracing/baggage/RemoteRestrictionManager.h"
 #include "jaegertracing/baggage/RestrictionManager.h"
 #include "jaegertracing/baggage/RestrictionsConfig.h"
 #include "jaegertracing/metrics/Metrics.h"
+#include "jaegertracing/testutils/MockAgent.h"
 
 namespace jaegertracing {
 namespace baggage {
@@ -67,6 +69,25 @@ TEST(Baggage, restrictionManagerTest)
     ASSERT_EQ(1, baggage.size());
     setter.setBaggage(span, baggage, "abc", "1234567890", logFn);
     ASSERT_EQ("12345678", baggage["abc"]);
+}
+
+TEST(Baggage, testRemoteRestrictionManager)
+{
+    auto logger = logging::nullLogger();
+    auto metrics = metrics::Metrics::makeNullMetrics();
+    auto mockAgent = testutils::MockAgent::make();
+    mockAgent->start();
+    RemoteRestrictionManager manager(
+        "test-service",
+        mockAgent->samplingServerAddress().authority(),
+        false,
+        std::chrono::milliseconds(100),
+        *logger,
+        *metrics);
+    mockAgent->addBaggageRestriction("abc", Restriction(true, 1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    ASSERT_EQ(Restriction(true, 1),
+              manager.getRestriction("test-service", "abc"));
 }
 
 }  // namespace baggage

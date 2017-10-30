@@ -294,7 +294,7 @@ TEST(Sampler, testRemotelyControlledSampler)
     const auto metrics = metrics::Metrics::makeNullMetrics();
     RemotelyControlledSampler sampler(
         "test-service",
-        "http://" + mockAgent->samplingServerAddr().authority(),
+        "http://" + mockAgent->samplingServerAddress().authority(),
         std::make_shared<ProbabilisticSampler>(kTestDefaultSamplingProbability),
         kTestDefaultMaxOperations,
         std::chrono::milliseconds(100),

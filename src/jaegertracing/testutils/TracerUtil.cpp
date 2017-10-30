@@ -26,7 +26,7 @@ std::shared_ptr<ResourceHandle> installGlobalTracer()
     handle->_mockAgent->start();
     std::ostringstream samplingServerURLStream;
     samplingServerURLStream
-        << "http://" << handle->_mockAgent->samplingServerAddr().authority();
+        << "http://" << handle->_mockAgent->samplingServerAddress().authority();
     Config config(
         false,
         samplers::Config("const",

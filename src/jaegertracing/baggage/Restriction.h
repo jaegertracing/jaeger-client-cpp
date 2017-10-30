@@ -28,6 +28,12 @@ class Restriction {
     {
     }
 
+    friend bool operator==(const Restriction& lhs, const Restriction& rhs)
+    {
+        return lhs._keyAllowed == rhs._keyAllowed &&
+               lhs._maxValueLength == rhs._maxValueLength;
+    }
+
     bool keyAllowed() const { return _keyAllowed; }
 
     int maxValueLength() const { return _maxValueLength; }

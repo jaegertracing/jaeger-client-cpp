@@ -254,7 +254,8 @@ if(BUILD_TESTING)
     target_compile_definitions(UnitTest PUBLIC
         GTEST_HAS_TR1_TUPLE=0
         GTEST_USE_OWN_TR1_TUPLE=0)
-    target_link_libraries(UnitTest testutils GTest::main jaegertracing ${LIBS})
+    target_link_libraries(
+        UnitTest testutils GTest::main jaegertracing-static ${LIBS})
     add_test(NAME UnitTest COMMAND UnitTest)
     if(JAEGERTRACING_COVERAGE)
         setup_target_for_coverage(NAME UnitTestCoverage

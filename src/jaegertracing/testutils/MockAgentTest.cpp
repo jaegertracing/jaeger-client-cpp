@@ -72,7 +72,8 @@ TEST(MockAgent, testSamplingManager)
 
     {
         std::ostringstream oss;
-        oss << "http://" << mockAgent->samplingServerAddr().authority() << '/';
+        oss << "http://" << mockAgent->samplingServerAddress().authority()
+            << '/';
         const auto uriStr = oss.str();
         const auto uri = net::URI::parse(uriStr);
         const auto response = net::http::get(uri);
@@ -80,7 +81,7 @@ TEST(MockAgent, testSamplingManager)
     }
     {
         std::ostringstream oss;
-        oss << "http://" << mockAgent->samplingServerAddr().authority()
+        oss << "http://" << mockAgent->samplingServerAddress().authority()
             << "/?service=a&service=b";
         const auto uriStr = oss.str();
         const auto uri = net::URI::parse(uriStr);
@@ -89,7 +90,7 @@ TEST(MockAgent, testSamplingManager)
     }
     {
         std::ostringstream oss;
-        oss << "http://" << mockAgent->samplingServerAddr().authority()
+        oss << "http://" << mockAgent->samplingServerAddress().authority()
             << "/?service=something";
         const auto uriStr = oss.str();
         const auto uri = net::URI::parse(uriStr);
@@ -118,7 +119,7 @@ TEST(MockAgent, testSamplingManager)
         mockAgent->addSamplingStrategy("service123", config);
 
         std::ostringstream oss;
-        oss << "http://" << mockAgent->samplingServerAddr().authority()
+        oss << "http://" << mockAgent->samplingServerAddress().authority()
             << "/?service=service123";
         const auto uriStr = oss.str();
         const auto uri = net::URI::parse(uriStr);
