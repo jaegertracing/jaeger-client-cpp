@@ -17,6 +17,7 @@
 #ifndef JAEGERTRACING_UTILS_UDPCLIENT_H
 #define JAEGERTRACING_UTILS_UDPCLIENT_H
 
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <system_error>

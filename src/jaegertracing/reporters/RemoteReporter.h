@@ -57,7 +57,7 @@ class RemoteReporter : public Reporter {
 
     bool bufferFlushIntervalExpired() const
     {
-        return (_lastFlush - Clock::now()) >= _bufferFlushInterval;
+        return (Clock::now() - _lastFlush) >= _bufferFlushInterval;
     }
 
     Clock::duration _bufferFlushInterval;

@@ -51,7 +51,7 @@ class HTTPSamplingManager : public sampling_manager::thrift::SamplingManagerIf {
                              const std::string& serviceName) override
     {
         auto uri = _serverURI;
-        uri._query = "?service=" + net::URI::queryEscape(serviceName);
+        uri._query = "service=" + net::URI::queryEscape(serviceName);
         const auto responseHTTP = net::http::get(uri);
         if (responseHTTP.statusCode() != 200) {
             std::ostringstream oss;

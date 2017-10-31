@@ -78,16 +78,13 @@ class Config {
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
-    Config()
-        : Config("", 0, "", 0, std::chrono::seconds(0))
-    {
-    }
-
-    Config(const std::string& type,
-           double param,
-           const std::string& samplingServerURL,
-           int maxOperations,
-           const Clock::duration& samplingRefreshInterval)
+    explicit Config(const std::string& type = kSamplerTypeRemote,
+                    double param = kDefaultSamplingProbability,
+                    const std::string& samplingServerURL =
+                        kDefaultSamplingServerURL,
+                    int maxOperations = kDefaultMaxOperations,
+                    const Clock::duration& samplingRefreshInterval =
+                        defaultSamplingRefreshInterval())
         : _type(type.empty() ? kSamplerTypeRemote : type)
         , _param(param == 0 ? kDefaultSamplingProbability : param)
         , _samplingServerURL(samplingServerURL.empty()

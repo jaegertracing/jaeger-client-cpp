@@ -68,15 +68,12 @@ class Config {
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
-    Config()
-        : Config(0, Clock::duration(), false, "")
-    {
-    }
-
-    Config(int queueSize,
-           const Clock::duration& bufferFlushInterval,
-           bool logSpans,
-           const std::string& localAgentHostPort)
+    explicit Config(
+        int queueSize = kDefaultQueueSize,
+        const Clock::duration& bufferFlushInterval =
+            defaultBufferFlushInterval(),
+        bool logSpans = false,
+        const std::string& localAgentHostPort = kDefaultLocalAgentHostPort)
         : _queueSize(queueSize > 0 ? queueSize : kDefaultQueueSize)
         , _bufferFlushInterval(bufferFlushInterval.count() > 0
                                    ? bufferFlushInterval

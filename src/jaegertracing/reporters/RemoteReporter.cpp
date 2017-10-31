@@ -16,6 +16,7 @@
 
 #include "jaegertracing/reporters/RemoteReporter.h"
 
+#include <iostream>
 #include <sstream>
 
 namespace jaegertracing {
@@ -86,6 +87,7 @@ void RemoteReporter::sweepQueue()
         if (!_queue.empty()) {
             const auto span = _queue.front();
             _queue.pop_front();
+            --_queueLength;
             sendSpan(span);
         }
         else if (bufferFlushIntervalExpired()) {
@@ -96,7 +98,6 @@ void RemoteReporter::sweepQueue()
 
 void RemoteReporter::sendSpan(const Span& span)
 {
-    --_queueLength;
     try {
         const auto flushed = _sender->append(span);
         if (flushed > 0) {

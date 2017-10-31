@@ -162,6 +162,67 @@ std::string URI::queryUnescape(const std::string& input)
     return oss.str();
 }
 
+URI::QueryValueMap URI::parseQueryValues() const
+{
+    enum class State {
+        kKey,
+        kValue
+    };
+
+    if (_query.empty()) {
+        return QueryValueMap();
+    }
+
+    QueryValueMap values;
+    auto state = State::kKey;
+    std::string keyBuffer;
+    std::string valueBuffer;
+    for (auto&& ch : _query) {
+        switch (state) {
+        case State::kKey: {
+            switch (ch) {
+            case '=': {
+                valueBuffer.clear();
+                state = State::kValue;
+            } break;
+            case '&': {
+                values.insert(std::make_pair(queryUnescape(keyBuffer), ""));
+                keyBuffer.clear();
+                state = State::kKey;
+            } break;
+            default: {
+                keyBuffer.push_back(ch);
+            }
+            }
+        } break;
+        default: {
+            assert(state == State::kValue);
+            if (ch == '&') {
+                values.insert(
+                    std::make_pair(queryUnescape(keyBuffer),
+                                   queryUnescape(valueBuffer)));
+                keyBuffer.clear();
+                state = State::kKey;
+            }
+            else {
+                valueBuffer.push_back(ch);
+            }
+        } break;
+        }
+    }
+
+    if (!keyBuffer.empty()) {
+        if (state == State::kKey) {
+            values.insert(std::make_pair(queryUnescape(keyBuffer), ""));
+        }
+        else if (state == State::kValue) {
+            values.insert(std::make_pair(queryUnescape(keyBuffer),
+                                         queryUnescape(valueBuffer)));
+        }
+    }
+    return values;
+}
+
 std::unique_ptr<::addrinfo, AddrInfoDeleter> resolveAddress(const URI& uri,
                                                             int socketType)
 {

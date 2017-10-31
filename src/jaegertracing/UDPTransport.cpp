@@ -16,6 +16,8 @@
 
 #include "jaegertracing/UDPTransport.h"
 
+#include <iostream>
+
 #include "jaegertracing/Tracer.h"
 
 namespace jaegertracing {

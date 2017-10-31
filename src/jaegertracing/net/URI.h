@@ -23,11 +23,14 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 
 namespace jaegertracing {
 namespace net {
 
 struct URI {
+    using QueryValueMap = std::unordered_multimap<std::string, std::string>;
+
     static URI parse(const std::string& uriStr);
 
     static std::string queryEscape(const std::string& input);
@@ -70,6 +73,8 @@ struct URI {
             << ", port=" << _port << ", path=\"" << _path << '"' << ", query=\""
             << _query << '"' << " }";
     }
+
+    QueryValueMap parseQueryValues() const;
 
     std::string _scheme;
     std::string _host;
