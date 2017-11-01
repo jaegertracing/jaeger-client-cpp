@@ -155,10 +155,7 @@ void MockAgent::serveHTTP(std::promise<void>& started)
         }
 
         try {
-            enum class Resource {
-                kSampler,
-                kBaggage
-            };
+            enum class Resource { kSampler, kBaggage };
 
             std::istringstream iss(requestStr);
             const auto request = net::http::Request::parse(iss);
@@ -185,8 +182,7 @@ void MockAgent::serveHTTP(std::promise<void>& started)
             case Resource::kSampler: {
                 sampling_manager::thrift::SamplingStrategyResponse response;
                 _samplingMgr.getSamplingStrategy(response, serviceName);
-                responseJSON =
-                    apache::thrift::ThriftJSONString(response);
+                responseJSON = apache::thrift::ThriftJSONString(response);
             } break;
             default: {
                 assert(resource == Resource::kBaggage);
@@ -209,10 +205,10 @@ void MockAgent::serveHTTP(std::promise<void>& started)
                 responseJSON = apache::thrift::ThriftJSONString(response);
             } break;
             }
-                std::ostringstream oss;
-                oss << "HTTP/1.1 200 OK\r\n"
-                       "Content-Type: application/json\r\n\r\n"
-                    << responseJSON;
+            std::ostringstream oss;
+            oss << "HTTP/1.1 200 OK\r\n"
+                   "Content-Type: application/json\r\n\r\n"
+                << responseJSON;
             const auto responseStr = oss.str();
             const auto numWritten = ::write(
                 clientSocket.handle(), responseStr.c_str(), responseStr.size());

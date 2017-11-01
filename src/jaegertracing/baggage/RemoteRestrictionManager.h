@@ -24,9 +24,9 @@
 #include <thread>
 #include <unordered_map>
 
+#include "jaegertracing/Logging.h"
 #include "jaegertracing/baggage/Restriction.h"
 #include "jaegertracing/baggage/RestrictionManager.h"
-#include "jaegertracing/Logging.h"
 #include "jaegertracing/metrics/Metrics.h"
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/net/URI.h"
@@ -49,13 +49,12 @@ class RemoteRestrictionManager : public RestrictionManager {
         return std::chrono::minutes(1);
     }
 
-    RemoteRestrictionManager(
-        const std::string& serviceName,
-        const std::string& hostPort,
-        bool denyBaggageOnInitializationFailure,
-        const Clock::duration& refreshInterval,
-        logging::Logger& logger,
-        metrics::Metrics& metrics);
+    RemoteRestrictionManager(const std::string& serviceName,
+                             const std::string& hostPort,
+                             bool denyBaggageOnInitializationFailure,
+                             const Clock::duration& refreshInterval,
+                             logging::Logger& logger,
+                             metrics::Metrics& metrics);
 
     ~RemoteRestrictionManager() { close(); }
 

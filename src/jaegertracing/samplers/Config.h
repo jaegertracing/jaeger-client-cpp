@@ -78,21 +78,20 @@ class Config {
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
-    explicit Config(const std::string& type = kSamplerTypeRemote,
-                    double param = kDefaultSamplingProbability,
-                    const std::string& samplingServerURL =
-                        kDefaultSamplingServerURL,
-                    int maxOperations = kDefaultMaxOperations,
-                    const Clock::duration& samplingRefreshInterval =
-                        defaultSamplingRefreshInterval())
+    explicit Config(
+        const std::string& type = kSamplerTypeRemote,
+        double param = kDefaultSamplingProbability,
+        const std::string& samplingServerURL = kDefaultSamplingServerURL,
+        int maxOperations = kDefaultMaxOperations,
+        const Clock::duration& samplingRefreshInterval =
+            defaultSamplingRefreshInterval())
         : _type(type.empty() ? kSamplerTypeRemote : type)
         , _param(param == 0 ? kDefaultSamplingProbability : param)
         , _samplingServerURL(samplingServerURL.empty()
                                  ? kDefaultSamplingServerURL
                                  : samplingServerURL)
-        , _maxOperations(maxOperations == 0
-                            ? kDefaultMaxOperations
-                            : maxOperations)
+        , _maxOperations(maxOperations == 0 ? kDefaultMaxOperations
+                                            : maxOperations)
         , _samplingRefreshInterval(samplingRefreshInterval.count() > 0
                                        ? samplingRefreshInterval
                                        : defaultSamplingRefreshInterval())
@@ -120,8 +119,7 @@ class Config {
             }
             else {
                 std::ostringstream oss;
-                oss << "Invalid parameter for probabilistic sampler: "
-                    << _param
+                oss << "Invalid parameter for probabilistic sampler: " << _param
                     << ", expecting value between 0 and 1";
                 logger.error(oss.str());
                 return std::unique_ptr<Sampler>();

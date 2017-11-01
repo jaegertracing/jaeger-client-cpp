@@ -26,14 +26,9 @@ namespace {
 
 class TestLogger : public logging::Logger {
   public:
-    void info(const std::string&) override
-    {
-    }
+    void info(const std::string&) override {}
 
-    void error(const std::string& message) override
-    {
-        _message = message;
-    }
+    void error(const std::string& message) override { _message = message; }
 
     const std::string& str() const { return _message; }
 

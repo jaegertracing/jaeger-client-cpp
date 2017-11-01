@@ -28,8 +28,7 @@ namespace jaegertracing {
 namespace utils {
 namespace ErrorUtil {
 
-inline void logError(logging::Logger& logger,
-                     const std::string& message)
+inline void logError(logging::Logger& logger, const std::string& message)
 {
     try {
         throw;
@@ -39,11 +38,7 @@ inline void logError(logging::Logger& logger,
         logger.error(oss.str());
     } catch (const std::system_error& ex) {
         std::ostringstream oss;
-        oss << message
-            << ": "
-            << ex.what()
-            << ", code="
-            << ex.code().value();
+        oss << message << ": " << ex.what() << ", code=" << ex.code().value();
         logger.error(oss.str());
     } catch (const std::exception& ex) {
         std::ostringstream oss;

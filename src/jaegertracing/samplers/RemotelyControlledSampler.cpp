@@ -56,8 +56,8 @@ class HTTPSamplingManager : public sampling_manager::thrift::SamplingManagerIf {
         if (responseHTTP.statusCode() != 200) {
             std::ostringstream oss;
             oss << "Received HTTP error response"
-                   ", uri=" << uri
-                << ", statusCode=" << responseHTTP.statusCode()
+                   ", uri="
+                << uri << ", statusCode=" << responseHTTP.statusCode()
                 << ", reason=" << responseHTTP.reason();
             _logger.error(oss.str());
             return;
@@ -98,8 +98,8 @@ RemotelyControlledSampler::RemotelyControlledSampler(
     , _samplingRefreshInterval(samplingRefreshInterval)
     , _logger(logger)
     , _metrics(metrics)
-    , _manager(std::make_shared<HTTPSamplingManager>(_samplingServerURL,
-                                                     _logger))
+    , _manager(
+          std::make_shared<HTTPSamplingManager>(_samplingServerURL, _logger))
     , _running(true)
     , _mutex()
     , _shutdownCV()

@@ -54,13 +54,13 @@ TEST(Baggage, restrictionManagerTest)
     TestRestrictionManager manager;
     auto metrics = metrics::Metrics::makeNullMetrics();
     BaggageSetter setter(manager, *metrics);
-    Span span(nullptr,
-              SpanContext(
-                TraceID(),
-                123,
-                456,
-                static_cast<unsigned char>(SpanContext::Flag::kSampled),
-                SpanContext::StrMap()));
+    Span span(
+        nullptr,
+        SpanContext(TraceID(),
+                    123,
+                    456,
+                    static_cast<unsigned char>(SpanContext::Flag::kSampled),
+                    SpanContext::StrMap()));
     auto baggage = span.context().baggage();
     setter.setBaggage(span, baggage, "abc", "123", logFn);
     ASSERT_EQ(1, baggage.size());
@@ -84,9 +84,9 @@ TEST(Baggage, testRemoteRestrictionManagerDefaults)
         *metrics);
     ASSERT_EQ(RemoteRestrictionManager::defaultRefreshInterval(),
               manager.refreshInterval());
-    ASSERT_EQ(Restriction(true,
-                          RemoteRestrictionManager::kDefaultMaxValueLength),
-              manager.getRestriction("test-service", "abc"));
+    ASSERT_EQ(
+        Restriction(true, RemoteRestrictionManager::kDefaultMaxValueLength),
+        manager.getRestriction("test-service", "abc"));
 }
 
 TEST(Baggage, testRemoteRestrictionManagerFunctionality)

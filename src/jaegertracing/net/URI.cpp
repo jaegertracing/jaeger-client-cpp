@@ -164,10 +164,7 @@ std::string URI::queryUnescape(const std::string& input)
 
 URI::QueryValueMap URI::parseQueryValues() const
 {
-    enum class State {
-        kKey,
-        kValue
-    };
+    enum class State { kKey, kValue };
 
     if (_query.empty()) {
         return QueryValueMap();
@@ -198,9 +195,8 @@ URI::QueryValueMap URI::parseQueryValues() const
         default: {
             assert(state == State::kValue);
             if (ch == '&') {
-                values.insert(
-                    std::make_pair(queryUnescape(keyBuffer),
-                                   queryUnescape(valueBuffer)));
+                values.insert(std::make_pair(queryUnescape(keyBuffer),
+                                             queryUnescape(valueBuffer)));
                 keyBuffer.clear();
                 state = State::kKey;
             }

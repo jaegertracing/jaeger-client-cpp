@@ -59,10 +59,11 @@ Response get(const URI& uri)
     socket.open(AF_INET, SOCK_STREAM);
     socket.connect(uri);
     std::ostringstream requestStream;
-    requestStream
-        << "GET " << uri.target() << " HTTP/1.1\r\n"
-        << "Host: " << uri.authority() << "\r\n"
-           "User-Agent: jaegertracing/" << kJaegerClientVersion << "\r\n\r\n";
+    requestStream << "GET " << uri.target() << " HTTP/1.1\r\n"
+                  << "Host: " << uri.authority()
+                  << "\r\n"
+                     "User-Agent: jaegertracing/"
+                  << kJaegerClientVersion << "\r\n\r\n";
     const auto request = requestStream.str();
     const auto numWritten =
         ::write(socket.handle(), request.c_str(), request.size());

@@ -39,13 +39,12 @@ RemoteRestrictionManager::RemoteRestrictionManager(
     logging::Logger& logger,
     metrics::Metrics& metrics)
     : _serviceName(serviceName)
-    , _serverAddress(net::IPAddress::v4(hostPort.empty()
-                        ? kDefaultHostPort
-                        : hostPort))
+    , _serverAddress(
+          net::IPAddress::v4(hostPort.empty() ? kDefaultHostPort : hostPort))
     , _denyBaggageOnInitializationFailure(denyBaggageOnInitializationFailure)
     , _refreshInterval(refreshInterval == Clock::duration()
-                        ? defaultRefreshInterval()
-                        : refreshInterval)
+                           ? defaultRefreshInterval()
+                           : refreshInterval)
     , _logger(logger)
     , _metrics(metrics)
     , _running(true)
@@ -54,8 +53,9 @@ RemoteRestrictionManager::RemoteRestrictionManager(
 {
 }
 
-Restriction RemoteRestrictionManager::getRestriction(
-    const std::string& /* service */, const std::string& key)
+Restriction
+RemoteRestrictionManager::getRestriction(const std::string& /* service */,
+                                         const std::string& key)
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
@@ -98,9 +98,9 @@ void RemoteRestrictionManager::poll() noexcept
     while (true) {
         {
             std::unique_lock<std::mutex> lock(_mutex);
-            _cv.wait_until(lock,
-                           lastUpdateTime + _refreshInterval,
-                           [this]() { return !_running; });
+            _cv.wait_until(lock, lastUpdateTime + _refreshInterval, [this]() {
+                return !_running;
+            });
             if (!_running) {
                 return;
             }
@@ -143,15 +143,15 @@ void RemoteRestrictionManager::updateRestrictions(
         if (response.__isset.success) {
             KeyRestrictionMap restrictions;
             restrictions.reserve(response.success.size());
-            std::transform(std::begin(response.success),
-                           std::end(response.success),
-                           std::inserter(restrictions, std::end(restrictions)),
-                           [](const thrift::BaggageRestriction restriction) {
-                               return std::make_pair(
-                                    restriction.baggageKey,
-                                    Restriction(true,
-                                                restriction.maxValueLength));
-                           });
+            std::transform(
+                std::begin(response.success),
+                std::end(response.success),
+                std::inserter(restrictions, std::end(restrictions)),
+                [](const thrift::BaggageRestriction restriction) {
+                    return std::make_pair(
+                        restriction.baggageKey,
+                        Restriction(true, restriction.maxValueLength));
+                });
             {
                 std::lock_guard<std::mutex> lock(_mutex);
                 _restrictions = std::move(restrictions);
@@ -164,13 +164,14 @@ void RemoteRestrictionManager::updateRestrictions(
         else {
             std::ostringstream oss;
             oss << "Failed to update baggage restrictions"
-                   ", response=" << responseHTTP.body();
+                   ", response="
+                << responseHTTP.body();
             _logger.error(oss.str());
             _metrics.baggageRestrictionsUpdateFailure().inc(1);
         }
     } catch (...) {
-        utils::ErrorUtil::logError(
-            _logger, "Failed to update baggage restrictions");
+        utils::ErrorUtil::logError(_logger,
+                                   "Failed to update baggage restrictions");
         _metrics.baggageRestrictionsUpdateFailure().inc(1);
     }
 }

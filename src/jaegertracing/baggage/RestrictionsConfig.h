@@ -50,10 +50,10 @@ class RestrictionsConfig {
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
-    explicit RestrictionsConfig(bool denyBaggageOnInitializationFailure = false,
-                                const std::string& hostPort = "",
-                                const Clock::duration& refreshInterval =
-                                    Clock::duration())
+    explicit RestrictionsConfig(
+        bool denyBaggageOnInitializationFailure = false,
+        const std::string& hostPort = "",
+        const Clock::duration& refreshInterval = Clock::duration())
         : _denyBaggageOnInitializationFailure(
               denyBaggageOnInitializationFailure)
         , _hostPort(hostPort)

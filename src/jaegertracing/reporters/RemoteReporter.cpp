@@ -107,8 +107,8 @@ void RemoteReporter::sendSpan(const Span& span)
     } catch (const Transport::Exception& ex) {
         _metrics.reporterFailure().inc(ex.numFailed());
         std::ostringstream oss;
-        oss << "error reporting span " << span.operationName()
-            << ": " << ex.what();
+        oss << "error reporting span " << span.operationName() << ": "
+            << ex.what();
         _logger.error(oss.str());
     }
 }

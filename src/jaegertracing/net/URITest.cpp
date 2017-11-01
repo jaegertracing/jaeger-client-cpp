@@ -67,8 +67,8 @@ TEST(URI, queryUnescape)
 TEST(URI, testParseQueryValues)
 {
     {
-        const auto uri =
-            URI::parse("http://example.com?test1=1&test2=%6F&test2=r&test3&test4");
+        const auto uri = URI::parse(
+            "http://example.com?test1=1&test2=%6F&test2=r&test3&test4");
         const auto values = uri.parseQueryValues();
         ASSERT_EQ(5, values.size());
 
