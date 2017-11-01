@@ -106,7 +106,7 @@ void RemoteRestrictionManager::poll() noexcept
             }
         }
 
-        if ((Clock::now() - lastUpdateTime) > _refreshInterval) {
+        if ((Clock::now() - lastUpdateTime) >= _refreshInterval) {
             updateRestrictions(remoteURI);
             lastUpdateTime = Clock::now();
         }

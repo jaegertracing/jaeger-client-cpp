@@ -73,22 +73,28 @@ void HTTPServer::start()
         }
 
         std::istringstream iss(requestStr);
-        const auto request = net::http::Request::parse(iss);
-        auto itr =
-            std::find_if(std::begin(_handlers),
-                         std::end(_handlers),
-                         [&request](const HandlerVec::value_type& pair) {
-                             return std::regex_search(request.target(),
-                                                      pair.first);
-                         });
+        try {
+            const auto request = net::http::Request::parse(iss);
+            auto itr =
+                std::find_if(std::begin(_handlers),
+                             std::end(_handlers),
+                             [&request](const HandlerVec::value_type& pair) {
+                                 return std::regex_search(request.target(),
+                                                          pair.first);
+                             });
 
-        Handler handler = ((itr == std::end(_handlers)) ? defaultHandler
-                                                        : itr->second);
+            Handler handler = ((itr == std::end(_handlers)) ? defaultHandler
+                                                            : itr->second);
 
-        std::packaged_task<void(net::Socket&&, const net::http::Request&)> task(
-            handler);
-        _tasks.push_back(task.get_future());
-        task(std::move(clientSocket), request);
+            std::packaged_task<void(net::Socket&&,
+                                    const net::http::Request&)> task(
+                handler);
+            _tasks.push_back(task.get_future());
+            task(std::move(clientSocket), request);
+        } catch (...) {
+            auto logger = logging::consoleLogger();
+            utils::ErrorUtil::logError(*logger, "Error parsing request");
+        }
 
         _tasks.erase(
             std::remove_if(std::begin(_tasks),

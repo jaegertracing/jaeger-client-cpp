@@ -76,8 +76,8 @@ void RemoteReporter::sweepQueue()
 {
     while (true) {
         std::unique_lock<std::mutex> lock(_mutex);
-        _cv.wait(lock, [this]() {
-            return !_running || !_queue.empty() || bufferFlushIntervalExpired();
+        _cv.wait_until(lock, _lastFlush + _bufferFlushInterval, [this]() {
+            return !_running || !_queue.empty();
         });
 
         if (!_running && _queue.empty()) {
