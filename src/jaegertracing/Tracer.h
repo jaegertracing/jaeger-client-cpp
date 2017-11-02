@@ -46,8 +46,8 @@ namespace jaegertracing {
 class Tracer : public opentracing::Tracer,
                public std::enable_shared_from_this<Tracer> {
   public:
-    using Clock = std::chrono::steady_clock;
-
+    using SteadyClock = Span::SteadyClock;
+    using SystemClock = Span::SystemClock;
     using string_view = opentracing::string_view;
 
     static std::shared_ptr<opentracing::Tracer>
@@ -243,7 +243,8 @@ class Tracer : public opentracing::Tracer,
     std::unique_ptr<Span>
     startSpanInternal(const SpanContext& context,
                       const std::string& operationName,
-                      const Clock::time_point& startTime,
+                      const SystemClock::time_point& startTimeSystem,
+                      const SteadyClock::time_point& startTimeSteady,
                       const std::vector<Tag>& internalTags,
                       const std::vector<OpenTracingTag>& tags,
                       bool newTrace,

@@ -35,18 +35,23 @@ class Tracer;
 
 class Span : public opentracing::Span {
   public:
-    using Clock = std::chrono::steady_clock;
+    using SteadyClock = opentracing::SteadyClock;
+    using SystemClock = opentracing::SystemClock;
 
     explicit Span(const std::shared_ptr<const Tracer>& tracer = nullptr,
                   const SpanContext& context = SpanContext(),
                   const std::string& operationName = "",
-                  const Clock::time_point& startTime = Clock::now(),
+                  const SystemClock::time_point& startTimeSystem =
+                      SystemClock::now(),
+                  const SteadyClock::time_point& startTimeSteady =
+                      SteadyClock::now(),
                   const std::vector<Tag>& tags = {},
                   const std::vector<Reference>& references = {})
         : _tracer(tracer)
         , _context(context)
         , _operationName(operationName)
-        , _startTime(startTime)
+        , _startTimeSystem(startTimeSystem)
+        , _startTimeSteady(startTimeSteady)
         , _duration()
         , _tags(tags)
         , _references(references)
@@ -62,7 +67,8 @@ class Span : public opentracing::Span {
         _tracer = span._tracer;
         _context = span._context;
         _operationName = span._operationName;
-        _startTime = span._startTime;
+        _startTimeSystem = span._startTimeSystem;
+        _startTimeSteady = span._startTimeSteady;
         _duration = span._duration;
         _tags = span._tags;
         _logs = span._logs;
@@ -89,7 +95,8 @@ class Span : public opentracing::Span {
         swap(_tracer, span._tracer);
         swap(_context, span._context);
         swap(_operationName, span._operationName);
-        swap(_startTime, span._startTime);
+        swap(_startTimeSystem, span._startTimeSystem);
+        swap(_startTimeSteady, span._startTimeSteady);
         swap(_duration, span._duration);
         swap(_tags, span._tags);
         swap(_logs, span._logs);
@@ -119,7 +126,7 @@ class Span : public opentracing::Span {
         span.__set_flags(_context.flags());
         span.__set_startTime(
             std::chrono::duration_cast<std::chrono::microseconds>(
-                _startTime.time_since_epoch())
+                _startTimeSystem.time_since_epoch())
                 .count());
         span.__set_duration(
             std::chrono::duration_cast<std::chrono::microseconds>(_duration)
@@ -157,13 +164,19 @@ class Span : public opentracing::Span {
         return _operationName;
     }
 
-    Clock::time_point startTime() const
+    SystemClock::time_point startTimeSystem() const
     {
         std::lock_guard<std::mutex> lock(_mutex);
-        return _startTime;
+        return _startTimeSystem;
     }
 
-    Clock::duration duration() const
+    SteadyClock::time_point startTimeSteady() const
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        return _startTimeSteady;
+    }
+
+    SteadyClock::duration duration() const
     {
         std::lock_guard<std::mutex> lock(_mutex);
         return _duration;
@@ -250,20 +263,21 @@ class Span : public opentracing::Span {
     std::string serviceNameNoLock() const noexcept;
 
   private:
-    bool isFinished() const { return _duration != Clock::duration(); }
+    bool isFinished() const { return _duration != SteadyClock::duration(); }
 
     template <typename FieldIterator>
     void logFieldsNoLocking(FieldIterator first, FieldIterator last) noexcept
     {
-        LogRecord log(Clock::now(), first, last);
+        LogRecord log(SystemClock::now(), first, last);
         _logs.push_back(log);
     }
 
     std::shared_ptr<const Tracer> _tracer;
     SpanContext _context;
     std::string _operationName;
-    Clock::time_point _startTime;
-    Clock::duration _duration;
+    SystemClock::time_point _startTimeSystem;
+    SteadyClock::time_point _startTimeSteady;
+    SteadyClock::duration _duration;
     std::vector<Tag> _tags;
     std::vector<LogRecord> _logs;
     std::vector<Reference> _references;

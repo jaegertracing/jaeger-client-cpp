@@ -24,9 +24,9 @@ namespace {
 
 class NullLogger : public Logger {
   public:
-    void error(const std::string&) override {}
+    void error(const std::string& /* message */) override {}
 
-    void info(const std::string&) override {}
+    void info(const std::string& /* message */) override {}
 };
 
 class ConsoleLogger : public Logger {

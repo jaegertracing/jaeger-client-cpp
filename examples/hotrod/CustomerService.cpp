@@ -55,6 +55,8 @@ class Database {
     {
         _logger.info("Loading customer, customer_id=" + customerID);
         opentracing::StartSpanOptions options;
+        options.start_system_timestamp = std::chrono::system_clock::now();
+        options.start_steady_timestamp = std::chrono::steady_clock::now();
         options.references.emplace_back(
             opentracing::SpanReferenceType::ChildOfRef,
             &parentSpan.context());

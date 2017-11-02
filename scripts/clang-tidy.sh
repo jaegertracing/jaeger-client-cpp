@@ -8,11 +8,13 @@ function main() {
     local srcs
     srcs=$(git ls-files src |
            grep -E -v 'thrift-gen|Test\.cpp' |
-           grep -E '\.(cpp|h)$')
+           grep -E '\.cpp$')
 
     local cmd
     for src in $srcs; do
-        cmd="clang-tidy -p=build $src"
+        cmd="clang-tidy -p=build"
+        cmd+=" -checks=\"-clang-diagnostic-unused-command-line-argument\" "
+        cmd+=" $src"
         echo "$cmd"
         eval "$cmd"
     done

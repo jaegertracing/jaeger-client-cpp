@@ -127,7 +127,8 @@ TEST(Tracer, testTracer)
               span->BaggageItem("test-baggage-item-key"));
     span->Log({ { "log-bool", true } });
     span->Finish();
-    ASSERT_GE(Span::Clock::now(), span->startTime() + span->duration());
+    ASSERT_GE(Span::SteadyClock::now(),
+              span->startTimeSteady() + span->duration());
     span->SetOperationName("test-set-operation-after-finish");
     ASSERT_EQ("test-set-operation", span->operationName());
     span->SetTag("tagged-after-finish-key", "tagged-after-finish-value");
