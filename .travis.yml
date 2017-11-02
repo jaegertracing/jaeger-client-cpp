@@ -12,7 +12,16 @@ matrix:
         - g++-6
         - lcov
     env:
-    - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+    - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6 && COVERAGE=ON"
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-4.8
+    env:
+    - MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
 branches:
   only:
   - master

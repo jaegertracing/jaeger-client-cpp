@@ -59,8 +59,16 @@ endif()
 
 set(package_deps)
 
-hunter_add_package(Boost)
-find_package(Boost ${hunter_config} REQUIRED)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
+    set(boost_components regex)
+    hunter_add_package(Boost COMPONENTS regex)
+    list(APPEND LIBS Boost::regex)
+else()
+    set(boost_components)
+    hunter_add_package(Boost)
+endif()
+find_package(Boost ${hunter_config} REQUIRED ${boost_components})
 list(APPEND package_deps Boost)
 
 hunter_add_package(thrift)

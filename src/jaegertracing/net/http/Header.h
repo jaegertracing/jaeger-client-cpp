@@ -22,6 +22,7 @@
 #include <string>
 
 #include "jaegertracing/net/http/Error.h"
+#include "jaegertracing/utils/Regex.h"
 
 namespace jaegertracing {
 namespace net {
@@ -73,14 +74,15 @@ inline std::istream& readLineCRLF(std::istream& in, std::string& line)
 
 inline void readHeaders(std::istream& in, std::vector<Header>& headers)
 {
-    const std::regex headerPattern("([^:]+):(.+)$");
+    const regex_namespace::regex headerPattern("([^:]+):(.+)$");
     std::string line;
-    std::smatch match;
+    regex_namespace::smatch match;
     while (readLineCRLF(in, line)) {
         if (line.empty()) {
             break;
         }
-        if (!std::regex_match(line, match, headerPattern) || match.size() < 3) {
+        if (!regex_namespace::regex_match(line, match, headerPattern) ||
+            match.size() < 3) {
             throw ParseError::make("header", line);
         }
         headers.emplace_back(Header(match[1], match[2]));

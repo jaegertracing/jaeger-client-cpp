@@ -16,18 +16,20 @@
 
 #include "jaegertracing/net/http/Request.h"
 
+#include "jaegertracing/utils/Regex.h"
+
 namespace jaegertracing {
 namespace net {
 namespace http {
 
 Request Request::parse(std::istream& in)
 {
-    const std::regex requestLinePattern(
+    const regex_namespace::regex requestLinePattern(
         "([A-Z]+) ([^ ]+) HTTP/([0-9]\\.[0-9])$");
     std::string line;
-    std::smatch match;
+    regex_namespace::smatch match;
     if (!readLineCRLF(in, line) ||
-        !std::regex_match(line, match, requestLinePattern) ||
+        !regex_namespace::regex_match(line, match, requestLinePattern) ||
         match.size() < 4) {
         throw ParseError::make("request line", line);
     }

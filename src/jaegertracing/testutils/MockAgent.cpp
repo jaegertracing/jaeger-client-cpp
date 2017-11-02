@@ -16,7 +16,6 @@
 
 #include "jaegertracing/testutils/MockAgent.h"
 
-#include <regex>
 #include <thread>
 
 #include <thrift/protocol/TCompactProtocol.h>
@@ -28,6 +27,7 @@
 #include "jaegertracing/net/http/Request.h"
 #include "jaegertracing/net/http/Response.h"
 #include "jaegertracing/utils/ErrorUtil.h"
+#include "jaegertracing/utils/Regex.h"
 #include "jaegertracing/utils/UDPClient.h"
 
 namespace jaegertracing {
@@ -139,7 +139,7 @@ void MockAgent::serveHTTP(std::promise<void>& started)
     _servingHTTP = true;
     started.set_value();
 
-    const std::regex servicePattern("[?&]service=([^?&]+)");
+    const regex_namespace::regex servicePattern("[?&]service=([^?&]+)");
     while (isServingHTTP()) {
         constexpr auto kBufferSize = 256;
         std::array<char, kBufferSize> buffer;
@@ -167,11 +167,12 @@ void MockAgent::serveHTTP(std::promise<void>& started)
                            _httpAddress.authority() + "/baggageRestrictions")) {
                 resource = Resource::kBaggage;
             }
-            std::smatch match;
-            if (!std::regex_search(target, match, servicePattern)) {
+            regex_namespace::smatch match;
+            if (!regex_namespace::regex_search(target, match, servicePattern)) {
                 throw net::http::ParseError("no 'service' parameter");
             }
-            if (std::regex_search(match.suffix().str(), servicePattern)) {
+            if (regex_namespace::regex_search(
+                    match.suffix().str(), servicePattern)) {
                 throw net::http::ParseError(
                     "'service' parameter must occur only once");
             }
