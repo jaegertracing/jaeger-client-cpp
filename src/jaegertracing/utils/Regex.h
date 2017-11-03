@@ -33,9 +33,9 @@
 #endif
 
 #if JAEGERTRACING_USE_STD_REGEX
-#define regex_namespace std
+namespace regex_namespace = std;
 #else
-#define regex_namespace boost
+namespace regex_namespace = boost;
 #endif
 
 #endif  // JAEGERTRACING_UTILS_REGEX_H
