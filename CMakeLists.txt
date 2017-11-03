@@ -13,60 +13,61 @@ HunterGate(
     LOCAL
 )
 
-# Copied from [cpp-ethereum](https://github.com/ethereum/cpp-ethereum/blob/develop/CMakeLists.txt)
+# Copied from [cpp-ethereum]
+# (https://github.com/ethereum/cpp-ethereum/blob/develop/CMakeLists.txt)
 if(HUNTER_ENABLED)
-    find_package(PythonInterp QUIET)
-    if(PYTHONINTERP_FOUND)
-        hunter_gate_self(
-            "${HUNTER_CACHED_ROOT}"
-            "${HUNTER_VERSION}"
-            "${HUNTER_SHA1}"
-            hunter_dir
-        )
-        set(hunter_upload_script "${hunter_dir}/maintenance/upload-cache-to-github.py")
-        set(hunter_cache_dir "${HUNTER_GATE_ROOT}/_Base/Cache")
-        set(hunter_tmp_dir "${HUNTER_GATE_ROOT}/tmp")
-        add_custom_target(
-            hunter_upload_cache
-            ${PYTHON_EXECUTABLE} ${hunter_upload_script}
-            --username isaachier
-            --repo-owner isaachier
-            --repo cpp-client-hunter-cache
-            --cache-dir ${hunter_cache_dir}
-            --temp-dir ${hunter_tmp_dir}
-        )
-    endif()
+  find_package(PythonInterp QUIET)
+  if(PYTHONINTERP_FOUND)
+    hunter_gate_self(
+        "${HUNTER_CACHED_ROOT}"
+        "${HUNTER_VERSION}"
+        "${HUNTER_SHA1}"
+        hunter_dir
+    )
+    set(hunter_upload_script
+        "${hunter_dir}/maintenance/upload-cache-to-github.py")
+    set(hunter_cache_dir "${HUNTER_GATE_ROOT}/_Base/Cache")
+    set(hunter_tmp_dir "${HUNTER_GATE_ROOT}/tmp")
+    add_custom_target(
+        hunter_upload_cache
+        ${PYTHON_EXECUTABLE} ${hunter_upload_script}
+        --username isaachier
+        --repo-owner isaachier
+        --repo cpp-client-hunter-cache
+        --cache-dir ${hunter_cache_dir}
+        --temp-dir ${hunter_tmp_dir})
+  endif()
 endif()
 
 project(jaegertracing VERSION 0.0.5)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
-   CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pedantic")
+    CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pedantic")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
 if(HUNTER_ENABLED)
-    set(hunter_config "CONFIG")
+  set(hunter_config "CONFIG")
 else()
-    set(hunter_config "")
+  set(hunter_config "")
 endif()
 
 set(package_deps)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
     CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
-    set(boost_components regex)
-    hunter_add_package(Boost COMPONENTS regex)
-    list(APPEND LIBS Boost::regex)
+  set(boost_components regex)
+  hunter_add_package(Boost COMPONENTS regex)
+  list(APPEND LIBS Boost::regex)
 else()
-    set(boost_components)
-    hunter_add_package(Boost)
+  set(boost_components)
+  hunter_add_package(Boost)
 endif()
 find_package(Boost ${hunter_config} REQUIRED ${boost_components})
 list(APPEND package_deps Boost)
@@ -74,9 +75,9 @@ list(APPEND package_deps Boost)
 hunter_add_package(thrift)
 find_package(thrift ${hunter_config} REQUIRED)
 if(HUNTER_ENABLED)
-    list(APPEND LIBS thrift::thrift_static)
+  list(APPEND LIBS thrift::thrift_static)
 else()
-    list(APPEND LIBS ${THRIFT_LIBRARIES})
+  list(APPEND LIBS ${THRIFT_LIBRARIES})
 endif()
 list(APPEND package_deps thrift)
 
@@ -92,45 +93,45 @@ option(JAEGERTRACING_COVERAGE "Build with coverage" $ENV{COVERAGE})
 option(JAEGERTRACING_BUILD_EXAMPLES "Build examples" ON)
 
 if(JAEGERTRACING_WITH_YAML_CPP)
-    hunter_add_package(yaml-cpp)
-    # Not `${hunter_config}` because yaml-cpp provides its own
-    # yaml-cpp-config.cmake file
-    find_package(yaml-cpp CONFIG REQUIRED)
-    if(HUNTER_ENABLED)
-        list(APPEND LIBS yaml-cpp::yaml-cpp)
-    else()
-        list(APPEND LIBS yaml-cpp)
-    endif()
-    list(APPEND package_deps yaml-cpp)
+  hunter_add_package(yaml-cpp)
+  # Not `${hunter_config}` because yaml-cpp provides its own
+  # yaml-cpp-config.cmake file
+  find_package(yaml-cpp CONFIG REQUIRED)
+  if(HUNTER_ENABLED)
+      list(APPEND LIBS yaml-cpp::yaml-cpp)
+  else()
+      list(APPEND LIBS yaml-cpp)
+  endif()
+  list(APPEND package_deps yaml-cpp)
 endif()
 
 include(CTest)
 if(BUILD_TESTING)
-    hunter_add_package(GTest)
-    find_package(GTest ${hunter_config} REQUIRED)
+  hunter_add_package(GTest)
+  find_package(GTest ${hunter_config} REQUIRED)
 
-    if(JAEGERTRACING_COVERAGE)
-        include(CodeCoverage)
-        APPEND_COVERAGE_COMPILER_FLAGS()
-        set(COVERAGE_EXCLUDES "${CMAKE_SOURCE_DIR}/src/jaegertracing/thrift-gen/*"
-                              "*Test.cpp")
-    endif()
+  if(JAEGERTRACING_COVERAGE)
+      include(CodeCoverage)
+      append_coverage_compiler_flags()
+      set(COVERAGE_EXCLUDES "${CMAKE_SOURCE_DIR}/src/jaegertracing/thrift-gen/*"
+                            "*Test.cpp")
+  endif()
 endif()
 
 if(JAEGERTRACING_BUILD_EXAMPLES)
-    set(EXAMPLES_SRC
-        examples/hotrod/Delay.cpp
-        examples/hotrod/HTTPServer.cpp)
-    add_executable(customer examples/hotrod/CustomerService.cpp ${EXAMPLES_SRC})
-    # TODO: add_executable(driver examples/hotrod/DriverService.cpp)
-    # TODO: add_executable(frontend examples/hotrod/FrontendService.cpp)
-    # TODO: add_executable(route examples/hotrod/RouteService.cpp)
-    set(services customer) # TODO: driver frontend route)
-    foreach(service IN LISTS services)
-        target_include_directories(${service} PUBLIC
-            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/examples/hotrod>)
-        target_link_libraries(${service} PUBLIC jaegertracing-static)
-    endforeach()
+  set(EXAMPLES_SRC
+      examples/hotrod/Delay.cpp
+      examples/hotrod/HTTPServer.cpp)
+  add_executable(customer examples/hotrod/CustomerService.cpp ${EXAMPLES_SRC})
+  # TODO: add_executable(driver examples/hotrod/DriverService.cpp)
+  # TODO: add_executable(frontend examples/hotrod/FrontendService.cpp)
+  # TODO: add_executable(route examples/hotrod/RouteService.cpp)
+  set(services customer) # TODO: driver frontend route)
+  foreach(service IN LISTS services)
+      target_include_directories(${service} PUBLIC
+          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/examples/hotrod>)
+      target_link_libraries(${service} PUBLIC jaegertracing-static)
+  endforeach()
 endif()
 
 set(SRC
@@ -226,67 +227,68 @@ set(SRC
 
 add_library(jaegertracing SHARED ${SRC})
 target_include_directories(jaegertracing PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
-    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>)
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>)
 target_link_libraries(jaegertracing ${LIBS})
 set_target_properties(jaegertracing PROPERTIES
-    VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR})
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR})
 
 add_library(jaegertracing-static STATIC ${SRC})
 target_include_directories(jaegertracing-static PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
-    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>)
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>)
 target_link_libraries(jaegertracing-static ${LIBS})
 set_target_properties(jaegertracing-static PROPERTIES
-    OUTPUT_NAME jaegertracing)
+  OUTPUT_NAME jaegertracing)
 
-configure_file(src/jaegertracing/Constants.h.in
-               src/jaegertracing/Constants.h
-               @ONLY)
+configure_file(
+  src/jaegertracing/Constants.h.in
+  src/jaegertracing/Constants.h
+  @ONLY)
 set(CMAKE_INSTALL_CURRENT_DIR ON)
 
 if(BUILD_TESTING)
-    add_subdirectory("${CMAKE_SOURCE_DIR}/src/jaegertracing/testutils")
-    set(TEST_SRC
-        src/jaegertracing/ConfigTest.cpp
-        src/jaegertracing/ReferenceTest.cpp
-        src/jaegertracing/SpanContextTest.cpp
-        src/jaegertracing/SpanTest.cpp
-        src/jaegertracing/TagTest.cpp
-        src/jaegertracing/TraceIDTest.cpp
-        src/jaegertracing/TracerTest.cpp
-        src/jaegertracing/UDPTransportTest.cpp
-        src/jaegertracing/baggage/BaggageTest.cpp
-        src/jaegertracing/metrics/MetricsTest.cpp
-        src/jaegertracing/metrics/NullStatsFactoryTest.cpp
-        src/jaegertracing/net/IPAddressTest.cpp
-        src/jaegertracing/net/SocketTest.cpp
-        src/jaegertracing/net/URITest.cpp
-        src/jaegertracing/net/http/HeaderTest.cpp
-        src/jaegertracing/net/http/MethodTest.cpp
-        src/jaegertracing/net/http/ResponseTest.cpp
-        src/jaegertracing/propagation/PropagatorTest.cpp
-        src/jaegertracing/reporters/ReporterTest.cpp
-        src/jaegertracing/samplers/SamplerTest.cpp
-        src/jaegertracing/testutils/MockAgentTest.cpp
-        src/jaegertracing/testutils/TracerUtil.cpp
-        src/jaegertracing/testutils/TUDPTransportTest.cpp
-        src/jaegertracing/utils/ErrorUtilTest.cpp
-        src/jaegertracing/utils/RateLimiterTest.cpp
-        src/jaegertracing/utils/UDPClientTest.cpp)
-    add_executable(UnitTest ${TEST_SRC})
-    target_compile_definitions(UnitTest PUBLIC
-        GTEST_HAS_TR1_TUPLE=0
-        GTEST_USE_OWN_TR1_TUPLE=0)
-    target_link_libraries(
-        UnitTest testutils GTest::main jaegertracing-static ${LIBS})
-    add_test(NAME UnitTest COMMAND UnitTest)
-    if(JAEGERTRACING_COVERAGE)
-        setup_target_for_coverage(NAME UnitTestCoverage
-                                  EXECUTABLE UnitTest
-                                  DEPENDENCIES UnitTest)
-    endif()
+  add_subdirectory("${CMAKE_SOURCE_DIR}/src/jaegertracing/testutils")
+  set(TEST_SRC
+      src/jaegertracing/ConfigTest.cpp
+      src/jaegertracing/ReferenceTest.cpp
+      src/jaegertracing/SpanContextTest.cpp
+      src/jaegertracing/SpanTest.cpp
+      src/jaegertracing/TagTest.cpp
+      src/jaegertracing/TraceIDTest.cpp
+      src/jaegertracing/TracerTest.cpp
+      src/jaegertracing/UDPTransportTest.cpp
+      src/jaegertracing/baggage/BaggageTest.cpp
+      src/jaegertracing/metrics/MetricsTest.cpp
+      src/jaegertracing/metrics/NullStatsFactoryTest.cpp
+      src/jaegertracing/net/IPAddressTest.cpp
+      src/jaegertracing/net/SocketTest.cpp
+      src/jaegertracing/net/URITest.cpp
+      src/jaegertracing/net/http/HeaderTest.cpp
+      src/jaegertracing/net/http/MethodTest.cpp
+      src/jaegertracing/net/http/ResponseTest.cpp
+      src/jaegertracing/propagation/PropagatorTest.cpp
+      src/jaegertracing/reporters/ReporterTest.cpp
+      src/jaegertracing/samplers/SamplerTest.cpp
+      src/jaegertracing/testutils/MockAgentTest.cpp
+      src/jaegertracing/testutils/TracerUtil.cpp
+      src/jaegertracing/testutils/TUDPTransportTest.cpp
+      src/jaegertracing/utils/ErrorUtilTest.cpp
+      src/jaegertracing/utils/RateLimiterTest.cpp
+      src/jaegertracing/utils/UDPClientTest.cpp)
+  add_executable(UnitTest ${TEST_SRC})
+  target_compile_definitions(UnitTest PUBLIC
+      GTEST_HAS_TR1_TUPLE=0
+      GTEST_USE_OWN_TR1_TUPLE=0)
+  target_link_libraries(
+      UnitTest testutils GTest::main jaegertracing-static ${LIBS})
+  add_test(NAME UnitTest COMMAND UnitTest)
+  if(JAEGERTRACING_COVERAGE)
+      setup_target_for_coverage(NAME UnitTestCoverage
+                                EXECUTABLE UnitTest
+                                DEPENDENCIES UnitTest)
+  endif()
 endif()
 
 # Installation (https://github.com/forexample/package-example)
@@ -313,7 +315,7 @@ include(CMakePackageConfigHelpers)
 # Use:
 #   * PROJECT_VERSION
 write_basic_package_version_file(
-    "${version_config}" COMPATIBILITY SameMajorVersion
+  "${version_config}" COMPATIBILITY SameMajorVersion
 )
 
 # Configure '<PROJECT-NAME>Config.cmake'
@@ -321,9 +323,9 @@ write_basic_package_version_file(
 #   * TARGETS_EXPORT_NAME
 #   * PROJECT_NAME
 configure_package_config_file(
-    "cmake/Config.cmake.in"
-    "${project_config}"
-    INSTALL_DESTINATION "${config_install_dir}"
+  "cmake/Config.cmake.in"
+  "${project_config}"
+  INSTALL_DESTINATION "${config_install_dir}"
 )
 
 # Targets:
@@ -332,12 +334,12 @@ configure_package_config_file(
 #   * header location after install: <prefix>/include/jaegertracing/Tracer.h
 #   * headers can be included by C++ code `#include <jaegertracing/Tracer.h>`
 install(
-    TARGETS jaegertracing jaegertracing-static
-    EXPORT "${TARGETS_EXPORT_NAME}"
-    LIBRARY DESTINATION "lib"
-    ARCHIVE DESTINATION "lib"
-    RUNTIME DESTINATION "bin"
-    INCLUDES DESTINATION "${include_install_dir}"
+  TARGETS jaegertracing jaegertracing-static
+  EXPORT "${TARGETS_EXPORT_NAME}"
+  LIBRARY DESTINATION "lib"
+  ARCHIVE DESTINATION "lib"
+  RUNTIME DESTINATION "bin"
+  INCLUDES DESTINATION "${include_install_dir}"
 )
 
 # Headers:
@@ -348,7 +350,8 @@ install(DIRECTORY "src/jaegertracing"
         PATTERN "*.h"
         PATTERN "testutils/*.h" EXCLUDE)
 
-#   * build/src/jaegertracing/Constants.h -> <prefix>/include/jaegertracing/Constants.h
+#   * build/src/jaegertracing/Constants.h ->
+#     <prefix>/include/jaegertracing/Constants.h
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/src/jaegertracing/Constants.h"
         DESTINATION "${include_install_dir}/jaegertracing")
 
@@ -356,14 +359,14 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/src/jaegertracing/Constants.h"
 #   * <prefix>/lib/cmake/jaegertracing/jaegertracingConfig.cmake
 #   * <prefix>/lib/cmake/jaegertracing/jaegertracingConfigVersion.cmake
 install(
-    FILES "${project_config}" "${version_config}"
-    DESTINATION "${config_install_dir}"
+  FILES "${project_config}" "${version_config}"
+  DESTINATION "${config_install_dir}"
 )
 
 # Config
 #   * <prefix>/lib/cmake/jaegertracing/jaegertracingTargets.cmake
 install(
-    EXPORT "${TARGETS_EXPORT_NAME}"
-    NAMESPACE "${namespace}"
-    DESTINATION "${config_install_dir}"
+  EXPORT "${TARGETS_EXPORT_NAME}"
+  NAMESPACE "${namespace}"
+  DESTINATION "${config_install_dir}"
 )
