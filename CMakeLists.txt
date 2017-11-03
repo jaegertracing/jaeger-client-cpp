@@ -38,7 +38,7 @@ if(HUNTER_ENABLED)
     endif()
 endif()
 
-project(jaegertracing VERSION 0.0.4)
+project(jaegertracing VERSION 0.0.5)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
    CMAKE_CXX_COMPILER_ID MATCHES "Clang")
