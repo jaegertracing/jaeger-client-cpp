@@ -12,26 +12,6 @@ logger = logging.getLogger(__name__)
 
 CURRENT_YEAR = datetime.today().year
 
-MIT_LICENSE_BLOB = """Copyright (c) %d, Uber Technologies, Inc
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.""" % CURRENT_YEAR
-
 LICENSE_BLOB = """Copyright (c) %d Uber Technologies, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,8 +35,6 @@ def comment_block(license_blob):
     return lines
 
 
-MIT_LICENSE_BLOB_LINES_CPP = comment_block(MIT_LICENSE_BLOB)
-
 LICENSE_BLOB_LINES_CPP = comment_block(LICENSE_BLOB)
 
 COPYRIGHT_RE = re.compile(r'Copyright \(c\) (\d+)', re.I)
@@ -66,11 +44,6 @@ def update_cpp_license(name, force=False):
     with open(name) as f:
         orig_lines = list(f)
     lines = list(orig_lines)
-
-    current_header = ''.join(lines[0:len(MIT_LICENSE_BLOB_LINES_CPP)])
-    mit_header = ''.join(MIT_LICENSE_BLOB_LINES_CPP)
-    if current_header == mit_header:
-        lines = lines[len(MIT_LICENSE_BLOB_LINES_CPP)+1:]
 
     found = False
     changed = False
@@ -110,7 +83,9 @@ def main():
         sys.exit(1)
 
     for name in sys.argv[1:]:
-        if name.endswith('.cpp') or name.endswith('.h'):
+        if name.endswith('.cpp') or \
+           name.endswith('.h') or \
+           name.endswith('.h.in'):
             try:
                 update_cpp_license(name)
             except Exception as error:
