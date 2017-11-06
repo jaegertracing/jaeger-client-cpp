@@ -1,9 +1,6 @@
 # Build directory
 /build
 
-# Personal YCM config
-.ycm_extra_conf.py
-
 # vim swap files
 *.swo
 *.swp
