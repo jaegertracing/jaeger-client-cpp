@@ -38,7 +38,8 @@ Response Response::parse(std::istream& in)
     std::string line;
     regex_namespace::smatch match;
     if (!readLineCRLF(in, line) ||
-        !regex_namespace::regex_match(line, match, statusLinePattern) || match.size() < 4) {
+        !regex_namespace::regex_match(line, match, statusLinePattern) ||
+        match.size() < 4) {
         throw ParseError::make("status line", line);
     }
     Response response;

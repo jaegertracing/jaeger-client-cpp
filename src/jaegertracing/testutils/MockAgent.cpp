@@ -171,8 +171,8 @@ void MockAgent::serveHTTP(std::promise<void>& started)
             if (!regex_namespace::regex_search(target, match, servicePattern)) {
                 throw net::http::ParseError("no 'service' parameter");
             }
-            if (regex_namespace::regex_search(
-                    match.suffix().str(), servicePattern)) {
+            if (regex_namespace::regex_search(match.suffix().str(),
+                                              servicePattern)) {
                 throw net::http::ParseError(
                     "'service' parameter must occur only once");
             }

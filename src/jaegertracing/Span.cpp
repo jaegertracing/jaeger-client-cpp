@@ -47,8 +47,8 @@ void Span::FinishWithOptions(
             // Already finished, so return immediately.
             return;
         }
-        _duration = finishSpanOptions.finish_steady_timestamp -
-                    _startTimeSteady;
+        _duration =
+            finishSpanOptions.finish_steady_timestamp - _startTimeSteady;
         tracer = _tracer;
     }
 

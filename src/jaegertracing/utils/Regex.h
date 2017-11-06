@@ -17,9 +17,7 @@
 #ifndef JAEGERTRACING_UTILS_REGEX_H
 #define JAEGERTRACING_UTILS_REGEX_H
 
-#if (!defined(__GNUC__) || \
-     defined(__clang__) || \
-     __GNUC__ > 4 || \
+#if (!defined(__GNUC__) || defined(__clang__) || __GNUC__ > 4 ||               \
      __GNUC_MINOR__ > 8)
 #define JAEGERTRACING_USE_STD_REGEX 1
 #else

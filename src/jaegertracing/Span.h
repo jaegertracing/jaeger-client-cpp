@@ -38,15 +38,14 @@ class Span : public opentracing::Span {
     using SteadyClock = opentracing::SteadyClock;
     using SystemClock = opentracing::SystemClock;
 
-    explicit Span(const std::shared_ptr<const Tracer>& tracer = nullptr,
-                  const SpanContext& context = SpanContext(),
-                  const std::string& operationName = "",
-                  const SystemClock::time_point& startTimeSystem =
-                      SystemClock::now(),
-                  const SteadyClock::time_point& startTimeSteady =
-                      SteadyClock::now(),
-                  const std::vector<Tag>& tags = {},
-                  const std::vector<Reference>& references = {})
+    explicit Span(
+        const std::shared_ptr<const Tracer>& tracer = nullptr,
+        const SpanContext& context = SpanContext(),
+        const std::string& operationName = "",
+        const SystemClock::time_point& startTimeSystem = SystemClock::now(),
+        const SteadyClock::time_point& startTimeSteady = SteadyClock::now(),
+        const std::vector<Tag>& tags = {},
+        const std::vector<Reference>& references = {})
         : _tracer(tracer)
         , _context(context)
         , _operationName(operationName)
