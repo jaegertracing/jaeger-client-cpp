@@ -19,6 +19,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "jaegertracing/utils/ErrorUtil.h"
+
 namespace jaegertracing {
 namespace reporters {
 
@@ -75,23 +77,32 @@ void RemoteReporter::close()
 void RemoteReporter::sweepQueue()
 {
     while (true) {
-        std::unique_lock<std::mutex> lock(_mutex);
-        _cv.wait_until(lock, _lastFlush + _bufferFlushInterval, [this]() {
-            return !_running || !_queue.empty();
-        });
+        try {
+            std::unique_lock<std::mutex> lock(_mutex);
+            _cv.wait_until(lock,
+                           _lastFlush + _bufferFlushInterval,
+                           [this]() {
+                                return !_running || !_queue.empty();
+                           });
 
-        if (!_running && _queue.empty()) {
-            return;
-        }
+            if (!_running && _queue.empty()) {
+                return;
+            }
 
-        if (!_queue.empty()) {
-            const auto span = _queue.front();
-            _queue.pop_front();
-            --_queueLength;
-            sendSpan(span);
-        }
-        else if (bufferFlushIntervalExpired()) {
-            flush();
+            if (!_queue.empty()) {
+                const auto span = _queue.front();
+                _queue.pop_front();
+                --_queueLength;
+                sendSpan(span);
+            }
+            else if (bufferFlushIntervalExpired()) {
+                flush();
+            }
+        } catch (...) {
+            auto logger = logging::consoleLogger();
+            assert(logger);
+            utils::ErrorUtil::logError(
+                *logger, "Failed in Reporter::sweepQueue");
         }
     }
 }

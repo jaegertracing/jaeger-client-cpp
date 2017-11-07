@@ -22,7 +22,11 @@ import os
 import ycm_core
 
 
-project_dir = os.path.dirname(__file__)
+def DirectoryOfThisScript():
+  return os.path.dirname( os.path.abspath( __file__ ) )
+
+
+project_dir = DirectoryOfThisScript()
 
 try:
     with open('build/_3rdParty/Hunter/install-root-dir') as f:
@@ -52,7 +56,7 @@ os.path.join(project_dir, 'build/src')
 if hunter_install_dir:
     flags += ['-I', hunter_install_dir]
 
-compilation_database_folder = 'build'
+compilation_database_folder = os.path.join(project_dir, 'build')
 
 if os.path.exists( compilation_database_folder ):
   database = ycm_core.CompilationDatabase( compilation_database_folder )
@@ -60,10 +64,6 @@ else:
   database = None
 
 SOURCE_EXTENSIONS = [ '.cpp', '.cxx', '.cc', '.c', '.m', '.mm' ]
-
-
-def DirectoryOfThisScript():
-  return os.path.dirname( os.path.abspath( __file__ ) )
 
 
 def IsHeaderFile( filename ):

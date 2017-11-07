@@ -93,7 +93,7 @@ void MockAgent::serveUDP(std::promise<void>& started)
     // https://stackoverflow.com/a/12315035/1930331.
     auto ptr = shared_from_this();
     boost::shared_ptr<agent::thrift::AgentIf> iface(
-        ptr.get(), [&ptr](MockAgent*) { ptr.reset(); });
+        ptr.get(), [ptr](MockAgent*) mutable { ptr.reset(); });
     agent::thrift::AgentProcessor handler(iface);
     TCompactProtocolFactory protocolFactory;
     boost::shared_ptr<TMemoryBuffer> trans(

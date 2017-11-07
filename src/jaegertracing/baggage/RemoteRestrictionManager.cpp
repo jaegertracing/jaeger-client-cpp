@@ -87,20 +87,30 @@ void RemoteRestrictionManager::close() noexcept
 
 void RemoteRestrictionManager::poll() noexcept
 {
-    std::ostringstream oss;
-    oss << "http://" << _serverAddress.authority()
-        << "/baggageRestrictions?service="
-        << net::URI::queryEscape(_serviceName);
-    const auto remoteURI = net::URI::parse(oss.str());
-    updateRestrictions(remoteURI);
-    Clock::time_point lastUpdateTime = Clock::now();
+    net::URI remoteURI;
+    try {
+        std::ostringstream oss;
+        oss << "http://" << _serverAddress.authority()
+            << "/baggageRestrictions?service="
+            << net::URI::queryEscape(_serviceName);
+        remoteURI = net::URI::parse(oss.str());
+        updateRestrictions(remoteURI);
+    } catch (...) {
+        auto logger = logging::consoleLogger();
+        utils::ErrorUtil::logError(
+            *logger, "Failed in RemoteRestrictionManager::poll");
+        return;
+    }
 
+    Clock::time_point lastUpdateTime = Clock::now();
     while (true) {
         {
             std::unique_lock<std::mutex> lock(_mutex);
-            _cv.wait_until(lock, lastUpdateTime + _refreshInterval, [this]() {
-                return !_running;
-            });
+            _cv.wait_until(lock,
+                           lastUpdateTime + _refreshInterval,
+                           [this]() {
+                               return !_running;
+                           });
             if (!_running) {
                 return;
             }
