@@ -1,3 +1,10 @@
+# Build directory
+/build
+
+# vim swap files
+*.swo
+*.swp
+
 # Prerequisites
 *.d
 
