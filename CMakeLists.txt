@@ -91,6 +91,7 @@ list(APPEND package_deps opentracing-cpp)
 option(JAEGERTRACING_WITH_YAML_CPP "Use yaml-cpp to parse config files" ON)
 option(JAEGERTRACING_COVERAGE "Build with coverage" $ENV{COVERAGE})
 option(JAEGERTRACING_BUILD_EXAMPLES "Build examples" ON)
+option(JAEGERTRACING_BUILD_CROSSDOCK "Build crossdock" OFF)
 
 if(JAEGERTRACING_WITH_YAML_CPP)
   hunter_add_package(yaml-cpp)
@@ -132,6 +133,14 @@ if(JAEGERTRACING_BUILD_EXAMPLES)
           $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/examples/hotrod>)
       target_link_libraries(${service} PUBLIC jaegertracing-static)
   endforeach()
+endif()
+
+if(JAEGERTRACING_BUILD_CROSSDOCK)
+  set(CROSSDOCK_SRC crossdock/Server.cpp)
+  add_executable(crossdock ${CROSSDOCK_SRC})
+  target_include_directories(crossdock PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/crossdock>)
+  target_link_libraries(crossdock PUBLIC jaegertracing-static)
 endif()
 
 set(SRC

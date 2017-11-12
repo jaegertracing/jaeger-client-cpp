@@ -154,7 +154,7 @@ class Socket {
         return clientSocket;
     }
 
-    void close()
+    void close() noexcept
     {
         if (_handle >= 0) {
             ::close(_handle);
