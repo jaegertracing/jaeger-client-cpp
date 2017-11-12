@@ -55,9 +55,8 @@ class Server {
     template <typename RequestType>
     std::string handleJSON(
         const net::http::Request& request,
-        std::function<
-            thrift::TraceResponse(const RequestType&,
-                                  const opentracing::SpanContext&)> handler);
+        std::function<thrift::TraceResponse(
+            const RequestType&, const opentracing::SpanContext&)> handler);
 
     std::string handleRequest(const net::http::Request& request);
 

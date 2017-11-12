@@ -73,8 +73,8 @@ class RequestReader : public opentracing::HTTPHeadersReader {
     }
 
     opentracing::expected<void> ForeachKey(
-        std::function<opentracing::expected<void>(
-            opentracing::string_view, opentracing::string_view)> f)
+        std::function<opentracing::expected<void>(opentracing::string_view,
+                                                  opentracing::string_view)> f)
         const override
     {
         for (auto&& header : _request.headers()) {
@@ -105,9 +105,8 @@ thrift::ObservedSpan observeSpan(const opentracing::SpanContext& ctx)
     return observedSpan;
 }
 
-thrift::TraceResponse callDownstreamHTTP(
-    const opentracing::SpanContext& ctx,
-    const thrift::Downstream& target)
+thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
+                                         const thrift::Downstream& target)
 {
     thrift::JoinTraceRequest request;
     request.__set_serverRole(target.serverRole);
@@ -121,9 +120,11 @@ thrift::TraceResponse callDownstreamHTTP(
     socket.connect("http://" + authority);
     std::ostringstream oss;
     oss << "POST /join_trace HTTP/1.1\r\n"
-           "Host: " << authority << "\r\n"
-           "Content-Type: application/json\r\n"
-           "Content-Length: " << requestJSON.size() << "\r\n\r\n"
+           "Host: "
+        << authority << "\r\n"
+                        "Content-Type: application/json\r\n"
+                        "Content-Length: "
+        << requestJSON.size() << "\r\n\r\n"
         << requestJSON;
     const auto message = oss.str();
     const auto numWritten =
@@ -138,10 +139,9 @@ thrift::TraceResponse callDownstreamHTTP(
     return thriftResponse;
 }
 
-thrift::TraceResponse callDownstream(
-    const opentracing::SpanContext& ctx,
-    const std::string& /* role */,
-    const thrift::Downstream& downstream)
+thrift::TraceResponse callDownstream(const opentracing::SpanContext& ctx,
+                                     const std::string& /* role */,
+                                     const thrift::Downstream& downstream)
 {
     thrift::TraceResponse response;
 
@@ -154,22 +154,20 @@ thrift::TraceResponse callDownstream(
             "TCHANNEL transport not implemented");
     } break;
     case thrift::Transport::DUMMY: {
-        response.__set_notImplementedError(
-            "DUMMY transport not implemented");
+        response.__set_notImplementedError("DUMMY transport not implemented");
     } break;
     default: {
-        throw std::invalid_argument(
-            "Unrecognized protocol " + std::to_string(downstream.transport));
+        throw std::invalid_argument("Unrecognized protocol " +
+                                    std::to_string(downstream.transport));
     } break;
     }
 
     return response;
 }
 
-thrift::TraceResponse prepareResponse(
-    const opentracing::SpanContext& ctx,
-    const std::string& role,
-    const thrift::Downstream& downstream)
+thrift::TraceResponse prepareResponse(const opentracing::SpanContext& ctx,
+                                      const std::string& role,
+                                      const thrift::Downstream& downstream)
 {
     const auto observedSpan = observeSpan(ctx);
     thrift::TraceResponse response;
@@ -187,18 +185,14 @@ using Handler = std::function<std::string(const net::http::Request&)>;
 
 class Server::SocketListener {
   public:
-    SocketListener(const net::IPAddress& ip,
-                   Handler handler)
+    SocketListener(const net::IPAddress& ip, Handler handler)
         : _ip(ip)
         , _handler(handler)
         , _running(false)
     {
     }
 
-    ~SocketListener()
-    {
-        stop();
-    }
+    ~SocketListener() { stop(); }
 
     void start()
     {
@@ -221,12 +215,11 @@ class Server::SocketListener {
     {
         _socket.open(AF_INET, SOCK_STREAM);
         const auto enable = 1;
-        ::setsockopt(
-            _socket.handle(),
-            SOL_SOCKET,
-            SO_REUSEADDR,
-            &enable,
-            sizeof(enable));
+        ::setsockopt(_socket.handle(),
+                     SOL_SOCKET,
+                     SO_REUSEADDR,
+                     &enable,
+                     sizeof(enable));
         _socket.bind(ip);
         _socket.listen();
         _running = true;
@@ -240,10 +233,8 @@ class Server::SocketListener {
                 std::istringstream iss(requestStr);
                 const auto request = net::http::Request::parse(iss);
                 const auto responseStr = _handler(request);
-                const auto numWritten =
-                    ::write(client.handle(),
-                            &responseStr[0],
-                            responseStr.size());
+                const auto numWritten = ::write(
+                    client.handle(), &responseStr[0], responseStr.size());
                 (void)numWritten;
             } catch (...) {
                 constexpr auto message =
@@ -267,26 +258,22 @@ class Server::SocketListener {
 Server::Server(const net::IPAddress& ip)
     : _logger(logging::consoleLogger())
     , _tracer(Tracer::make("cppserver", Config(), _logger))
-    , _listener(new SocketListener(ip,
-        [this](const net::http::Request& request) {
-            return handleRequest(request);
-        }))
+    , _listener(
+          new SocketListener(ip, [this](const net::http::Request& request) {
+              return handleRequest(request);
+          }))
 {
 }
 
 Server::~Server() = default;
 
-void Server::serve()
-{
-    _listener->start();
-}
+void Server::serve() { _listener->start(); }
 
 template <typename RequestType>
 std::string Server::handleJSON(
     const net::http::Request& request,
-    std::function<
-        thrift::TraceResponse(const RequestType&,
-                              const opentracing::SpanContext&)> handler)
+    std::function<thrift::TraceResponse(
+        const RequestType&, const opentracing::SpanContext&)> handler)
 {
     RequestReader reader(request);
     auto result = _tracer->Extract(reader);
@@ -303,9 +290,8 @@ std::string Server::handleJSON(
     options.start_system_timestamp = std::chrono::system_clock::now();
     options.start_steady_timestamp = std::chrono::steady_clock::now();
     if (ctx) {
-        options.references.emplace_back(
-            std::make_pair(opentracing::SpanReferenceType::ChildOfRef,
-                           ctx.get()));
+        options.references.emplace_back(std::make_pair(
+            opentracing::SpanReferenceType::ChildOfRef, ctx.get()));
     }
     auto span = _tracer->StartSpanWithOptions("post", options);
 
@@ -340,7 +326,8 @@ std::string Server::handleJSON(
     std::ostringstream oss;
     oss << "HTTP/1.1 200 OK\r\n"
            "Content-Type: application/json\r\n"
-           "Content-Length: " << responseJSONStr.size() << "\r\n\r\n"
+           "Content-Length: "
+        << responseJSONStr.size() << "\r\n\r\n"
         << responseJSONStr;
     return oss.str();
 }
@@ -372,8 +359,8 @@ std::string Server::handleRequest(const net::http::Request& request)
     return "HTTP/1.1 404 Not Found\r\n\r\n";
 }
 
-thrift::TraceResponse Server::startTrace(
-    const crossdock::thrift::StartTraceRequest& request)
+thrift::TraceResponse
+Server::startTrace(const crossdock::thrift::StartTraceRequest& request)
 {
     auto span = _tracer->StartSpan(request.serverRole);
     if (request.sampled) {
@@ -385,9 +372,9 @@ thrift::TraceResponse Server::startTrace(
         span->context(), request.serverRole, request.downstream);
 }
 
-thrift::TraceResponse Server::joinTrace(
-    const crossdock::thrift::JoinTraceRequest& request,
-    const opentracing::SpanContext& ctx)
+thrift::TraceResponse
+Server::joinTrace(const crossdock::thrift::JoinTraceRequest& request,
+                  const opentracing::SpanContext& ctx)
 {
     return prepareResponse(ctx, request.serverRole, request.downstream);
 }
