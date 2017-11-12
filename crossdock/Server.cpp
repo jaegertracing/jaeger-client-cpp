@@ -42,10 +42,10 @@ std::string bufferedRead(net::Socket& socket)
     std::array<char, kBufferSize> buffer;
     std::string data;
     auto numRead = ::read(socket.handle(), &buffer[0], buffer.size());
-    data.append(buffer[0], numRead);
+    data.append(&buffer[0], numRead);
     while (numRead == kBufferSize) {
         numRead = ::read(socket.handle(), &buffer[0], buffer.size());
-        data.append(buffer[0], numRead);
+        data.append(&buffer[0], numRead);
     }
     return data;
 }
@@ -220,8 +220,16 @@ class Server::SocketListener {
     void start(const net::IPAddress& ip, std::promise<void>& started)
     {
         _socket.open(AF_INET, SOCK_STREAM);
+        const auto enable = 1;
+        ::setsockopt(
+            _socket.handle(),
+            SOL_SOCKET,
+            SO_REUSEADDR,
+            &enable,
+            sizeof(enable));
         _socket.bind(ip);
         _socket.listen();
+        _running = true;
         started.set_value();
 
         while (_running) {
@@ -233,7 +241,7 @@ class Server::SocketListener {
                 const auto request = net::http::Request::parse(iss);
                 const auto responseStr = _handler(request);
                 const auto numWritten =
-                    ::write(_socket.handle(),
+                    ::write(client.handle(),
                             &responseStr[0],
                             responseStr.size());
                 (void)numWritten;
@@ -241,9 +249,11 @@ class Server::SocketListener {
                 constexpr auto message =
                     "HTTP/1.1 500 Internal Server Error\r\n\r\n";
                 const auto numWritten =
-                    ::write(_socket.handle(), message, sizeof(message) - 1);
+                    ::write(client.handle(), message, sizeof(message) - 1);
                 (void)numWritten;
             }
+
+            client.close();
         }
     }
 
@@ -395,6 +405,7 @@ int main()
 {
     jaegertracing::crossdock::Server server(
         jaegertracing::net::IPAddress::v4("127.0.0.1:8888"));
+    server.serve();
     std::this_thread::sleep_for(std::chrono::minutes(10));
     return 0;
 }
