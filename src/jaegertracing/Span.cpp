@@ -52,7 +52,10 @@ struct SamplingPriorityVisitor {
     }
 
     template <typename OtherType>
-    bool operator()(OtherType) const { return false; }
+    bool operator()(OtherType) const
+    {
+        return false;
+    }
 };
 
 }  // anonymous namespace
