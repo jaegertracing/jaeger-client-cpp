@@ -16,9 +16,46 @@
 
 #include "jaegertracing/Span.h"
 
+#include <opentracing/value.h>
+
 #include "jaegertracing/Tracer.h"
 
 namespace jaegertracing {
+namespace {
+
+struct SamplingPriorityVisitor {
+    using result_type = bool;
+
+    bool operator()(bool boolValue) const { return boolValue; }
+
+    bool operator()(double doubleValue) const { return doubleValue > 0; }
+
+    bool operator()(int64_t intValue) const { return intValue > 0; }
+
+    bool operator()(uint64_t uintValue) const { return uintValue > 0; }
+
+    bool operator()(const std::string& str) const
+    {
+        std::istringstream iss(str);
+        auto intValue = 0;
+        if (!(iss >> intValue)) {
+            return false;
+        }
+        return intValue > 0;
+    }
+
+    bool operator()(std::nullptr_t) const { return false; }
+
+    bool operator()(const char* str) const
+    {
+        return operator()(std::string(str));
+    }
+
+    template <typename OtherType>
+    bool operator()(OtherType) const { return false; }
+};
+
+}  // anonymous namespace
 
 void Span::SetBaggageItem(opentracing::string_view restrictedKey,
                           opentracing::string_view value) noexcept
@@ -81,6 +118,29 @@ std::string Span::serviceNameNoLock() const noexcept
         return std::string();
     }
     return _tracer->serviceName();
+}
+
+void Span::setSamplingPriority(const opentracing::Value& value)
+{
+    SamplingPriorityVisitor visitor;
+    const auto priority = opentracing::Value::visit(value, visitor);
+
+    std::lock_guard<std::mutex> lock(_mutex);
+    auto newFlags = _context.flags();
+    if (priority) {
+        newFlags |= static_cast<unsigned char>(SpanContext::Flag::kSampled) |
+                    static_cast<unsigned char>(SpanContext::Flag::kDebug);
+    }
+    else {
+        newFlags &= ~static_cast<unsigned char>(SpanContext::Flag::kSampled);
+    }
+
+    _context = SpanContext(_context.traceID(),
+                           _context.spanID(),
+                           _context.parentID(),
+                           newFlags,
+                           _context.baggage(),
+                           _context.debugID());
 }
 
 }  // namespace jaegertracing

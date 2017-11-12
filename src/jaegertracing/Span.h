@@ -208,6 +208,10 @@ class Span : public opentracing::Span {
     void SetTag(opentracing::string_view key,
                 const opentracing::Value& value) noexcept override
     {
+        if (key == "sampling.priority") {
+            setSamplingPriority(value);
+            return;
+        }
         std::lock_guard<std::mutex> lock(_mutex);
         if (isFinished() || !_context.isSampled()) {
             return;
@@ -270,6 +274,8 @@ class Span : public opentracing::Span {
         LogRecord log(SystemClock::now(), first, last);
         _logs.push_back(log);
     }
+
+    void setSamplingPriority(const opentracing::Value& value);
 
     std::shared_ptr<const Tracer> _tracer;
     SpanContext _context;

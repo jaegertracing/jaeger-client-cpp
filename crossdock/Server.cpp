@@ -29,11 +29,26 @@
 #include "jaegertracing/net/Socket.h"
 #include "jaegertracing/net/http/Request.h"
 #include "jaegertracing/net/http/Response.h"
-#include "jaegertracing/thrift-gen/tracetest_types.h"
 
 namespace jaegertracing {
 namespace crossdock {
 namespace {
+
+constexpr auto kBaggageKey = "crossdock-baggage-key";
+
+std::string bufferedRead(net::Socket& socket)
+{
+    constexpr auto kBufferSize = 256;
+    std::array<char, kBufferSize> buffer;
+    std::string data;
+    auto numRead = ::read(socket.handle(), &buffer[0], buffer.size());
+    data.append(buffer[0], numRead);
+    while (numRead == kBufferSize) {
+        numRead = ::read(socket.handle(), &buffer[0], buffer.size());
+        data.append(buffer[0], numRead);
+    }
+    return data;
+}
 
 template <typename ResultType>
 ResultType convertFromJSON(const std::string& jsonStr)
@@ -50,6 +65,122 @@ ResultType convertFromJSON(const std::string& jsonStr)
     return result;
 }
 
+class RequestReader : public opentracing::HTTPHeadersReader {
+  public:
+    explicit RequestReader(const net::http::Request& request)
+        : _request(request)
+    {
+    }
+
+    opentracing::expected<void> ForeachKey(
+        std::function<opentracing::expected<void>(
+            opentracing::string_view, opentracing::string_view)> f)
+        const override
+    {
+        for (auto&& header : _request.headers()) {
+            const auto result = f(header.key(), header.value());
+            if (!result) {
+                return result;
+            }
+        }
+        return opentracing::make_expected();
+    }
+
+  private:
+    const net::http::Request& _request;
+};
+
+thrift::ObservedSpan observeSpan(const opentracing::SpanContext& ctx)
+{
+    const auto& sc = static_cast<const SpanContext&>(ctx);
+    thrift::ObservedSpan observedSpan;
+    std::ostringstream oss;
+    oss << sc.traceID();
+    observedSpan.__set_traceId(oss.str());
+    observedSpan.__set_sampled(sc.isSampled());
+    auto itr = sc.baggage().find(kBaggageKey);
+    if (itr != std::end(sc.baggage())) {
+        observedSpan.__set_baggage(itr->second);
+    }
+    return observedSpan;
+}
+
+thrift::TraceResponse callDownstreamHTTP(
+    const opentracing::SpanContext& ctx,
+    const thrift::Downstream& target)
+{
+    thrift::JoinTraceRequest request;
+    request.__set_serverRole(target.serverRole);
+    if (target.downstream) {
+        request.__set_downstream(*target.downstream);
+    }
+    const auto requestJSON = apache::thrift::ThriftJSONString(request);
+    net::Socket socket;
+    socket.open(AF_INET, SOCK_STREAM);
+    const auto authority = target.host + ':' + target.port;
+    socket.connect("http://" + authority);
+    std::ostringstream oss;
+    oss << "POST /join_trace HTTP/1.1\r\n"
+           "Host: " << authority << "\r\n"
+           "Content-Type: application/json\r\n"
+           "Content-Length: " << requestJSON.size() << "\r\n\r\n"
+        << requestJSON;
+    const auto message = oss.str();
+    const auto numWritten =
+        ::write(socket.handle(), &message[0], message.size());
+    (void)numWritten;
+
+    const auto responseStr = bufferedRead(socket);
+    std::istringstream iss(responseStr);
+    auto response = net::http::Response::parse(iss);
+    const auto thriftResponse =
+        convertFromJSON<thrift::TraceResponse>(response.body());
+    return thriftResponse;
+}
+
+thrift::TraceResponse callDownstream(
+    const opentracing::SpanContext& ctx,
+    const std::string& /* role */,
+    const thrift::Downstream& downstream)
+{
+    thrift::TraceResponse response;
+
+    switch (downstream.transport) {
+    case thrift::Transport::HTTP: {
+        response = callDownstreamHTTP(ctx, downstream);
+    } break;
+    case thrift::Transport::TCHANNEL: {
+        response.__set_notImplementedError(
+            "TCHANNEL transport not implemented");
+    } break;
+    case thrift::Transport::DUMMY: {
+        response.__set_notImplementedError(
+            "DUMMY transport not implemented");
+    } break;
+    default: {
+        throw std::invalid_argument(
+            "Unrecognized protocol " + std::to_string(downstream.transport));
+    } break;
+    }
+
+    return response;
+}
+
+thrift::TraceResponse prepareResponse(
+    const opentracing::SpanContext& ctx,
+    const std::string& role,
+    const thrift::Downstream& downstream)
+{
+    const auto observedSpan = observeSpan(ctx);
+    thrift::TraceResponse response;
+    response.__set_span(observedSpan);
+    if (downstream.downstream) {
+        response.__set_downstream(
+            callDownstream(ctx, role, *downstream.downstream));
+    }
+    return response;
+}
+
 }  // anonymous namespace
 
 using Handler = std::function<std::string(const net::http::Request&)>;
@@ -58,17 +189,22 @@ class Server::SocketListener {
   public:
     SocketListener(const net::IPAddress& ip,
                    Handler handler)
-        : _handler(handler)
-        , _running(true)
+        : _ip(ip)
+        , _handler(handler)
+        , _running(false)
     {
-        std::promise<void> started;
-        _thread = std::thread([this, ip, &started]() { start(ip, started); });
-        started.get_future().get();
     }
 
     ~SocketListener()
     {
         stop();
+    }
+
+    void start()
+    {
+        std::promise<void> started;
+        _thread = std::thread([this, &started]() { start(_ip, started); });
+        started.get_future().get();
     }
 
     void stop() noexcept
@@ -88,17 +224,9 @@ class Server::SocketListener {
         _socket.listen();
         started.set_value();
 
-        constexpr auto kBufferSize = 256;
-        std::array<char, kBufferSize> buffer;
         while (_running) {
             net::Socket client = _socket.accept();
-            std::string requestStr;
-            auto numRead = ::read(client.handle(), &buffer[0], buffer.size());
-            requestStr.append(buffer[0], numRead);
-            while (numRead == kBufferSize) {
-                numRead = ::read(client.handle(), &buffer[0], buffer.size());
-                requestStr.append(buffer[0], numRead);
-            }
+            auto requestStr = bufferedRead(client);
 
             try {
                 std::istringstream iss(requestStr);
@@ -119,6 +247,7 @@ class Server::SocketListener {
         }
     }
 
+    net::IPAddress _ip;
     net::Socket _socket;
     Handler _handler;
     std::atomic<bool> _running;
@@ -126,16 +255,85 @@ class Server::SocketListener {
 };
 
 Server::Server(const net::IPAddress& ip)
+    : _logger(logging::consoleLogger())
+    , _tracer(Tracer::make("cppserver", Config(), _logger))
+    , _listener(new SocketListener(ip,
+        [this](const net::http::Request& request) {
+            return handleRequest(request);
+        }))
 {
-    auto logger = std::shared_ptr<logging::Logger>(logging::consoleLogger());
-    _tracer = Tracer::make("cppserver", Config(), logger);
-    auto handler = [this](const net::http::Request& request) {
-        return handleRequest(request);
-    };
-    _listener.reset(new SocketListener(ip, handler));
 }
 
 Server::~Server() = default;
+
+void Server::serve()
+{
+    _listener->start();
+}
+
+template <typename RequestType>
+std::string Server::handleJSON(
+    const net::http::Request& request,
+    std::function<
+        thrift::TraceResponse(const RequestType&,
+                              const opentracing::SpanContext&)> handler)
+{
+    RequestReader reader(request);
+    auto result = _tracer->Extract(reader);
+    if (!result) {
+        std::ostringstream oss;
+        oss << "HTTP/1.1 400 Bad Request\r\n\r\n"
+               "Cannot read request body: opentracing error code "
+            << result.error().value();
+        return oss.str();
+    }
+
+    std::unique_ptr<opentracing::SpanContext> spanContext(result->release());
+    opentracing::StartSpanOptions options;
+    options.start_system_timestamp = std::chrono::system_clock::now();
+    options.start_steady_timestamp = std::chrono::steady_clock::now();
+    if (spanContext) {
+        options.references.emplace_back(
+            std::make_pair(opentracing::SpanReferenceType::ChildOfRef,
+                           spanContext.get()));
+    }
+    auto span = _tracer->StartSpanWithOptions("post", options);
+
+    _logger->info("Server request: " + request.body());
+    RequestType thriftRequest;
+    try {
+        thriftRequest = convertFromJSON<RequestType>(request.body());
+    } catch (const std::exception& ex) {
+        std::ostringstream oss;
+        oss << "HTTP/1.1 500 Internal Server Error\r\n\r\n"
+            << "Cannot parse request JSON: " << ex.what();
+        return oss.str();
+    } catch (...) {
+        return "HTTP/1.1 500 Internal Server Error\r\n\r\n"
+               "Cannot parse request JSON";
+    }
+
+    const auto thriftResponse = handler(thriftRequest, span->context());
+    std::string responseJSONStr;
+    try {
+        responseJSONStr = apache::thrift::ThriftJSONString(thriftResponse);
+    } catch (const std::exception& ex) {
+        std::ostringstream oss;
+        oss << "HTTP/1.1 500 Internal Server Error\r\n\r\n"
+            << "Cannot marshal response to JSON: " << ex.what();
+        return oss.str();
+    } catch (...) {
+        return "HTTP/1.1 500 Internal Server Error\r\n\r\n"
+               "Cannot marshal response to JSON";
+    }
+    _logger->info("Server response: " + responseJSONStr);
+    std::ostringstream oss;
+    oss << "HTTP/1.1 200 OK\r\n"
+           "Content-Type: application/json\r\n"
+           "Content-Length: " << responseJSONStr.size() << "\r\n\r\n"
+        << responseJSONStr;
+    return oss.str();
+}
 
 std::string Server::handleRequest(const net::http::Request& request)
 {
@@ -143,12 +341,20 @@ std::string Server::handleRequest(const net::http::Request& request)
         return "HTTP/1.1 200 OK\r\n\r\n";
     }
     if (request.target() == "/start_trace") {
-        return startTrace(convertFromJSON<thrift::StartTraceRequest>(
-            request.body()));
+        return handleJSON<thrift::StartTraceRequest>(
+            request,
+            [this](const thrift::StartTraceRequest& request,
+                   const opentracing::SpanContext& /* ctx */) {
+                return startTrace(request);
+            });
     }
     if (request.target() == "/join_trace") {
-        return joinTrace(convertFromJSON<thrift::JoinTraceRequest>(
-            request.body()));
+        return handleJSON<thrift::JoinTraceRequest>(
+            request,
+            [this](const thrift::JoinTraceRequest& request,
+                   const opentracing::SpanContext& ctx) {
+                return joinTrace(request, ctx);
+            });
     }
     if (request.target() == "/create_traces") {
         return generateTraces(request);
@@ -156,18 +362,25 @@ std::string Server::handleRequest(const net::http::Request& request)
     return "HTTP/1.1 404 Not Found\r\n\r\n";
 }
 
-std::string Server::startTrace(
+thrift::TraceResponse Server::startTrace(
     const crossdock::thrift::StartTraceRequest& request)
 {
-    // TODO
-    return "";
+    auto span = _tracer->StartSpan(request.serverRole);
+    if (request.sampled) {
+        span->SetTag("sampling.priority", 1);
+    }
+    span->SetBaggageItem(kBaggageKey, request.baggage);
+
+    return prepareResponse(
+        span->context(), request.serverRole, request.downstream);
 }
 
-std::string Server::joinTrace(
-    const crossdock::thrift::JoinTraceRequest& request)
+thrift::TraceResponse Server::joinTrace(
+    const crossdock::thrift::JoinTraceRequest& request,
+    const opentracing::SpanContext& spanContext)
 {
-    // TODO
-    return "";
+    return prepareResponse(
+        spanContext, request.serverRole, request.downstream);
 }
 
 std::string Server::generateTraces(const net::http::Request& request)
@@ -181,5 +394,8 @@ std::string Server::generateTraces(const net::http::Request& request)
 
 int main()
 {
+    jaegertracing::crossdock::Server server(
+        jaegertracing::net::IPAddress::v4("127.0.0.1:8888"));
+    std::this_thread::sleep_for(std::chrono::minutes(10));
     return 0;
 }

@@ -21,7 +21,15 @@
 
 #include <opentracing/tracer.h>
 
+#include "jaegertracing/thrift-gen/tracetest_types.h"
+
 namespace jaegertracing {
+namespace logging {
+
+class Logger;
+
+}  // namespace logging
+
 namespace net {
 
 class IPAddress;
@@ -34,12 +42,6 @@ class Request;
 }  // namespace net
 
 namespace crossdock {
-namespace thrift {
-
-class JoinTraceRequest;
-class StartTraceRequest;
-
-}  // namespace thrift
 
 class Server {
   public:
@@ -50,18 +52,27 @@ class Server {
     void serve();
 
   private:
+    template <typename RequestType>
+    std::string handleJSON(
+        const net::http::Request& request,
+        std::function<
+            thrift::TraceResponse(const RequestType&,
+                                  const opentracing::SpanContext&)> handler);
+
     std::string handleRequest(const net::http::Request& request);
 
-    std::string startTrace(const crossdock::thrift::StartTraceRequest& request);
+    thrift::TraceResponse startTrace(const thrift::StartTraceRequest& request);
 
-    std::string joinTrace(const crossdock::thrift::JoinTraceRequest& request);
+    thrift::TraceResponse joinTrace(const thrift::JoinTraceRequest& request,
+                                    const opentracing::SpanContext& ctx);
 
     std::string generateTraces(const net::http::Request& request);
 
     class SocketListener;
 
-    std::unique_ptr<SocketListener> _listener;
+    std::shared_ptr<logging::Logger> _logger;
     std::shared_ptr<opentracing::Tracer> _tracer;
+    std::unique_ptr<SocketListener> _listener;
 };
 
 }  // namespace crossdock
