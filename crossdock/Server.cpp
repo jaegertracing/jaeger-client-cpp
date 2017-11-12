@@ -288,14 +288,14 @@ std::string Server::handleJSON(
         return oss.str();
     }
 
-    std::unique_ptr<opentracing::SpanContext> spanContext(result->release());
+    std::unique_ptr<opentracing::SpanContext> ctx(result->release());
     opentracing::StartSpanOptions options;
     options.start_system_timestamp = std::chrono::system_clock::now();
     options.start_steady_timestamp = std::chrono::steady_clock::now();
-    if (spanContext) {
+    if (ctx) {
         options.references.emplace_back(
             std::make_pair(opentracing::SpanReferenceType::ChildOfRef,
-                           spanContext.get()));
+                           ctx.get()));
     }
     auto span = _tracer->StartSpanWithOptions("post", options);
 
@@ -377,10 +377,9 @@ thrift::TraceResponse Server::startTrace(
 
 thrift::TraceResponse Server::joinTrace(
     const crossdock::thrift::JoinTraceRequest& request,
-    const opentracing::SpanContext& spanContext)
+    const opentracing::SpanContext& ctx)
 {
-    return prepareResponse(
-        spanContext, request.serverRole, request.downstream);
+    return prepareResponse(ctx, request.serverRole, request.downstream);
 }
 
 std::string Server::generateTraces(const net::http::Request& request)
