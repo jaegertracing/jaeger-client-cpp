@@ -1,5 +1,7 @@
-# Build directory
+# Build files
 /build
+/crossdock/build
+/crossdock/crossdock
 
 # vim swap files
 *.swo
