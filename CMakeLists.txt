@@ -6,6 +6,7 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/cmake/toolchain.cmake")
 
 set(HUNTER_CACHE_SERVERS "https://github.com/isaachier/cpp-client-hunter-cache")
 
+include(CMakeDependentOption)
 include(HunterGate)
 HunterGate(
     URL "https://github.com/ruslo/hunter/archive/v0.19.141.tar.gz"
@@ -88,10 +89,12 @@ find_package(OpenTracing CONFIG REQUIRED)
 list(APPEND LIBS OpenTracing::opentracing-static)
 list(APPEND package_deps opentracing-cpp)
 
-option(JAEGERTRACING_WITH_YAML_CPP "Use yaml-cpp to parse config files" ON)
 option(JAEGERTRACING_COVERAGE "Build with coverage" $ENV{COVERAGE})
 option(JAEGERTRACING_BUILD_EXAMPLES "Build examples" ON)
 option(JAEGERTRACING_BUILD_CROSSDOCK "Build crossdock" OFF)
+cmake_dependent_option(
+  JAEGERTRACING_WITH_YAML_CPP "Use yaml-cpp to parse config files" ON
+  "NOT JAEGERTRACING_BUILD_CROSSDOCK" ON)
 
 if(JAEGERTRACING_WITH_YAML_CPP)
   hunter_add_package(yaml-cpp)

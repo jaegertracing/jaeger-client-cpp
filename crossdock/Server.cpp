@@ -17,6 +17,7 @@
 #include "Server.h"
 
 #include <atomic>
+#include <cstdlib>
 #include <future>
 #include <sstream>
 #include <thread>
@@ -35,6 +36,7 @@ namespace crossdock {
 namespace {
 
 constexpr auto kBaggageKey = "crossdock-baggage-key";
+constexpr auto kDefaultTracerServiceName = "crossdock-cpp";
 
 std::string bufferedRead(net::Socket& socket)
 {
@@ -255,13 +257,71 @@ class Server::SocketListener {
     std::thread _thread;
 };
 
-Server::Server(const net::IPAddress& ip)
+class Server::EndToEndHandler {
+  public:
+    using TracerPtr = std::shared_ptr<opentracing::Tracer>;
+
+    EndToEndHandler(const std::string& agentHostPort,
+                    const std::string& samplingServerURL)
+        : _agentHostPort(agentHostPort)
+        , _samplingServerURL(samplingServerURL)
+    {
+    }
+
+    TracerPtr findOrMakeTracer(std::string samplerType)
+    {
+        if (samplerType.empty()) {
+            samplerType = kSamplerTypeRemote;
+        }
+
+        std::lock_guard<std::mutex> lock(_mutex);
+        auto itr = _tracers.find(samplerType);
+        if (itr != std::end(_tracers)) {
+            return itr->second;
+        }
+        return init(samplerType);
+    }
+
+  private:
+    Config makeEndToEndConfig(const std::string& samplerType) const
+    {
+        return Config(
+            false,
+            samplers::Config(samplerType,
+                             1.0,
+                             _samplingServerURL,
+                             samplers::Config::kDefaultMaxOperations,
+                             std::chrono::seconds(5)),
+            reporters::Config(reporters::Config::kDefaultQueueSize,
+                              std::chrono::seconds(1),
+                              false,
+                              _agentHostPort));
+    }
+
+    TracerPtr init(const std::string& samplerType)
+    {
+        const auto config = makeEndToEndConfig(samplerType);
+        auto tracer = Tracer::make(kDefaultTracerServiceName, config);
+        _tracers[config.sampler().type()] = tracer;
+        return tracer;
+    }
+
+    std::string _agentHostPort;
+    std::string _samplingServerURL;
+    std::unordered_map<std::string, TracerPtr> _tracers;
+    std::mutex _mutex;
+};
+
+Server::Server(const net::IPAddress& ip,
+               const std::string& agentHostPort,
+               const std::string& samplingServerURL)
     : _logger(logging::consoleLogger())
-    , _tracer(Tracer::make("cppserver", Config(), _logger))
+    , _tracer(Tracer::make(kDefaultTracerServiceName, Config(), _logger))
     , _listener(
           new SocketListener(ip, [this](const net::http::Request& request) {
               return handleRequest(request);
           }))
+    , _handler(new EndToEndHandler(agentHostPort, samplingServerURL))
 {
 }
 
@@ -381,8 +441,52 @@ Server::joinTrace(const crossdock::thrift::JoinTraceRequest& request,
 
 std::string Server::generateTraces(const net::http::Request& request)
 {
-    // TODO
-    return "";
+    using StrMap = std::unordered_map<std::string, std::string>;
+
+    std::string type;
+    std::string operation;
+    StrMap tags;
+    int count = 0;
+
+    try {
+        auto node = YAML::Load(request.body());
+        type = node["type"].as<std::string>();
+        operation = node["operation"].as<std::string>();
+        count = node["count"].as<int>();
+
+        auto tagNode = node["tags"];
+        if (tagNode.IsMap()) {
+            for (auto itr = tagNode.begin(); itr != tagNode.end(); ++itr) {
+                tags.emplace(
+                    std::make_pair(itr->first.as<std::string>(),
+                                   itr->second.as<std::string>()));
+            }
+        }
+    } catch (const std::exception& ex) {
+        std::ostringstream oss;
+        oss << "HTTP/1.1 400 Bad Request\r\n\r\n"
+               "JSON payload is invalid: " << ex.what();
+        return oss.str();
+    } catch (...) {
+        return "HTTP/1.1 400 Bad Request\r\n\r\n"
+               "JSON payload is invalid";
+    }
+
+    auto tracer = _handler->findOrMakeTracer(type);
+    if (!tracer) {
+        return "HTTP/1.1 500 Internal Server Error\r\n\r\n"
+               "Tracer is not initialized";
+    }
+
+    for (auto i = 0; i < count; ++i) {
+        auto span = tracer->StartSpan(operation);
+        for (auto&& pair : tags) {
+            span->SetTag(pair.first, pair.second);
+        }
+        span->Finish();
+    }
+
+    return "HTTP/1.1 200 OK\r\n\r\n";
 }
 
 }  // namespace crossdock
@@ -390,8 +494,25 @@ std::string Server::generateTraces(const net::http::Request& request)
 
 int main()
 {
+    const auto rawAgentHostPort = std::getenv("AGENT_HOST_PORT");
+    const std::string agentHostPort(rawAgentHostPort ? rawAgentHostPort : "");
+    if (agentHostPort.empty()) {
+        std::cerr << "env AGENT_HOST_PORT is not specified!\n";
+        return 1;
+    }
+
+    const auto rawSamplingServerURL = std::getenv("SAMPLING_SERVER_URL");
+    const std::string samplingServerURL(
+        rawSamplingServerURL ? rawSamplingServerURL : "");
+    if (samplingServerURL.empty()) {
+        std::cerr << "env SAMPLING_SERVER_URL is not specified!\n";
+        return 1;
+    }
+
     jaegertracing::crossdock::Server server(
-        jaegertracing::net::IPAddress::v4("127.0.0.1:8888"));
+        jaegertracing::net::IPAddress::v4("127.0.0.1:8888"),
+        agentHostPort,
+        samplingServerURL);
     server.serve();
     std::this_thread::sleep_for(std::chrono::minutes(10));
     return 0;
