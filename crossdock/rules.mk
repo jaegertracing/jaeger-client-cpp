@@ -4,6 +4,7 @@ JAEGER_COMPOSE_URL=https://raw.githubusercontent.com/jaegertracing/jaeger/master
 XDOCK_JAEGER_YAML=crossdock/jaeger-docker-compose.yml
 
 CMAKE_OPTIONS=-DCMAKE_BUILD_TYPE=Release
+CMAKE_OPTIONS=-DBUILD_TESTING=OFF
 CMAKE_OPTIONS+=-DJAEGERTRACING_BUILD_EXAMPLES=OFF
 CMAKE_OPTIONS+=-DJAEGERTRACING_BUILD_CROSSDOCK=ON
 
@@ -11,7 +12,7 @@ CMAKE_OPTIONS+=-DJAEGERTRACING_BUILD_CROSSDOCK=ON
 crossdock-bin:
 	rm -rf build
 	mkdir build
-	cd build && cmake $(CMAKE_OPTIONS) ../.. && time make
+	cd build && cmake $(CMAKE_OPTIONS) .. && time make crossdock
 	mv build/crossdock crossdock
 
 .PHONY: crossdock

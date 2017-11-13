@@ -1,7 +1,7 @@
 # Build files
 /build
-/crossdock/build
 /crossdock/crossdock
+/crossdock/jaeger-docker-compose.yml
 
 # vim swap files
 *.swo
