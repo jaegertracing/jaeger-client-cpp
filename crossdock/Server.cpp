@@ -312,13 +312,20 @@ class Server::EndToEndHandler {
     std::mutex _mutex;
 };
 
-Server::Server(const net::IPAddress& ip,
+Server::Server(const net::IPAddress& clientIP,
+               const net::IPAddress& serverIP,
                const std::string& agentHostPort,
                const std::string& samplingServerURL)
     : _logger(logging::consoleLogger())
     , _tracer(Tracer::make(kDefaultTracerServiceName, Config(), _logger))
-    , _listener(
-          new SocketListener(ip, [this](const net::http::Request& request) {
+    , _clientListener(
+          new SocketListener(clientIP,
+          [this](const net::http::Request& request) {
+              return handleRequest(request);
+          }))
+    , _serverListener(
+          new SocketListener(serverIP,
+          [this](const net::http::Request& request) {
               return handleRequest(request);
           }))
     , _handler(new EndToEndHandler(agentHostPort, samplingServerURL))
@@ -327,7 +334,11 @@ Server::Server(const net::IPAddress& ip,
 
 Server::~Server() = default;
 
-void Server::serve() { _listener->start(); }
+void Server::serve()
+{
+    _clientListener->start();
+    _serverListener->start();
+}
 
 template <typename RequestType>
 std::string Server::handleJSON(
@@ -510,7 +521,8 @@ int main()
     }
 
     jaegertracing::crossdock::Server server(
-        jaegertracing::net::IPAddress::v4("127.0.0.1:8888"),
+        jaegertracing::net::IPAddress::v4("127.0.0.1:8080"),
+        jaegertracing::net::IPAddress::v4("127.0.0.1:8081"),
         agentHostPort,
         samplingServerURL);
     server.serve();

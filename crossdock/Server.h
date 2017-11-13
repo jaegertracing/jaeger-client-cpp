@@ -45,7 +45,8 @@ namespace crossdock {
 
 class Server {
   public:
-    Server(const net::IPAddress& ip,
+    Server(const net::IPAddress& clientIP,
+           const net::IPAddress& serverIP,
            const std::string& agentHostPort,
            const std::string& samplingServerURL);
 
@@ -74,7 +75,8 @@ class Server {
 
     std::shared_ptr<logging::Logger> _logger;
     std::shared_ptr<opentracing::Tracer> _tracer;
-    std::unique_ptr<SocketListener> _listener;
+    std::unique_ptr<SocketListener> _clientListener;
+    std::unique_ptr<SocketListener> _serverListener;
     std::unique_ptr<EndToEndHandler> _handler;
 };
 

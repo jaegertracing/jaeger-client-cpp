@@ -13,7 +13,7 @@ crossdock-bin:
 	rm -rf build
 	mkdir build
 	cd build && cmake $(CMAKE_OPTIONS) .. && time make crossdock
-	mv build/crossdock crossdock
+	cp build/crossdock crossdock/crossdock
 
 .PHONY: crossdock
 crossdock: crossdock-bin crossdock-download-jaeger
