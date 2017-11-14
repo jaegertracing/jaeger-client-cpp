@@ -44,7 +44,7 @@ services:
     cpp:
         depends_on:
             - test_driver
-        build: .
+        build: ..
         ports:
             - "8080-8082"
 
