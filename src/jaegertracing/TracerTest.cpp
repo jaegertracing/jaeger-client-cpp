@@ -115,6 +115,16 @@ TEST(Tracer, testTracer)
     options.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef,
                                     &debugCtx);
 
+    const auto& tags = tracer->tags();
+    auto itr = std::find_if(
+        std::begin(tags),
+        std::end(tags),
+        [](const Tag& tag) { return tag.key() == kTracerIPTagKey; });
+    ASSERT_NE(std::end(tags), itr);
+    ASSERT_TRUE(itr->value().is<std::string>());
+    ASSERT_EQ(net::IPAddress::v4(itr->value().get<std::string>()).host(),
+              net::IPAddress::localIP(AF_INET).host());
+
     std::unique_ptr<Span> span(static_cast<Span*>(
         tracer->StartSpanWithOptions("test-operation", options).release()));
     ASSERT_TRUE(static_cast<bool>(span));

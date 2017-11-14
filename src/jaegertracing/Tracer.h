@@ -194,7 +194,7 @@ class Tracer : public opentracing::Tracer,
            const std::shared_ptr<logging::Logger>& logger,
            const std::shared_ptr<metrics::Metrics>& metrics)
         : _serviceName(serviceName)
-        , _hostIPv4(net::IPAddress::host(AF_INET))
+        , _hostIPv4(net::IPAddress::localIP(AF_INET))
         , _sampler(sampler)
         , _reporter(reporter)
         , _metrics(metrics)
@@ -219,9 +219,7 @@ class Tracer : public opentracing::Tracer,
             _logger->error("Unable to determine this host's IP address");
         }
         else {
-            std::ostringstream oss;
-            oss << _hostIPv4;
-            _tags.push_back(Tag(kTracerIPTagKey, oss.str()));
+            _tags.push_back(Tag(kTracerIPTagKey, _hostIPv4.host()));
         }
 
         std::random_device device;
