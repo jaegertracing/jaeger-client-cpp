@@ -26,18 +26,17 @@ namespace examples {
 namespace hotrod {
 namespace {
 
-auto defaultHandler =
-    [](net::Socket&& socket, const net::http::Request& /* request */) {
-        const std::string message =
-            "HTTP/1.1 404 Not found\r\n";
-        const auto numWritten =
-            ::write(socket.handle(), &message[0], message.size());
-        if (numWritten < static_cast<int>(message.size())) {
-            std::cerr
-                << "Failed to write entire response to client"
-                   ", message=" << message << '\n';
-        }
-    };
+auto defaultHandler = [](net::Socket&& socket,
+                         const net::http::Request& /* request */) {
+    const std::string message = "HTTP/1.1 404 Not found\r\n";
+    const auto numWritten =
+        ::write(socket.handle(), &message[0], message.size());
+    if (numWritten < static_cast<int>(message.size())) {
+        std::cerr << "Failed to write entire response to client"
+                     ", message="
+                  << message << '\n';
+    }
+};
 
 }  // anonymous namespace
 
@@ -65,8 +64,7 @@ void HTTPServer::start()
         constexpr auto kBufferSize = 256;
         std::string buffer(kBufferSize, '\0');
         std::string requestStr;
-        auto numRead =
-            ::read(clientSocket.handle(), &buffer[0], buffer.size());
+        auto numRead = ::read(clientSocket.handle(), &buffer[0], buffer.size());
         while (numRead == static_cast<int>(buffer.size())) {
             requestStr.append(&buffer[0], numRead);
             numRead = ::read(clientSocket.handle(), &buffer[0], buffer.size());
@@ -75,20 +73,18 @@ void HTTPServer::start()
         std::istringstream iss(requestStr);
         try {
             const auto request = net::http::Request::parse(iss);
-            auto itr =
-                std::find_if(std::begin(_handlers),
-                             std::end(_handlers),
-                             [&request](const HandlerVec::value_type& pair) {
-                                 return std::regex_search(request.target(),
-                                                          pair.first);
-                             });
+            auto itr = std::find_if(
+                std::begin(_handlers),
+                std::end(_handlers),
+                [&request](const HandlerVec::value_type& pair) {
+                    return std::regex_search(request.target(), pair.first);
+                });
 
-            Handler handler = ((itr == std::end(_handlers)) ? defaultHandler
-                                                            : itr->second);
+            Handler handler =
+                ((itr == std::end(_handlers)) ? defaultHandler : itr->second);
 
-            std::packaged_task<void(net::Socket&&,
-                                    const net::http::Request&)> task(
-                handler);
+            std::packaged_task<void(net::Socket&&, const net::http::Request&)>
+                task(handler);
             _tasks.push_back(task.get_future());
             task(std::move(clientSocket), request);
         } catch (...) {
@@ -96,29 +92,26 @@ void HTTPServer::start()
             utils::ErrorUtil::logError(*logger, "Error parsing request");
         }
 
-        _tasks.erase(
-            std::remove_if(std::begin(_tasks),
-                           std::end(_tasks),
-                           [](const TaskList::value_type& task) {
-                               return task.valid();
-                           }),
-            std::end(_tasks));
+        _tasks.erase(std::remove_if(std::begin(_tasks),
+                                    std::end(_tasks),
+                                    [](const TaskList::value_type& task) {
+                                        return task.valid();
+                                    }),
+                     std::end(_tasks));
     }
 }
 
 void HTTPServer::close() noexcept
 {
-    std::for_each(std::begin(_tasks),
-                  std::end(_tasks),
-                  [](TaskList::value_type& task) {
-                      try {
-                          task.get();
-                      } catch (...) {
-                          auto logger = logging::consoleLogger();
-                          utils::ErrorUtil::logError(
-                              *logger, "Error finishing task");
-                      }
-                  });
+    std::for_each(
+        std::begin(_tasks), std::end(_tasks), [](TaskList::value_type& task) {
+            try {
+                task.get();
+            } catch (...) {
+                auto logger = logging::consoleLogger();
+                utils::ErrorUtil::logError(*logger, "Error finishing task");
+            }
+        });
     _socket.close();
 }
 

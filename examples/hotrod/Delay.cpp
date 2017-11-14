@@ -32,8 +32,8 @@ void sleep(const Clock::duration& average,
     using FractionalSecond = std::chrono::duration<double>;
     std::normal_distribution<> distribution(
         std::chrono::duration_cast<FractionalSecond>(average).count(),
-        std::chrono::duration_cast<FractionalSecond>(
-            standardDeviation).count());
+        std::chrono::duration_cast<FractionalSecond>(standardDeviation)
+            .count());
     FractionalSecond secondsToSleep;
     {
         std::lock_guard<std::mutex> lock(mutex);
