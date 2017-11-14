@@ -38,6 +38,10 @@ class Header {
     {
     }
 
+    const std::string& key() const { return _key; }
+
+    const std::string& value() const { return _value; }
+
   private:
     std::string _key;
     std::string _value;

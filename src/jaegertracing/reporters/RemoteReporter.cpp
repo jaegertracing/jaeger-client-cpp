@@ -79,11 +79,9 @@ void RemoteReporter::sweepQueue()
     while (true) {
         try {
             std::unique_lock<std::mutex> lock(_mutex);
-            _cv.wait_until(lock,
-                           _lastFlush + _bufferFlushInterval,
-                           [this]() {
-                                return !_running || !_queue.empty();
-                           });
+            _cv.wait_until(lock, _lastFlush + _bufferFlushInterval, [this]() {
+                return !_running || !_queue.empty();
+            });
 
             if (!_running && _queue.empty()) {
                 return;
@@ -101,8 +99,8 @@ void RemoteReporter::sweepQueue()
         } catch (...) {
             auto logger = logging::consoleLogger();
             assert(logger);
-            utils::ErrorUtil::logError(
-                *logger, "Failed in Reporter::sweepQueue");
+            utils::ErrorUtil::logError(*logger,
+                                       "Failed in Reporter::sweepQueue");
         }
     }
 }

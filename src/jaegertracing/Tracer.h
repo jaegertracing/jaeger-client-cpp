@@ -138,22 +138,34 @@ class Tracer : public opentracing::Tracer,
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(std::istream& reader) const override
     {
+        const auto spanContext = _binaryPropagator.extract(reader);
+        if (spanContext == SpanContext()) {
+            return std::unique_ptr<opentracing::SpanContext>();
+        }
         return std::unique_ptr<opentracing::SpanContext>(
-            new SpanContext(_binaryPropagator.extract(reader)));
+            new SpanContext(spanContext));
     }
 
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(const opentracing::TextMapReader& reader) const override
     {
+        const auto spanContext = _textPropagator.extract(reader);
+        if (spanContext == SpanContext()) {
+            return std::unique_ptr<opentracing::SpanContext>();
+        }
         return std::unique_ptr<opentracing::SpanContext>(
-            new SpanContext(_textPropagator.extract(reader)));
+            new SpanContext(spanContext));
     }
 
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(const opentracing::HTTPHeadersReader& reader) const override
     {
+        const auto spanContext = _httpHeaderPropagator.extract(reader);
+        if (spanContext == SpanContext()) {
+            return std::unique_ptr<opentracing::SpanContext>();
+        }
         return std::unique_ptr<opentracing::SpanContext>(
-            new SpanContext(_httpHeaderPropagator.extract(reader)));
+            new SpanContext(spanContext));
     }
 
     void Close() noexcept override
@@ -194,7 +206,7 @@ class Tracer : public opentracing::Tracer,
            const std::shared_ptr<logging::Logger>& logger,
            const std::shared_ptr<metrics::Metrics>& metrics)
         : _serviceName(serviceName)
-        , _hostIPv4(net::IPAddress::host(AF_INET))
+        , _hostIPv4(net::IPAddress::localIP(AF_INET))
         , _sampler(sampler)
         , _reporter(reporter)
         , _metrics(metrics)
@@ -219,9 +231,7 @@ class Tracer : public opentracing::Tracer,
             _logger->error("Unable to determine this host's IP address");
         }
         else {
-            std::ostringstream oss;
-            oss << _hostIPv4;
-            _tags.push_back(Tag(kTracerIPTagKey, oss.str()));
+            _tags.push_back(Tag(kTracerIPTagKey, _hostIPv4.host()));
         }
 
         std::random_device device;

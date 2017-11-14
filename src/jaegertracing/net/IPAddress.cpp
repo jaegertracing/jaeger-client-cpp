@@ -34,14 +34,14 @@ struct IfAddrDeleter : public std::function<void(ifaddrs*)> {
 
 }  // anonymous namespace
 
-IPAddress IPAddress::host(int family)
+IPAddress IPAddress::localIP(int family)
 {
-    return host([family](const ifaddrs* ifAddr) {
+    return localIP([family](const ifaddrs* ifAddr) {
         return ifAddr->ifa_addr->sa_family == family;
     });
 }
 
-IPAddress IPAddress::host(std::function<bool(const ifaddrs*)> filter)
+IPAddress IPAddress::localIP(std::function<bool(const ifaddrs*)> filter)
 {
     auto* ifAddrRawPtr = static_cast<ifaddrs*>(nullptr);
     getifaddrs(&ifAddrRawPtr);

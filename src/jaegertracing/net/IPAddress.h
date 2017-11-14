@@ -64,9 +64,9 @@ class IPAddress {
         return versionFromString(ip, port, AF_INET6);
     }
 
-    static IPAddress host(int family);
+    static IPAddress localIP(int family);
 
-    static IPAddress host(std::function<bool(const ifaddrs*)> filter);
+    static IPAddress localIP(std::function<bool(const ifaddrs*)> filter);
 
     IPAddress()
         : _addr()

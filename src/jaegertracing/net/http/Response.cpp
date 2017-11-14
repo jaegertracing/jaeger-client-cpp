@@ -63,9 +63,8 @@ Response get(const URI& uri)
     socket.connect(uri);
     std::ostringstream requestStream;
     requestStream << "GET " << uri.target() << " HTTP/1.1\r\n"
-                  << "Host: " << uri.authority()
-                  << "\r\n"
-                     "User-Agent: jaegertracing/"
+                  << "Host: " << uri.authority() << "\r\n"
+                                                    "User-Agent: jaegertracing/"
                   << kJaegerClientVersion << "\r\n\r\n";
     const auto request = requestStream.str();
     const auto numWritten =
