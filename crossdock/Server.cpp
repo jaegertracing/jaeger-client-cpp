@@ -373,11 +373,13 @@ std::string Server::handleJSON(
     } catch (const std::exception& ex) {
         std::ostringstream oss;
         oss << "HTTP/1.1 500 Internal Server Error\r\n\r\n"
-            << "Cannot parse request JSON: " << ex.what();
+            << "Cannot parse request JSON: " << ex.what()
+            << ", json: " << request.body();
         return oss.str();
     } catch (...) {
-        return "HTTP/1.1 500 Internal Server Error\r\n\r\n"
-               "Cannot parse request JSON";
+        std::ostringstream oss;
+        oss << "HTTP/1.1 500 Internal Server Error\r\n\r\n"
+            << "Cannot parse request JSON, json: " << request.body();
     }
 
     const auto thriftResponse = handler(thriftRequest, span->context());
