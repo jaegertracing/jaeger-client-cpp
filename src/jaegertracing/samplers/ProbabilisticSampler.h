@@ -28,7 +28,8 @@ class ProbabilisticSampler : public Sampler {
     explicit ProbabilisticSampler(double samplingRate)
         : _samplingRate(std::max(0.0, std::min(samplingRate, 1.0)))
         , _samplingBoundary(
-              static_cast<uint64_t>(kMaxRandomNumber * _samplingRate))
+              static_cast<uint64_t>(
+                std::llround(kMaxRandomNumber * _samplingRate)))
         , _tags({ { kSamplerTypeTagKey, kSamplerTypeProbabilistic },
                   { kSamplerParamTagKey, _samplingRate } })
     {
