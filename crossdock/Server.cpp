@@ -350,10 +350,14 @@ std::string Server::handleJSON(
     auto result = _tracer->Extract(reader);
     if (!result) {
         std::ostringstream oss;
-        oss << "HTTP/1.1 400 Bad Request\r\n\r\n"
-               "Cannot read request body: opentracing error code "
+        oss << "Cannot read request body: opentracing error code "
             << result.error().value();
-        return oss.str();
+        const auto message = oss.str();
+        oss.str("");
+        oss.clear();
+        oss << "HTTP/1.1 400 Bad Request\r\n"
+               "Content-Length: " << message.size() << "\r\n\r\n"
+            << message;
     }
 
     std::unique_ptr<opentracing::SpanContext> ctx(result->release());
@@ -372,37 +376,58 @@ std::string Server::handleJSON(
         thriftRequest = convertFromJSON<RequestType>(request.body());
     } catch (const std::exception& ex) {
         std::ostringstream oss;
-        oss << "HTTP/1.1 500 Internal Server Error\r\n\r\n"
-            << "Cannot parse request JSON: " << ex.what()
+        oss << "Cannot parse request JSON: " << ex.what()
             << ", json: " << request.body();
+        const auto message = oss.str();
+        oss.str("");
+        oss.clear();
+        oss << "HTTP/1.1 500 Internal Server Error\r\n"
+               "Content-Length: " << message.size() << "\r\n\r\n"
+            << message;
         return oss.str();
     } catch (...) {
         std::ostringstream oss;
-        oss << "HTTP/1.1 500 Internal Server Error\r\n\r\n"
-            << "Cannot parse request JSON, json: " << request.body();
+        oss << "Cannot parse request JSON, json: " << request.body();
+        const auto message = oss.str();
+        oss.str("");
+        oss.clear();
+        oss << "HTTP/1.1 500 Internal Server Error\r\n"
+               "Content-Length: " << message.size() << "\r\n\r\n"
+            << message;
+        return oss.str();
     }
 
     const auto thriftResponse = handler(thriftRequest, span->context());
     std::string responseJSONStr;
     try {
-        responseJSONStr = apache::thrift::ThriftJSONString(thriftResponse);
+        const auto message = apache::thrift::ThriftJSONString(thriftResponse);
+        std::ostringstream oss;
+        oss << "HTTP/1.1 200 OK\r\n"
+               "Content-Type: application/json\r\n"
+               "Content-Length: " << responseJSONStr.size() << "\r\n\r\n"
+            << responseJSONStr;
+        return oss.str();
     } catch (const std::exception& ex) {
         std::ostringstream oss;
-        oss << "HTTP/1.1 500 Internal Server Error\r\n\r\n"
-            << "Cannot marshal response to JSON: " << ex.what();
+        oss << "Cannot marshal response to JSON: " << ex.what();
+        const auto message = oss.str();
+        oss.str("");
+        oss.clear();
+        oss << "HTTP/1.1 500 Internal Server Error\r\n"
+               "Content-Length: " << message.size() << "\r\n\r\n"
+            << message;
         return oss.str();
     } catch (...) {
-        return "HTTP/1.1 500 Internal Server Error\r\n\r\n"
-               "Cannot marshal response to JSON";
+        std::ostringstream oss;
+        oss << "Cannot marshal response to JSON";
+        const auto message = oss.str();
+        oss.str("");
+        oss.clear();
+        oss << "HTTP/1.1 500 Internal Server Error\r\n"
+               "Content-Length: " << message.size() << "\r\n\r\n"
+            << message;
+        return oss.str();
     }
-    _logger->info("Server response: " + responseJSONStr);
-    std::ostringstream oss;
-    oss << "HTTP/1.1 200 OK\r\n"
-           "Content-Type: application/json\r\n"
-           "Content-Length: "
-        << responseJSONStr.size() << "\r\n\r\n"
-        << responseJSONStr;
-    return oss.str();
 }
 
 std::string Server::handleRequest(const net::http::Request& request)
@@ -477,18 +502,31 @@ std::string Server::generateTraces(const net::http::Request& request)
         }
     } catch (const std::exception& ex) {
         std::ostringstream oss;
-        oss << "HTTP/1.1 400 Bad Request\r\n\r\n"
-               "JSON payload is invalid: " << ex.what();
+        oss << "JSON payload is invalid: " << ex.what();
+        const auto message = oss.str();
+        oss.str("");
+        oss.clear();
+        oss << "HTTP/1.1 400 Bad Request\r\n"
+               "Content-Length: " << message.size() << "\r\n\r\n"
+            << message;
         return oss.str();
     } catch (...) {
-        return "HTTP/1.1 400 Bad Request\r\n\r\n"
-               "JSON payload is invalid";
+        const std::string message("JSON payload is invalid");
+        std::ostringstream oss;
+        oss << "HTTP/1.1 400 Bad Request\r\n"
+               "Content-Length: " << message.size() << "\r\n\r\n"
+            << message;
+        return oss.str();
     }
 
     auto tracer = _handler->findOrMakeTracer(type);
     if (!tracer) {
-        return "HTTP/1.1 500 Internal Server Error\r\n\r\n"
-               "Tracer is not initialized";
+        const std::string message("Tracer is not initialized");
+        std::ostringstream oss;
+        oss << "HTTP/1.1 500 Internal Server Error\r\n"
+               "Content-Length: " << message.size() << "\r\n"
+            << message;
+        return oss.str();
     }
 
     for (auto i = 0; i < count; ++i) {

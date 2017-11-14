@@ -44,7 +44,9 @@ services:
     cpp:
         depends_on:
             - test_driver
-        build: ..
+        build:
+          context: ..
+          dockerfile: crossdock/Dockerfile
         ports:
             - "8080-8082"
 

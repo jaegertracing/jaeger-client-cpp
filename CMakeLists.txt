@@ -144,6 +144,31 @@ if(JAEGERTRACING_BUILD_CROSSDOCK)
   target_include_directories(crossdock PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/crossdock>)
   target_link_libraries(crossdock PUBLIC jaegertracing-static)
+
+  set(JAEGER_CROSSDOCK_URL
+"https://raw.githubusercontent.com/jaegertracing/jaeger/master/docker-compose/\
+jaeger-docker-compose.yml")
+  file(DOWNLOAD ${JAEGER_CROSSDOCK_URL}
+       "${PROJECT_SOURCE_DIR}/crossdock/jaeger-docker-compose.yml")
+  find_program(DOCKER_COMPOSE_EXE docker-compose REQUIRED)
+  set(DOCKER_COMPOSE_CMD ${DOCKER_COMPOSE_EXE}
+      -f ${PROJECT_SOURCE_DIR}/crossdock/docker-compose.yml
+      -f ${PROJECT_SOURCE_DIR}/crossdock/jaeger-docker-compose.yml)
+  add_custom_target(crossdock-kill
+    COMMAND ${DOCKER_COMPOSE_CMD} kill
+    COMMAND ${DOCKER_COMPOSE_CMD} rm --force
+    DEPENDS crossdock)
+  add_custom_target(crossdock-run
+    COMMAND ${DOCKER_COMPOSE_CMD} build
+    COMMAND ${DOCKER_COMPOSE_CMD} run crossdock
+    DEPENDS crossdock-kill)
+  add_custom_target(crossdock-fresh
+    COMMAND ${DOCKER_COMPOSE_CMD} pull
+    COMMAND ${DOCKER_COMPOSE_CMD} build
+    COMMAND ${DOCKER_COMPOSE_CMD} run crossdock
+    DEPENDS crossdock-kill)
+  add_custom_target(crossdock-logs
+    COMMAND ${DOCKER_COMPOSE_CMD} logs)
 endif()
 
 set(SRC
