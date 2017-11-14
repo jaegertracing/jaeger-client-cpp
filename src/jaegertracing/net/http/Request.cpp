@@ -39,6 +39,10 @@ Request Request::parse(std::istream& in)
     request._target = match[2];
     request._version = match[3];
 
+    readHeaders(in, request._headers);
+    request._body = std::string(std::istreambuf_iterator<char>(in),
+                                std::istreambuf_iterator<char>{});
+
     return request;
 }
 

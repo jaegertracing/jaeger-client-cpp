@@ -28,6 +28,7 @@
 #include "jaegertracing/net/URI.h"
 #include "jaegertracing/net/http/Response.h"
 #include "jaegertracing/samplers/AdaptiveSampler.h"
+#include "jaegertracing/utils/ErrorUtil.h"
 
 namespace jaegertracing {
 namespace samplers {
@@ -42,14 +43,21 @@ class HTTPSamplingManager : public sampling_manager::thrift::SamplingManagerIf {
         : _serverURI(net::URI::parse(serverURL))
         , _logger(logger)
     {
-        net::Socket socket;
-        socket.open(AF_INET, SOCK_STREAM);
-        _serverAddr = socket.connect(serverURL);
+        try {
+            net::Socket socket;
+            socket.open(AF_INET, SOCK_STREAM);
+            _serverAddr = socket.connect(serverURL);
+        } catch (...) {
+            utils::ErrorUtil::logError(_logger, "cannot connect to socket");
+        }
     }
 
     void getSamplingStrategy(SamplingStrategyResponse& result,
                              const std::string& serviceName) override
     {
+        if (_serverAddr == net::IPAddress()) {
+            return;
+        }
         auto uri = _serverURI;
         uri._query = "service=" + net::URI::queryEscape(serviceName);
         const auto responseHTTP = net::http::get(uri);

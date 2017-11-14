@@ -6,7 +6,7 @@ function main() {
     cd "$project_dir" || exit 1
 
     local srcs
-    srcs=$(git ls-files src |
+    srcs=$(git ls-files src crossdock examples |
            grep -E -v 'thrift-gen|Test\.cpp' |
            grep -E '\.cpp$')
 

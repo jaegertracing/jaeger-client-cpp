@@ -138,22 +138,34 @@ class Tracer : public opentracing::Tracer,
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(std::istream& reader) const override
     {
+        const auto spanContext = _binaryPropagator.extract(reader);
+        if (spanContext == SpanContext()) {
+            return std::unique_ptr<opentracing::SpanContext>();
+        }
         return std::unique_ptr<opentracing::SpanContext>(
-            new SpanContext(_binaryPropagator.extract(reader)));
+            new SpanContext(spanContext));
     }
 
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(const opentracing::TextMapReader& reader) const override
     {
+        const auto spanContext = _textPropagator.extract(reader);
+        if (spanContext == SpanContext()) {
+            return std::unique_ptr<opentracing::SpanContext>();
+        }
         return std::unique_ptr<opentracing::SpanContext>(
-            new SpanContext(_textPropagator.extract(reader)));
+            new SpanContext(spanContext));
     }
 
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(const opentracing::HTTPHeadersReader& reader) const override
     {
+        const auto spanContext = _httpHeaderPropagator.extract(reader);
+        if (spanContext == SpanContext()) {
+            return std::unique_ptr<opentracing::SpanContext>();
+        }
         return std::unique_ptr<opentracing::SpanContext>(
-            new SpanContext(_httpHeaderPropagator.extract(reader)));
+            new SpanContext(spanContext));
     }
 
     void Close() noexcept override

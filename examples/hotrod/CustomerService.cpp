@@ -41,12 +41,13 @@ class Database {
     Database(opentracing::Tracer& tracer, logging::Logger& logger)
         : _tracer(tracer)
         , _logger(logger)
-        , _customers({
-                {"123", Customer("123", "Rachel's Floral Designs", "115,227")},
-                {"567", Customer("567", "Amazing Coffee Roasters", "211,653")},
-                {"392", Customer("392", "Trom Chocolatier", "577,322")},
-                {"731", Customer("731", "Japanese Deserts", "728,326")}
-            })
+        , _customers(
+              { { "123",
+                  Customer("123", "Rachel's Floral Designs", "115,227") },
+                { "567",
+                  Customer("567", "Amazing Coffee Roasters", "211,653") },
+                { "392", Customer("392", "Trom Chocolatier", "577,322") },
+                { "731", Customer("731", "Japanese Deserts", "728,326") } })
     {
     }
 
@@ -58,8 +59,7 @@ class Database {
         options.start_system_timestamp = std::chrono::system_clock::now();
         options.start_steady_timestamp = std::chrono::steady_clock::now();
         options.references.emplace_back(
-            opentracing::SpanReferenceType::ChildOfRef,
-            &parentSpan.context());
+            opentracing::SpanReferenceType::ChildOfRef, &parentSpan.context());
 
         auto span = _tracer.StartSpanWithOptions("SQL SELECT", options);
         const auto query =
@@ -87,15 +87,15 @@ class CustomerServiceImpl : public CustomerService {
   public:
     CustomerServiceImpl()
         : _logger(logging::consoleLogger())
-        ,  _tracer(Tracer::make(
-                    "customer",
-                    Config(false,
-                           samplers::Config("const", 1),
-                           reporters::Config(
-                               reporters::Config::kDefaultQueueSize,
-                               reporters::Config::defaultBufferFlushInterval(),
-                               true)),
-                    _logger))
+        , _tracer(Tracer::make(
+              "customer",
+              Config(false,
+                     samplers::Config("const", 1),
+                     reporters::Config(
+                         reporters::Config::kDefaultQueueSize,
+                         reporters::Config::defaultBufferFlushInterval(),
+                         true)),
+              _logger))
         , _database(*_tracer, *_logger)
     {
     }
@@ -158,10 +158,9 @@ int main(int argc, const char* argv[])
             }
 
             std::ostringstream oss;
-            oss << "{ \"ID\": \"" << customer.id() << '"'
-                << ", \"name\": \"" << customer.name() << '"'
-                << ", \"location\": \"" << customer.location() << '"'
-                << " }";
+            oss << "{ \"ID\": \"" << customer.id() << '"' << ", \"name\": \""
+                << customer.name() << '"' << ", \"location\": \""
+                << customer.location() << '"' << " }";
             const auto jsonData = oss.str();
             oss.clear();
             oss.str("");
