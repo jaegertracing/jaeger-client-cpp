@@ -5,9 +5,9 @@ XDOCK_JAEGER_YAML=crossdock/jaeger-docker-compose.yml
 
 .PHONY: crossdock
 crossdock: crossdock-download-jaeger
-	docker-compose -f $(XDOCK_YAML) -f $(XDOCK_JAEGER_YAML) kill go
-	docker-compose -f $(XDOCK_YAML) -f $(XDOCK_JAEGER_YAML) rm -f go
-	docker-compose -f $(XDOCK_YAML) -f $(XDOCK_JAEGER_YAML) build go
+	docker-compose -f $(XDOCK_YAML) -f $(XDOCK_JAEGER_YAML) kill cpp
+	docker-compose -f $(XDOCK_YAML) -f $(XDOCK_JAEGER_YAML) rm -f cpp
+	docker-compose -f $(XDOCK_YAML) -f $(XDOCK_JAEGER_YAML) build cpp
 	docker-compose -f $(XDOCK_YAML) -f $(XDOCK_JAEGER_YAML) run crossdock 2>&1 | tee run-crossdock.log
 	grep 'Tests passed!' run-crossdock.log
 
