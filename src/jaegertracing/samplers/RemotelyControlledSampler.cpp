@@ -19,8 +19,6 @@
 #include <cassert>
 #include <sstream>
 
-#include <thrift/protocol/TJSONProtocol.h>
-
 #include "jaegertracing/metrics/Counter.h"
 #include "jaegertracing/metrics/Gauge.h"
 #include "jaegertracing/net/IPAddress.h"
@@ -28,6 +26,7 @@
 #include "jaegertracing/net/URI.h"
 #include "jaegertracing/net/http/Response.h"
 #include "jaegertracing/samplers/AdaptiveSampler.h"
+#include "jaegertracing/samplers/RemoteSamplingJSON.h"
 #include "jaegertracing/utils/ErrorUtil.h"
 
 namespace jaegertracing {
@@ -71,16 +70,7 @@ class HTTPSamplingManager : public sampling_manager::thrift::SamplingManagerIf {
             return;
         }
 
-        boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transport(
-            new apache::thrift::transport::TMemoryBuffer());
-        apache::thrift::protocol::TJSONProtocol protocol(transport);
-        std::vector<uint8_t> buffer;
-        buffer.reserve(responseHTTP.body().size());
-        buffer.insert(std::end(buffer),
-                      std::begin(responseHTTP.body()),
-                      std::end(responseHTTP.body()));
-        transport->write(&buffer[0], buffer.size());
-        result.read(&protocol);
+        result = nlohmann::json(responseHTTP.body());
     }
 
   private:

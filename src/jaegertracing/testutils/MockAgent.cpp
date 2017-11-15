@@ -19,13 +19,14 @@
 #include <thread>
 
 #include <thrift/protocol/TCompactProtocol.h>
-#include <thrift/protocol/TJSONProtocol.h>
 #include <thrift/transport/TBufferTransports.h>
 
 #include "jaegertracing/Logging.h"
+#include "jaegertracing/baggage/RemoteRestrictionJSON.h"
 #include "jaegertracing/net/http/Error.h"
 #include "jaegertracing/net/http/Request.h"
 #include "jaegertracing/net/http/Response.h"
+#include "jaegertracing/samplers/RemoteSamplingJSON.h"
 #include "jaegertracing/utils/ErrorUtil.h"
 #include "jaegertracing/utils/Regex.h"
 #include "jaegertracing/utils/UDPClient.h"
@@ -183,7 +184,7 @@ void MockAgent::serveHTTP(std::promise<void>& started)
             case Resource::kSampler: {
                 sampling_manager::thrift::SamplingStrategyResponse response;
                 _samplingMgr.getSamplingStrategy(response, serviceName);
-                responseJSON = apache::thrift::ThriftJSONString(response);
+                responseJSON = nlohmann::json(response).dump();
             } break;
             default: {
                 assert(resource == Resource::kBaggage);
@@ -203,7 +204,7 @@ void MockAgent::serveHTTP(std::promise<void>& started)
                                });
                 response.success = std::move(restrictions);
                 response.__isset.success = true;
-                responseJSON = apache::thrift::ThriftJSONString(response);
+                responseJSON = nlohmann::json(response).dump();
             } break;
             }
             std::ostringstream oss;

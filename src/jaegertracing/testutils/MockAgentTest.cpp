@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+#include <sstream>
+
 #include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
 
-#include <thrift/protocol/TJSONProtocol.h>
-
+#include "jaegertracing/baggage/RemoteRestrictionJSON.h"
 #include "jaegertracing/net/http/Response.h"
+#include "jaegertracing/samplers/RemoteSamplingJSON.h"
 #include "jaegertracing/testutils/MockAgent.h"
 
 namespace jaegertracing {
@@ -96,16 +99,7 @@ TEST(MockAgent, testSamplingManager)
         const auto uri = net::URI::parse(uriStr);
         const auto responseHTTP = net::http::get(uri);
         sampling_manager::thrift::SamplingStrategyResponse response;
-        boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transport(
-            new apache::thrift::transport::TMemoryBuffer());
-        apache::thrift::protocol::TJSONProtocol protocol(transport);
-        std::vector<uint8_t> buffer;
-        buffer.reserve(responseHTTP.body().size());
-        buffer.insert(std::end(buffer),
-                      std::begin(responseHTTP.body()),
-                      std::end(responseHTTP.body()));
-        transport->write(&buffer[0], buffer.size());
-        response.read(&protocol);
+        response = nlohmann::json::parse(responseHTTP.body());
         ASSERT_EQ(sampling_manager::thrift::SamplingStrategyType::PROBABILISTIC,
                   response.strategyType);
     }
@@ -125,16 +119,7 @@ TEST(MockAgent, testSamplingManager)
         const auto uri = net::URI::parse(uriStr);
         const auto responseHTTP = net::http::get(uri);
         sampling_manager::thrift::SamplingStrategyResponse response;
-        boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transport(
-            new apache::thrift::transport::TMemoryBuffer());
-        apache::thrift::protocol::TJSONProtocol protocol(transport);
-        std::vector<uint8_t> buffer;
-        buffer.reserve(responseHTTP.body().size());
-        buffer.insert(std::end(buffer),
-                      std::begin(responseHTTP.body()),
-                      std::end(responseHTTP.body()));
-        transport->write(&buffer[0], buffer.size());
-        response.read(&protocol);
+        response = nlohmann::json::parse(responseHTTP.body());
         ASSERT_EQ(config, response);
     }
 }

@@ -9,8 +9,8 @@ set(HUNTER_CACHE_SERVERS "https://github.com/isaachier/cpp-client-hunter-cache")
 include(CMakeDependentOption)
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.19.141.tar.gz"
-    SHA1 "8d7162c0665aba01aaf6bf62f1ed015dc66c5e7c"
+    URL "https://github.com/ruslo/hunter/archive/v0.19.157.tar.gz"
+    SHA1 "4bd7cbd1fb5dd33f52e19e05d893d362712cea9e"
     LOCAL
 )
 
@@ -89,9 +89,14 @@ find_package(OpenTracing CONFIG REQUIRED)
 list(APPEND LIBS OpenTracing::opentracing-static)
 list(APPEND package_deps opentracing-cpp)
 
+hunter_add_package(nlohmann_json)
+find_package(nlohmann_json CONFIG REQUIRED)
+list(APPEND LIBS nlohmann_json)
+list(APPEND package_deps nlohmann_json)
+
 option(JAEGERTRACING_COVERAGE "Build with coverage" $ENV{COVERAGE})
 option(JAEGERTRACING_BUILD_EXAMPLES "Build examples" ON)
-option(JAEGERTRACING_BUILD_CROSSDOCK "Build crossdock" OFF)
+option(JAEGERTRACING_BUILD_CROSSDOCK "Build crossdock" $ENV{CROSSDOCK})
 cmake_dependent_option(
   JAEGERTRACING_WITH_YAML_CPP "Use yaml-cpp to parse config files" ON
   "NOT JAEGERTRACING_BUILD_CROSSDOCK" ON)
@@ -183,10 +188,11 @@ set(SRC
     src/jaegertracing/Transport.cpp
     src/jaegertracing/UDPTransport.cpp
     src/jaegertracing/baggage/BaggageSetter.cpp
+    src/jaegertracing/baggage/RemoteRestrictionJSON.cpp
+    src/jaegertracing/baggage/RemoteRestrictionManager.cpp
     src/jaegertracing/baggage/Restriction.cpp
     src/jaegertracing/baggage/RestrictionManager.cpp
     src/jaegertracing/baggage/RestrictionsConfig.cpp
-    src/jaegertracing/baggage/RemoteRestrictionManager.cpp
     src/jaegertracing/metrics/Counter.cpp
     src/jaegertracing/metrics/Gauge.cpp
     src/jaegertracing/metrics/InMemoryStatsReporter.cpp
@@ -228,6 +234,7 @@ set(SRC
     src/jaegertracing/samplers/GuaranteedThroughputProbabilisticSampler.cpp
     src/jaegertracing/samplers/ProbabilisticSampler.cpp
     src/jaegertracing/samplers/RateLimitingSampler.cpp
+    src/jaegertracing/samplers/RemoteSamplingJSON.cpp
     src/jaegertracing/samplers/RemotelyControlledSampler.cpp
     src/jaegertracing/samplers/Sampler.cpp
     src/jaegertracing/samplers/SamplingStatus.cpp

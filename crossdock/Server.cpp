@@ -22,8 +22,7 @@
 #include <sstream>
 #include <thread>
 
-#include <thrift/protocol/TJSONProtocol.h>
-#include <thrift/transport/TBufferTransports.h>
+#include <nlohmann/json.hpp>
 
 #include "jaegertracing/Tracer.h"
 #include "jaegertracing/net/IPAddress.h"
@@ -33,6 +32,144 @@
 
 namespace jaegertracing {
 namespace crossdock {
+namespace thrift {
+
+#define JSON_FROM_FIELD(var, field) \
+    { \
+        json[#field] = var.field; \
+    }
+
+#define FIELD_FROM_JSON(var, field) \
+    { \
+        var.__set_##field(json.at(#field)); \
+    }
+
+void to_json(nlohmann::json& json, const Transport::type& transport)
+{
+    json = _Transport_VALUES_TO_NAMES.at(static_cast<int>(transport));
+}
+
+void from_json(const nlohmann::json& json, Transport::type& transport)
+{
+    const auto str = json.get<std::string>();
+    if (str == "HTTP") {
+        transport = Transport::HTTP;
+        return;
+    }
+    if (str == "TCHANNEL") {
+        transport = Transport::TCHANNEL;
+        return;
+    }
+    if (str == "DUMMY") {
+        transport = Transport::DUMMY;
+        return;
+    }
+    std::ostringstream oss;
+    oss << "Invalid transport value " << str;
+    throw std::invalid_argument(oss.str());
+}
+
+void to_json(nlohmann::json& json, const Downstream& downstream)
+{
+    JSON_FROM_FIELD(downstream, serviceName);
+    JSON_FROM_FIELD(downstream, serverRole);
+    JSON_FROM_FIELD(downstream, host);
+    JSON_FROM_FIELD(downstream, port);
+    JSON_FROM_FIELD(downstream, transport);
+    if (downstream.downstream) {
+        json["downstream"] = *downstream.downstream;
+    }
+}
+
+void from_json(const nlohmann::json& json, Downstream& downstream)
+{
+    FIELD_FROM_JSON(downstream, serviceName);
+    FIELD_FROM_JSON(downstream, serverRole);
+    FIELD_FROM_JSON(downstream, host);
+    FIELD_FROM_JSON(downstream, port);
+    downstream.__set_transport(json.at("transport").get<Transport::type>());
+    auto itr = json.find("downstream");
+    if (itr != std::end(json)) {
+        downstream.__set_downstream(itr->get<Downstream>());
+    }
+}
+
+void to_json(nlohmann::json& json, const StartTraceRequest& request)
+{
+    JSON_FROM_FIELD(request, serverRole);
+    JSON_FROM_FIELD(request, sampled);
+    JSON_FROM_FIELD(request, baggage);
+    JSON_FROM_FIELD(request, downstream);
+}
+
+void from_json(const nlohmann::json& json, StartTraceRequest& request)
+{
+    FIELD_FROM_JSON(request, serverRole);
+    FIELD_FROM_JSON(request, sampled);
+    FIELD_FROM_JSON(request, baggage);
+    FIELD_FROM_JSON(request, downstream);
+}
+
+void to_json(nlohmann::json& json, const JoinTraceRequest& request)
+{
+    JSON_FROM_FIELD(request, serverRole);
+    if (request.__isset.downstream) {
+        json["downstream"] = request.downstream;
+    }
+}
+
+void from_json(const nlohmann::json& json, JoinTraceRequest& request)
+{
+    FIELD_FROM_JSON(request, serverRole);
+    auto itr = json.find("downstream");
+    if (itr != std::end(json)) {
+        request.__set_downstream(itr->get<Downstream>());
+    }
+}
+
+void to_json(nlohmann::json& json, const ObservedSpan& observedSpan)
+{
+    JSON_FROM_FIELD(observedSpan, traceId);
+    JSON_FROM_FIELD(observedSpan, sampled);
+    JSON_FROM_FIELD(observedSpan, baggage);
+}
+
+void from_json(const nlohmann::json& json, ObservedSpan& observedSpan)
+{
+    FIELD_FROM_JSON(observedSpan, traceId);
+    FIELD_FROM_JSON(observedSpan, sampled);
+    FIELD_FROM_JSON(observedSpan, baggage);
+}
+
+void to_json(nlohmann::json& json, const TraceResponse& response)
+{
+    if (response.__isset.span) {
+        JSON_FROM_FIELD(response, span);
+    }
+    if (response.downstream) {
+        json["downstream"] = *response.downstream;
+    }
+    JSON_FROM_FIELD(response, notImplementedError);
+}
+
+void from_json(const nlohmann::json& json, TraceResponse& response)
+{
+    auto itr = json.find("span");
+    if (itr != std::end(json)) {
+        response.__set_span(itr->get<ObservedSpan>());
+    }
+    itr = json.find("downstream");
+    if (itr != std::end(json)) {
+        response.__set_downstream(itr->get<TraceResponse>());
+    }
+    FIELD_FROM_JSON(response, notImplementedError);
+}
+
+#undef FIELD_FROM_JSON
+#undef JSON_FROM_FIELD
+
+}  // namespace thrift
+
 namespace {
 
 constexpr auto kBaggageKey = "crossdock-baggage-key";
@@ -50,21 +187,6 @@ std::string bufferedRead(net::Socket& socket)
         data.append(&buffer[0], numRead);
     }
     return data;
-}
-
-template <typename ResultType>
-ResultType convertFromJSON(const std::string& jsonStr)
-{
-    boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transport(
-        new apache::thrift::transport::TMemoryBuffer());
-    apache::thrift::protocol::TJSONProtocol protocol(transport);
-    std::vector<uint8_t> buffer;
-    buffer.reserve(jsonStr.size());
-    buffer.insert(std::end(buffer), std::begin(jsonStr), std::end(jsonStr));
-    transport->write(&buffer[0], buffer.size());
-    ResultType result;
-    result.read(&protocol);
-    return result;
 }
 
 class RequestReader : public opentracing::HTTPHeadersReader {
@@ -115,7 +237,8 @@ thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
     if (target.downstream) {
         request.__set_downstream(*target.downstream);
     }
-    const auto requestJSON = apache::thrift::ThriftJSONString(request);
+
+    const auto requestJSON = nlohmann::json(request).dump();
     net::Socket socket;
     socket.open(AF_INET, SOCK_STREAM);
     const auto authority = target.host + ':' + target.port;
@@ -136,8 +259,9 @@ thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
     const auto responseStr = bufferedRead(socket);
     std::istringstream iss(responseStr);
     auto response = net::http::Response::parse(iss);
-    const auto thriftResponse =
-        convertFromJSON<thrift::TraceResponse>(response.body());
+    const auto jsonData = YAML::Load(response.body());
+    thrift::TraceResponse thriftResponse;
+    // TODO: Parse thriftResponse from jsonData
     return thriftResponse;
 }
 
@@ -373,7 +497,7 @@ std::string Server::handleJSON(
     _logger->info("Server request: " + request.body());
     RequestType thriftRequest;
     try {
-        thriftRequest = convertFromJSON<RequestType>(request.body());
+        RequestType thriftRequest = nlohmann::json::parse(request.body());
     } catch (const std::exception& ex) {
         std::ostringstream oss;
         oss << "Cannot parse request JSON: " << ex.what()
@@ -399,7 +523,7 @@ std::string Server::handleJSON(
 
     const auto thriftResponse = handler(thriftRequest, span->context());
     try {
-        const auto message = apache::thrift::ThriftJSONString(thriftResponse);
+        const auto message = nlohmann::json(thriftResponse).dump();
         std::ostringstream oss;
         oss << "HTTP/1.1 200 OK\r\n"
                "Content-Type: application/json\r\n"
@@ -565,20 +689,6 @@ int main()
         agentHostPort,
         samplingServerURL);
     server.serve();
-
-    jaegertracing::crossdock::thrift::StartTraceRequest request;
-    request.__set_serverRole("S1");
-    request.__set_sampled(true);
-    request.__set_baggage("30f03cd6cce1ba72");
-    jaegertracing::crossdock::thrift::Downstream downstream;
-    downstream.__set_serviceName("cpp");
-    downstream.__set_serverRole("S2");
-    downstream.__set_host("cpp");
-    downstream.__set_port("8081");
-    downstream.__set_transport(
-        jaegertracing::crossdock::thrift::Transport::HTTP);
-    request.__set_downstream(downstream);
-    std::cout << apache::thrift::ThriftJSONString(request) << '\n';
 
     std::this_thread::sleep_for(std::chrono::minutes(10));
     return 0;
