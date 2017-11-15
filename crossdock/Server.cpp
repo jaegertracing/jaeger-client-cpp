@@ -214,6 +214,25 @@ class RequestReader : public opentracing::HTTPHeadersReader {
     const net::http::Request& _request;
 };
 
+class RequestWriter : public opentracing::HTTPHeadersWriter {
+  public:
+    explicit RequestWriter(std::ostream& requestStream)
+        : _requestStream(requestStream)
+    {
+    }
+
+    opentracing::expected<void> Set(
+        opentracing::string_view key, opentracing::string_view value)
+        const override
+    {
+        _requestStream << key << ": " << value << "\r\n";
+        return opentracing::make_expected();
+    }
+
+  private:
+    std::ostream& _requestStream;
+};
+
 thrift::ObservedSpan observeSpan(const opentracing::SpanContext& ctx)
 {
     const auto& sc = static_cast<const SpanContext&>(ctx);
@@ -230,7 +249,8 @@ thrift::ObservedSpan observeSpan(const opentracing::SpanContext& ctx)
 }
 
 thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
-                                         const thrift::Downstream& target)
+                                         const thrift::Downstream& target,
+                                         opentracing::Tracer& tracer)
 {
     thrift::JoinTraceRequest request;
     request.__set_serverRole(target.serverRole);
@@ -246,10 +266,11 @@ thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
     std::ostringstream oss;
     oss << "POST /join_trace HTTP/1.1\r\n"
            "Host: "
-        << authority << "\r\n"
-                        "Content-Type: application/json\r\n"
-                        "Content-Length: "
-        << requestJSON.size() << "\r\n\r\n"
+        << authority << "\r\n";
+    RequestWriter writer(oss);
+    tracer.Inject(ctx, writer);
+    oss << "Content-Type: application/json\r\n"
+           "Content-Length: " << requestJSON.size() << "\r\n\r\n"
         << requestJSON;
     const auto message = oss.str();
     const auto numWritten =
@@ -267,13 +288,14 @@ thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
 
 thrift::TraceResponse callDownstream(const opentracing::SpanContext& ctx,
                                      const std::string& /* role */,
-                                     const thrift::Downstream& downstream)
+                                     const thrift::Downstream& downstream,
+                                     opentracing::Tracer& tracer)
 {
     thrift::TraceResponse response;
 
     switch (downstream.transport) {
     case thrift::Transport::HTTP: {
-        response = callDownstreamHTTP(ctx, downstream);
+        response = callDownstreamHTTP(ctx, downstream, tracer);
     } break;
     case thrift::Transport::TCHANNEL: {
         response.__set_notImplementedError(
@@ -293,14 +315,15 @@ thrift::TraceResponse callDownstream(const opentracing::SpanContext& ctx,
 
 thrift::TraceResponse prepareResponse(const opentracing::SpanContext& ctx,
                                       const std::string& role,
-                                      const thrift::Downstream& downstream)
+                                      const thrift::Downstream& downstream,
+                                      opentracing::Tracer& tracer)
 {
     const auto observedSpan = observeSpan(ctx);
     thrift::TraceResponse response;
     response.__set_span(observedSpan);
     if (downstream.downstream) {
         response.__set_downstream(
-            callDownstream(ctx, role, *downstream.downstream));
+            callDownstream(ctx, role, *downstream.downstream, tracer));
     }
     return response;
 }
@@ -351,26 +374,44 @@ class Server::SocketListener {
         _running = true;
         started.set_value();
 
+        using TaskList = std::deque<std::future<void>>;
+        TaskList tasks;
+
         while (_running) {
             net::Socket client = _socket.accept();
-            auto requestStr = bufferedRead(client);
+            std::packaged_task<void(net::Socket&&)> task(
+                [this](net::Socket&& socket) {
+                    net::Socket client(std::move(socket));
+                    auto requestStr = bufferedRead(client);
 
-            try {
-                std::istringstream iss(requestStr);
-                const auto request = net::http::Request::parse(iss);
-                const auto responseStr = _handler(request);
-                const auto numWritten = ::write(
-                    client.handle(), &responseStr[0], responseStr.size());
-                (void)numWritten;
-            } catch (...) {
-                constexpr auto message =
-                    "HTTP/1.1 500 Internal Server Error\r\n\r\n";
-                const auto numWritten =
-                    ::write(client.handle(), message, sizeof(message) - 1);
-                (void)numWritten;
-            }
+                    try {
+                        std::istringstream iss(requestStr);
+                        const auto request = net::http::Request::parse(iss);
+                        const auto responseStr = _handler(request);
+                        const auto numWritten = ::write(
+                            client.handle(), &responseStr[0], responseStr.size());
+                        (void)numWritten;
+                    } catch (...) {
+                        constexpr auto message =
+                            "HTTP/1.1 500 Internal Server Error\r\n\r\n";
+                        const auto numWritten =
+                            ::write(client.handle(),
+                                    message,
+                                    sizeof(message) - 1);
+                        (void)numWritten;
+                    }
 
-            client.close();
+                    client.close();
+            });
+            tasks.push_back(task.get_future());
+            task(std::move(client));
+
+            tasks.erase(std::remove_if(std::begin(tasks),
+                                       std::end(tasks),
+                                       [](const TaskList::value_type& future) {
+                                            return future.valid();
+                                       }),
+                         std::end(tasks));
         }
     }
 
@@ -590,14 +631,15 @@ Server::startTrace(const crossdock::thrift::StartTraceRequest& request)
     span->SetBaggageItem(kBaggageKey, request.baggage);
 
     return prepareResponse(
-        span->context(), request.serverRole, request.downstream);
+        span->context(), request.serverRole, request.downstream, *_tracer);
 }
 
 thrift::TraceResponse
 Server::joinTrace(const crossdock::thrift::JoinTraceRequest& request,
                   const opentracing::SpanContext& ctx)
 {
-    return prepareResponse(ctx, request.serverRole, request.downstream);
+    return prepareResponse(
+        ctx, request.serverRole, request.downstream, *_tracer);
 }
 
 std::string Server::generateTraces(const net::http::Request& request)

@@ -94,8 +94,8 @@ void HTTPServer::start()
 
         _tasks.erase(std::remove_if(std::begin(_tasks),
                                     std::end(_tasks),
-                                    [](const TaskList::value_type& task) {
-                                        return task.valid();
+                                    [](const TaskList::value_type& future) {
+                                        return future.valid();
                                     }),
                      std::end(_tasks));
     }
