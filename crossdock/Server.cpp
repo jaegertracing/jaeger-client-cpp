@@ -398,14 +398,13 @@ std::string Server::handleJSON(
     }
 
     const auto thriftResponse = handler(thriftRequest, span->context());
-    std::string responseJSONStr;
     try {
         const auto message = apache::thrift::ThriftJSONString(thriftResponse);
         std::ostringstream oss;
         oss << "HTTP/1.1 200 OK\r\n"
                "Content-Type: application/json\r\n"
-               "Content-Length: " << responseJSONStr.size() << "\r\n\r\n"
-            << responseJSONStr;
+               "Content-Length: " << message.size() << "\r\n\r\n"
+            << message;
         return oss.str();
     } catch (const std::exception& ex) {
         std::ostringstream oss;
@@ -566,6 +565,21 @@ int main()
         agentHostPort,
         samplingServerURL);
     server.serve();
+
+    jaegertracing::crossdock::thrift::StartTraceRequest request;
+    request.__set_serverRole("S1");
+    request.__set_sampled(true);
+    request.__set_baggage("30f03cd6cce1ba72");
+    jaegertracing::crossdock::thrift::Downstream downstream;
+    downstream.__set_serviceName("cpp");
+    downstream.__set_serverRole("S2");
+    downstream.__set_host("cpp");
+    downstream.__set_port("8081");
+    downstream.__set_transport(
+        jaegertracing::crossdock::thrift::Transport::HTTP);
+    request.__set_downstream(downstream);
+    std::cout << apache::thrift::ThriftJSONString(request) << '\n';
+
     std::this_thread::sleep_for(std::chrono::minutes(10));
     return 0;
 }

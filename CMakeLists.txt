@@ -156,8 +156,7 @@ jaeger-docker-compose.yml")
       -f ${PROJECT_SOURCE_DIR}/crossdock/jaeger-docker-compose.yml)
   add_custom_target(crossdock-kill
     COMMAND ${DOCKER_COMPOSE_CMD} kill
-    COMMAND ${DOCKER_COMPOSE_CMD} rm --force
-    DEPENDS crossdock)
+    COMMAND ${DOCKER_COMPOSE_CMD} rm --force)
   add_custom_target(crossdock-run
     COMMAND ${DOCKER_COMPOSE_CMD} build
     COMMAND ${DOCKER_COMPOSE_CMD} run crossdock
