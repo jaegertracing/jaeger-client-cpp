@@ -18,8 +18,7 @@
 
 #include <sstream>
 
-#include <thrift/protocol/TJSONProtocol.h>
-
+#include "jaegertracing/baggage/RemoteRestrictionJSON.h"
 #include "jaegertracing/net/http/Response.h"
 #include "jaegertracing/utils/ErrorUtil.h"
 
@@ -136,18 +135,8 @@ void RemoteRestrictionManager::updateRestrictions(
             return;
         }
 
-        boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transport(
-            new apache::thrift::transport::TMemoryBuffer());
-        apache::thrift::protocol::TJSONProtocol protocol(transport);
-        std::vector<uint8_t> buffer;
-        buffer.reserve(responseHTTP.body().size());
-        buffer.insert(std::end(buffer),
-                      std::begin(responseHTTP.body()),
-                      std::end(responseHTTP.body()));
-        transport->write(&buffer[0], buffer.size());
         thrift::BaggageRestrictionManager_getBaggageRestrictions_result
-            response;
-        response.read(&protocol);
+            response = nlohmann::json::parse(responseHTTP.body());
         if (response.__isset.success) {
             KeyRestrictionMap restrictions;
             restrictions.reserve(response.success.size());

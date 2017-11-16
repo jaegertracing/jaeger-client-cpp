@@ -70,7 +70,7 @@ class HTTPSamplingManager : public sampling_manager::thrift::SamplingManagerIf {
             return;
         }
 
-        result = nlohmann::json(responseHTTP.body());
+        result = nlohmann::json::parse(responseHTTP.body());
     }
 
   private:

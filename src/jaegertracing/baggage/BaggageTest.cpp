@@ -91,7 +91,7 @@ TEST(Baggage, testRemoteRestrictionManagerDefaults)
 
 TEST(Baggage, testRemoteRestrictionManagerFunctionality)
 {
-    auto logger = logging::nullLogger();
+    auto logger = logging::consoleLogger();
     auto metrics = metrics::Metrics::makeNullMetrics();
     auto mockAgent = testutils::MockAgent::make();
     mockAgent->start();

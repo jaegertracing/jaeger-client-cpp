@@ -34,8 +34,8 @@ inline void to_json(nlohmann::json& json, const BaggageRestriction& restriction)
 inline void from_json(
     const nlohmann::json& json, BaggageRestriction& restriction)
 {
-    restriction.__set_baggageKey(restriction.baggageKey);
-    restriction.__set_maxValueLength(restriction.maxValueLength);
+    restriction.__set_baggageKey(json.at("baggageKey"));
+    restriction.__set_maxValueLength(json.at("maxValueLength"));
 }
 
 using BaggageRestrictionList =
@@ -49,6 +49,7 @@ inline void to_json(nlohmann::json& json, const BaggageRestrictionList& list)
 inline void from_json(const nlohmann::json& json, BaggageRestrictionList& list)
 {
     list.success = json.get<std::vector<BaggageRestriction>>();
+    list.__isset.success = true;
 }
 
 }  // namespace thrift
