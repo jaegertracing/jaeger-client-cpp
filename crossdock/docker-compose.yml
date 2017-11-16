@@ -7,19 +7,19 @@ services:
             - test_driver
             - go
             - cpp
-            - python
+            - java
         environment:
-            - WAIT_FOR=test_driver,go,cpp,python
+            - WAIT_FOR=test_driver,go,cpp,java
             - WAIT_FOR_TIMEOUT=60s
 
             - CALL_TIMEOUT=60s
 
             - AXIS_CLIENT=go
-            - AXIS_S1NAME=go,cpp,python
+            - AXIS_S1NAME=go,cpp,java
             - AXIS_SAMPLED=true,false
-            - AXIS_S2NAME=go,cpp,python
+            - AXIS_S2NAME=go,cpp,java
             - AXIS_S2TRANSPORT=http
-            - AXIS_S3NAME=go,cpp,python
+            - AXIS_S3NAME=go,cpp,java
             - AXIS_S3TRANSPORT=http
 
             - BEHAVIOR_TRACE=client,s1name,sampled,s2name,s2transport,s3name,s3transport
@@ -36,8 +36,8 @@ services:
         ports:
             - "8080-8082"
 
-    python:
-        image: jaegertracing/xdock-py
+    java:
+        image: jaegertracing/xdock-java
         ports:
             - "8080-8082"
 

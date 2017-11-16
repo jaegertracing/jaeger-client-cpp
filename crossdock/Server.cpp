@@ -352,11 +352,15 @@ using Handler = std::function<std::string(const net::http::Request&)>;
 
 class Server::SocketListener {
   public:
-    SocketListener(const net::IPAddress& ip, Handler handler)
+    SocketListener(const net::IPAddress& ip,
+                   const std::shared_ptr<logging::Logger>& logger,
+                   Handler handler)
         : _ip(ip)
+        , _logger(logger)
         , _handler(handler)
         , _running(false)
     {
+        assert(_logger);
     }
 
     ~SocketListener() { stop(); }
@@ -408,9 +412,19 @@ class Server::SocketListener {
                         const auto request = net::http::Request::parse(iss);
                         const auto responseStr = _handler(request);
                         const auto numWritten = ::write(
-                            client.handle(), &responseStr[0], responseStr.size());
-                        (void)numWritten;
+                            client.handle(),
+                            &responseStr[0],
+                            responseStr.size());
+                        if (numWritten !=
+                            static_cast<int>(responseStr.size())) {
+                            std::ostringstream oss;
+                            oss << "Unable to write entire response"
+                                   ", numWritten=" << numWritten
+                                << ", responseSize=" << responseStr.size();
+                            _logger->error(oss.str());
+                        }
                     } catch (...) {
+                        utils::ErrorUtil::logError(*_logger, "Server error");
                         constexpr auto message =
                             "HTTP/1.1 500 Internal Server Error\r\n\r\n";
                         constexpr auto messageSize = sizeof(message) - 1;
@@ -433,6 +447,7 @@ class Server::SocketListener {
 
     net::IPAddress _ip;
     net::Socket _socket;
+    std::shared_ptr<logging::Logger> _logger;
     Handler _handler;
     std::atomic<bool> _running;
     std::thread _thread;
@@ -500,12 +515,12 @@ Server::Server(const net::IPAddress& clientIP,
     : _logger(logging::consoleLogger())
     , _tracer(Tracer::make(kDefaultTracerServiceName, Config(), _logger))
     , _clientListener(
-          new SocketListener(clientIP,
+          new SocketListener(clientIP, _logger,
           [this](const net::http::Request& request) {
               return handleRequest(request);
           }))
     , _serverListener(
-          new SocketListener(serverIP,
+          new SocketListener(serverIP, _logger,
           [this](const net::http::Request& request) {
               return handleRequest(request);
           }))
