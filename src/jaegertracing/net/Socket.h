@@ -41,6 +41,7 @@ class Socket {
         , _family(socket._family)
         , _type(socket._type)
     {
+		socket._handle = -1;
     }
 
     Socket& operator=(Socket&& rhs)

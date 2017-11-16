@@ -313,19 +313,37 @@ thrift::TraceResponse callDownstream(const opentracing::SpanContext& ctx,
     return response;
 }
 
-thrift::TraceResponse prepareResponse(const opentracing::SpanContext& ctx,
-                                      const std::string& role,
-                                      const thrift::Downstream& downstream,
-                                      opentracing::Tracer& tracer)
+thrift::TraceResponse prepareResponse(
+    const opentracing::SpanContext& ctx,
+    const std::string& role,
+    const thrift::Downstream* downstream,
+    opentracing::Tracer& tracer)
 {
     const auto observedSpan = observeSpan(ctx);
     thrift::TraceResponse response;
     response.__set_span(observedSpan);
-    if (downstream.downstream) {
+    if (downstream) {
         response.__set_downstream(
-            callDownstream(ctx, role, *downstream.downstream, tracer));
+            callDownstream(ctx, role, *downstream, tracer));
     }
     return response;
+}
+
+struct GenerateTracesRequest {
+    using StrMap = std::unordered_map<std::string, std::string>;
+
+    std::string _type;
+    std::string _operation;
+    StrMap _tags;
+    int _count;
+};
+
+void from_json(const nlohmann::json& json, GenerateTracesRequest& request)
+{
+    request._type = json.at("type");
+    request._operation = json.at("operation");
+    request._tags = json.at("tags").get<GenerateTracesRequest::StrMap>();
+    request._count = json.at("count");
 }
 
 }  // anonymous namespace
@@ -378,8 +396,9 @@ class Server::SocketListener {
         TaskList tasks;
 
         while (_running) {
-            net::Socket client = _socket.accept();
-            std::packaged_task<void(net::Socket&&)> task(
+            auto client = _socket.accept();
+            auto future = std::async(
+                std::launch::async,
                 [this](net::Socket&& socket) {
                     net::Socket client(std::move(socket));
                     auto requestStr = bufferedRead(client);
@@ -394,25 +413,22 @@ class Server::SocketListener {
                     } catch (...) {
                         constexpr auto message =
                             "HTTP/1.1 500 Internal Server Error\r\n\r\n";
+                        constexpr auto messageSize = sizeof(message) - 1;
                         const auto numWritten =
                             ::write(client.handle(),
                                     message,
-                                    sizeof(message) - 1);
+                                    messageSize);
                         (void)numWritten;
                     }
 
                     client.close();
-            });
-            tasks.push_back(task.get_future());
-            task(std::move(client));
-
-            tasks.erase(std::remove_if(std::begin(tasks),
-                                       std::end(tasks),
-                                       [](const TaskList::value_type& future) {
-                                            return future.valid();
-                                       }),
-                         std::end(tasks));
+            }, std::move(client));
+            tasks.emplace_back(std::move(future));
         }
+
+        std::for_each(std::begin(tasks),
+                      std::end(tasks),
+                      [](TaskList::value_type& future) { future.get(); });
     }
 
     net::IPAddress _ip;
@@ -538,7 +554,7 @@ std::string Server::handleJSON(
     _logger->info("Server request: " + request.body());
     RequestType thriftRequest;
     try {
-        RequestType thriftRequest = nlohmann::json::parse(request.body());
+        thriftRequest = nlohmann::json::parse(request.body());
     } catch (const std::exception& ex) {
         std::ostringstream oss;
         oss << "Cannot parse request JSON: " << ex.what()
@@ -631,7 +647,10 @@ Server::startTrace(const crossdock::thrift::StartTraceRequest& request)
     span->SetBaggageItem(kBaggageKey, request.baggage);
 
     return prepareResponse(
-        span->context(), request.serverRole, request.downstream, *_tracer);
+        span->context(),
+        request.serverRole,
+        &request.downstream,
+        *_tracer);
 }
 
 thrift::TraceResponse
@@ -639,32 +658,17 @@ Server::joinTrace(const crossdock::thrift::JoinTraceRequest& request,
                   const opentracing::SpanContext& ctx)
 {
     return prepareResponse(
-        ctx, request.serverRole, request.downstream, *_tracer);
+        ctx,
+        request.serverRole,
+        request.__isset.downstream ? &request.downstream : nullptr,
+        *_tracer);
 }
 
-std::string Server::generateTraces(const net::http::Request& request)
+std::string Server::generateTraces(const net::http::Request& requestHTTP)
 {
-    using StrMap = std::unordered_map<std::string, std::string>;
-
-    std::string type;
-    std::string operation;
-    StrMap tags;
-    int count = 0;
-
+    GenerateTracesRequest request;
     try {
-        auto node = YAML::Load(request.body());
-        type = node["type"].as<std::string>();
-        operation = node["operation"].as<std::string>();
-        count = node["count"].as<int>();
-
-        auto tagNode = node["tags"];
-        if (tagNode.IsMap()) {
-            for (auto itr = tagNode.begin(); itr != tagNode.end(); ++itr) {
-                tags.emplace(
-                    std::make_pair(itr->first.as<std::string>(),
-                                   itr->second.as<std::string>()));
-            }
-        }
+        request = nlohmann::json::parse(requestHTTP.body());
     } catch (const std::exception& ex) {
         std::ostringstream oss;
         oss << "JSON payload is invalid: " << ex.what();
@@ -684,7 +688,7 @@ std::string Server::generateTraces(const net::http::Request& request)
         return oss.str();
     }
 
-    auto tracer = _handler->findOrMakeTracer(type);
+    auto tracer = _handler->findOrMakeTracer(request._type);
     if (!tracer) {
         const std::string message("Tracer is not initialized");
         std::ostringstream oss;
@@ -694,9 +698,9 @@ std::string Server::generateTraces(const net::http::Request& request)
         return oss.str();
     }
 
-    for (auto i = 0; i < count; ++i) {
-        auto span = tracer->StartSpan(operation);
-        for (auto&& pair : tags) {
+    for (auto i = 0; i < request._count; ++i) {
+        auto span = tracer->StartSpan(request._operation);
+        for (auto&& pair : request._tags) {
             span->SetTag(pair.first, pair.second);
         }
         span->Finish();
