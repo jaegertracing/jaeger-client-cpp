@@ -290,7 +290,8 @@ thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
         << authority << "\r\n";
     RequestWriter writer(oss);
     tracer.Inject(ctx, writer);
-    oss << "Content-Type: application/json\r\n"
+    oss << "Connection: close\r\n"
+           "Content-Type: application/json\r\n"
            "Content-Length: " << requestJSON.size() << "\r\n\r\n"
         << requestJSON;
     const auto message = oss.str();
