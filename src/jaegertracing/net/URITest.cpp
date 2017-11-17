@@ -53,6 +53,7 @@ TEST(URI, queryEscape)
     ASSERT_EQ("hello.world", URI::queryEscape("hello.world"));
     ASSERT_EQ("hello_world", URI::queryEscape("hello_world"));
     ASSERT_EQ("hello~world", URI::queryEscape("hello~world"));
+    ASSERT_EQ("hello%3Aworld", URI::queryEscape("hello:world"));
 }
 
 TEST(URI, queryUnescape)

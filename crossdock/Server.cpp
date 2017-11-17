@@ -175,6 +175,26 @@ namespace {
 constexpr auto kBaggageKey = "crossdock-baggage-key";
 constexpr auto kDefaultTracerServiceName = "crossdock-cpp";
 
+std::string escape(const std::string& str)
+{
+    std::string result;
+    result.reserve(str.size());
+    for (auto&& ch : str) {
+        switch (ch) {
+        case '\n': {
+            result += "\\n";
+        } break;
+        case '\r': {
+            result += "\\r";
+        } break;
+        default: {
+            result += ch;
+        } break;
+        }
+    }
+    return result;
+}
+
 std::string bufferedRead(net::Socket& socket)
 {
     constexpr auto kBufferSize = 256;
@@ -250,7 +270,8 @@ thrift::ObservedSpan observeSpan(const opentracing::SpanContext& ctx)
 
 thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
                                          const thrift::Downstream& target,
-                                         opentracing::Tracer& tracer)
+                                         opentracing::Tracer& tracer,
+                                         logging::Logger& logger)
 {
     thrift::JoinTraceRequest request;
     request.__set_serverRole(target.serverRole);
@@ -273,11 +294,13 @@ thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
            "Content-Length: " << requestJSON.size() << "\r\n\r\n"
         << requestJSON;
     const auto message = oss.str();
+    logger.info("Sending request downstream: " + escape(message));
     const auto numWritten =
         ::write(socket.handle(), &message[0], message.size());
     (void)numWritten;
 
     const auto responseStr = bufferedRead(socket);
+    logger.info("Received downstream response: " + escape(responseStr));
     std::istringstream iss(responseStr);
     auto response = net::http::Response::parse(iss);
     return nlohmann::json::parse(response.body());
@@ -286,13 +309,14 @@ thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
 thrift::TraceResponse callDownstream(const opentracing::SpanContext& ctx,
                                      const std::string& /* role */,
                                      const thrift::Downstream& downstream,
-                                     opentracing::Tracer& tracer)
+                                     opentracing::Tracer& tracer,
+                                     logging::Logger& logger)
 {
     thrift::TraceResponse response;
 
     switch (downstream.transport) {
     case thrift::Transport::HTTP: {
-        response = callDownstreamHTTP(ctx, downstream, tracer);
+        response = callDownstreamHTTP(ctx, downstream, tracer, logger);
     } break;
     case thrift::Transport::TCHANNEL: {
         response.__set_notImplementedError(
@@ -314,14 +338,15 @@ thrift::TraceResponse prepareResponse(
     const opentracing::SpanContext& ctx,
     const std::string& role,
     const thrift::Downstream* downstream,
-    opentracing::Tracer& tracer)
+    opentracing::Tracer& tracer,
+    logging::Logger& logger)
 {
     const auto observedSpan = observeSpan(ctx);
     thrift::TraceResponse response;
     response.__set_span(observedSpan);
     if (downstream) {
         response.__set_downstream(
-            callDownstream(ctx, role, *downstream, tracer));
+            callDownstream(ctx, role, *downstream, tracer, logger));
     }
     return response;
 }
@@ -403,6 +428,7 @@ class Server::SocketListener {
                 [this](net::Socket&& socket) {
                     net::Socket client(std::move(socket));
                     auto requestStr = bufferedRead(client);
+                    _logger->info("Received request: " + escape(requestStr));
 
                     try {
                         std::istringstream iss(requestStr);
@@ -563,7 +589,6 @@ std::string Server::handleJSON(
     }
     auto span = _tracer->StartSpanWithOptions("post", options);
 
-    _logger->info("Server request: " + request.body());
     RequestType thriftRequest;
     try {
         thriftRequest = nlohmann::json::parse(request.body());
@@ -662,7 +687,8 @@ Server::startTrace(const crossdock::thrift::StartTraceRequest& request)
         span->context(),
         request.serverRole,
         &request.downstream,
-        *_tracer);
+        *_tracer,
+        *_logger);
 }
 
 thrift::TraceResponse
@@ -673,7 +699,8 @@ Server::joinTrace(const crossdock::thrift::JoinTraceRequest& request,
         ctx,
         request.serverRole,
         request.__isset.downstream ? &request.downstream : nullptr,
-        *_tracer);
+        *_tracer,
+        *_logger);
 }
 
 std::string Server::generateTraces(const net::http::Request& requestHTTP)
@@ -748,6 +775,6 @@ int main()
         samplingServerURL);
     server.serve();
 
-    std::this_thread::sleep_for(std::chrono::minutes(10));
+    std::this_thread::sleep_for(std::chrono::hours(1));
     return 0;
 }
