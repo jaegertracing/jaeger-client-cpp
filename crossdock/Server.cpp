@@ -89,7 +89,7 @@ void from_json(const nlohmann::json& json, Downstream& downstream)
     FIELD_FROM_JSON(downstream, port);
     downstream.__set_transport(json.at("transport").get<Transport::type>());
     auto itr = json.find("downstream");
-    if (itr != std::end(json)) {
+    if (itr != std::end(json) && !itr->is_null()) {
         downstream.__set_downstream(itr->get<Downstream>());
     }
 }
@@ -122,7 +122,7 @@ void from_json(const nlohmann::json& json, JoinTraceRequest& request)
 {
     FIELD_FROM_JSON(request, serverRole);
     auto itr = json.find("downstream");
-    if (itr != std::end(json)) {
+    if (itr != std::end(json) && !itr->is_null()) {
         request.__set_downstream(itr->get<Downstream>());
     }
 }
@@ -155,11 +155,11 @@ void to_json(nlohmann::json& json, const TraceResponse& response)
 void from_json(const nlohmann::json& json, TraceResponse& response)
 {
     auto itr = json.find("span");
-    if (itr != std::end(json)) {
+    if (itr != std::end(json) && !itr->is_null()) {
         response.__set_span(itr->get<ObservedSpan>());
     }
     itr = json.find("downstream");
-    if (itr != std::end(json)) {
+    if (itr != std::end(json) && !itr->is_null()) {
         response.__set_downstream(itr->get<TraceResponse>());
     }
     FIELD_FROM_JSON(response, notImplementedError);
