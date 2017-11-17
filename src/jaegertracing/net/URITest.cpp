@@ -109,13 +109,5 @@ TEST(URI, testParseQueryValues)
     }
 }
 
-TEST(URI, testResolveAddress)
-{
-    ASSERT_NO_THROW(resolveAddress("http://localhost", SOCK_STREAM));
-    ASSERT_NO_THROW(resolveAddress("http://localhost:80", SOCK_STREAM));
-    ASSERT_NO_THROW(resolveAddress("http://123456", SOCK_STREAM));
-    ASSERT_THROW(resolveAddress("http://localhost", -1), std::runtime_error);
-}
-
 }  // namespace net
 }  // namespace jaegertracing

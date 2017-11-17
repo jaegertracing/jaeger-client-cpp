@@ -18,6 +18,7 @@
 #define JAEGERTRACING_NET_IPADDRESS_H
 
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -165,44 +166,21 @@ class IPAddress {
 
   private:
     static IPAddress
-    versionFromString(const std::string& ip, int port, int family)
-    {
-        ::sockaddr_storage addrStorage;
-        std::memset(&addrStorage, 0, sizeof(addrStorage));
-
-        auto* addrBuffer = static_cast<void*>(nullptr);
-        if (family == AF_INET) {
-            ::sockaddr_in& addr =
-                *reinterpret_cast<::sockaddr_in*>(&addrStorage);
-            addr.sin_family = family;
-            addr.sin_port = htons(port);
-            addrBuffer = &addr.sin_addr;
-        }
-        else {
-            assert(family == AF_INET6);
-            ::sockaddr_in6& addr =
-                *reinterpret_cast<::sockaddr_in6*>(&addrStorage);
-            addr.sin6_family = family;
-            addr.sin6_port = htons(port);
-            addrBuffer = &addr.sin6_addr;
-        }
-
-        const auto returnCode = inet_pton(family, ip.c_str(), addrBuffer);
-        if (returnCode == 0) {
-            std::ostringstream oss;
-            oss << "Invalid IP address"
-                   ", ip="
-                << ip << ", port=" << port;
-            throw std::invalid_argument(oss.str());
-        }
-        return IPAddress(addrStorage,
-                         family == AF_INET ? sizeof(::sockaddr_in)
-                                           : sizeof(::sockaddr_in6));
-    }
+    versionFromString(const std::string& ip, int port, int family);
 
     ::sockaddr_storage _addr;
     ::socklen_t _addrLen;
 };
+
+struct AddrInfoDeleter : public std::function<void(::addrinfo*)> {
+    void operator()(::addrinfo* addrInfo) const { ::freeaddrinfo(addrInfo); }
+};
+
+std::unique_ptr<::addrinfo, AddrInfoDeleter>
+resolveAddress(const std::string& host,
+               int port,
+               int family,
+               int type = SOCK_STREAM);
 
 }  // namespace net
 }  // namespace jaegertracing

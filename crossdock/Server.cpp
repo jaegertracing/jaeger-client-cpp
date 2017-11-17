@@ -280,10 +280,7 @@ thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
     const auto responseStr = bufferedRead(socket);
     std::istringstream iss(responseStr);
     auto response = net::http::Response::parse(iss);
-    const auto jsonData = YAML::Load(response.body());
-    thrift::TraceResponse thriftResponse;
-    // TODO: Parse thriftResponse from jsonData
-    return thriftResponse;
+    return nlohmann::json::parse(response.body());
 }
 
 thrift::TraceResponse callDownstream(const opentracing::SpanContext& ctx,
