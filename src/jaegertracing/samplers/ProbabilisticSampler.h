@@ -58,7 +58,7 @@ class ProbabilisticSampler : public Sampler {
         const long double maxRandNumber = kMaxRandomNumber;
         const auto samplingBoundary = samplingRate * maxRandNumber;
 
-        // Protect against overflow in case samplingBoundaryFloat rounds
+        // Protect against overflow in case samplingBoundary rounds
         // higher than kMaxRandNumber.
         if (samplingBoundary == maxRandNumber) {
             return kMaxRandomNumber;
