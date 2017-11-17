@@ -56,6 +56,7 @@ bool isUnreserved(char ch)
     case '.':
     case '_':
     case '~':
+    case ':':
         return true;
     default:
         return false;
