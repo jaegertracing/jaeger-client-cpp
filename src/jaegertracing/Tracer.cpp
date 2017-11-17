@@ -22,6 +22,8 @@ namespace jaegertracing {
 
 using StrMap = SpanContext::StrMap;
 
+constexpr int Tracer::kGen128BitOption;
+
 std::unique_ptr<opentracing::Span>
 Tracer::StartSpanWithOptions(string_view operationName,
                              const opentracing::StartSpanOptions& options) const
@@ -37,7 +39,11 @@ Tracer::StartSpanWithOptions(string_view operationName,
         SpanContext ctx;
         if (!parent || !parent->isValid()) {
             newTrace = true;
-            const TraceID traceID(randomID(), randomID());
+            auto highID = static_cast<uint64_t>(0);
+            if (_options & kGen128BitOption) {
+                highID = randomID();
+            }
+            const TraceID traceID(highID, randomID());
             const auto spanID = traceID.low();
             const auto parentID = 0;
             auto flags = static_cast<unsigned char>(0);
