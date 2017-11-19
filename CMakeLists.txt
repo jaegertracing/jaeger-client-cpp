@@ -95,7 +95,6 @@ list(APPEND LIBS nlohmann_json)
 list(APPEND package_deps nlohmann_json)
 
 option(JAEGERTRACING_COVERAGE "Build with coverage" $ENV{COVERAGE})
-option(JAEGERTRACING_BUILD_EXAMPLES "Build examples" ON)
 option(JAEGERTRACING_BUILD_CROSSDOCK "Build crossdock" $ENV{CROSSDOCK})
 cmake_dependent_option(
   JAEGERTRACING_WITH_YAML_CPP "Use yaml-cpp to parse config files" ON
@@ -125,22 +124,6 @@ if(BUILD_TESTING)
       set(COVERAGE_EXCLUDES "${CMAKE_SOURCE_DIR}/src/jaegertracing/thrift-gen/*"
                             "*Test.cpp")
   endif()
-endif()
-
-if(JAEGERTRACING_BUILD_EXAMPLES)
-  set(EXAMPLES_SRC
-      examples/hotrod/Delay.cpp
-      examples/hotrod/HTTPServer.cpp)
-  add_executable(customer examples/hotrod/CustomerService.cpp ${EXAMPLES_SRC})
-  # TODO: add_executable(driver examples/hotrod/DriverService.cpp)
-  # TODO: add_executable(frontend examples/hotrod/FrontendService.cpp)
-  # TODO: add_executable(route examples/hotrod/RouteService.cpp)
-  set(services customer) # TODO: driver frontend route)
-  foreach(service IN LISTS services)
-      target_include_directories(${service} PUBLIC
-          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/examples/hotrod>)
-      target_link_libraries(${service} PUBLIC jaegertracing-static)
-  endforeach()
 endif()
 
 if(JAEGERTRACING_BUILD_CROSSDOCK)

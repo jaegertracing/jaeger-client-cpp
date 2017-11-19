@@ -29,4 +29,3 @@ ignore:
   - "src/jaegertracing/thrift-gen"
   - "**/*Test.cpp"
   - "crossdock"
-  - "examples"
