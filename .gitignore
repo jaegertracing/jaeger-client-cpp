@@ -1,5 +1,7 @@
-# Build directory
+# Build files
 /build
+/crossdock/crossdock
+/crossdock/jaeger-docker-compose.yml
 
 # vim swap files
 *.swo
@@ -37,3 +39,6 @@
 *.exe
 *.out
 *.app
+
+# Log files
+*.log

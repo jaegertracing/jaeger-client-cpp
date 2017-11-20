@@ -14,26 +14,4 @@
  * limitations under the License.
  */
 
-#ifndef JAEGERTRACING_EXAMPLES_HOTROD_DELAY_H
-#define JAEGERTRACING_EXAMPLES_HOTROD_DELAY_H
-
-#include <chrono>
-#include <mutex>
-#include <random>
-
-namespace jaegertracing {
-namespace examples {
-namespace hotrod {
-namespace delay {
-
-using Clock = std::chrono::steady_clock;
-
-void sleep(const Clock::duration& average,
-           const Clock::duration& standardDeviation);
-
-}  // namespace delay
-}  // namespace hotrod
-}  // namespace examples
-}  // namespace jaegertracing
-
-#endif  // JAEGERTRACING_EXAMPLES_HOTROD_DELAY_H
+#include "jaegertracing/baggage/RemoteRestrictionJSON.h"

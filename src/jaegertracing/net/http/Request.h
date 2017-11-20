@@ -46,11 +46,14 @@ class Request {
 
     const std::vector<Header>& headers() const { return _headers; }
 
+    const std::string& body() const { return _body; }
+
   private:
     Method _method;
     std::string _target;
     std::string _version;
     std::vector<Header> _headers;
+    std::string _body;
 };
 
 }  // namespace http

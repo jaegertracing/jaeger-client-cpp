@@ -18,8 +18,7 @@
 
 #include <sstream>
 
-#include <thrift/protocol/TJSONProtocol.h>
-
+#include "jaegertracing/baggage/RemoteRestrictionJSON.h"
 #include "jaegertracing/net/http/Response.h"
 #include "jaegertracing/utils/ErrorUtil.h"
 
@@ -97,8 +96,8 @@ void RemoteRestrictionManager::poll() noexcept
         updateRestrictions(remoteURI);
     } catch (...) {
         auto logger = logging::consoleLogger();
-        utils::ErrorUtil::logError(
-            *logger, "Failed in RemoteRestrictionManager::poll");
+        utils::ErrorUtil::logError(*logger,
+                                   "Failed in RemoteRestrictionManager::poll");
         return;
     }
 
@@ -106,11 +105,9 @@ void RemoteRestrictionManager::poll() noexcept
     while (true) {
         {
             std::unique_lock<std::mutex> lock(_mutex);
-            _cv.wait_until(lock,
-                           lastUpdateTime + _refreshInterval,
-                           [this]() {
-                               return !_running;
-                           });
+            _cv.wait_until(lock, lastUpdateTime + _refreshInterval, [this]() {
+                return !_running;
+            });
             if (!_running) {
                 return;
             }
@@ -138,18 +135,8 @@ void RemoteRestrictionManager::updateRestrictions(
             return;
         }
 
-        boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transport(
-            new apache::thrift::transport::TMemoryBuffer());
-        apache::thrift::protocol::TJSONProtocol protocol(transport);
-        std::vector<uint8_t> buffer;
-        buffer.reserve(responseHTTP.body().size());
-        buffer.insert(std::end(buffer),
-                      std::begin(responseHTTP.body()),
-                      std::end(responseHTTP.body()));
-        transport->write(&buffer[0], buffer.size());
         thrift::BaggageRestrictionManager_getBaggageRestrictions_result
-            response;
-        response.read(&protocol);
+            response = nlohmann::json::parse(responseHTTP.body());
         if (response.__isset.success) {
             KeyRestrictionMap restrictions;
             restrictions.reserve(response.success.size());
