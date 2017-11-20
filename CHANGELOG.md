@@ -1,6 +1,11 @@
 Changes by Version
 ==================
 
+0.1.0 (unreleased)
+------------------
+- nothing yet
+
+
 0.0.8 (2017-11-20)
 ------------------
 - Fix host IP formatting and improve local IP API (#4)
