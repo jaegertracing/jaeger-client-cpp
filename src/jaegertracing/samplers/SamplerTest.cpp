@@ -41,7 +41,7 @@ constexpr auto kTestDefaultSamplingProbability = 0.5;
 constexpr auto kTestMaxID = std::numeric_limits<uint64_t>::max() / 2 + 1;
 constexpr auto kTestDefaultMaxOperations = 10;
 
-const Tag testProbablisticExpectedTags[] = {
+const Tag testProbabilisticExpectedTags[] = {
     { "sampler.type", "probabilistic" }, { "sampler.param", 0.5 }
 };
 
@@ -96,11 +96,10 @@ TEST(Sampler, testSamplerTags)
 TEST(Sampler, testProbabilisticSamplerErrors)
 {
     ProbabilisticSampler sampler(-0.1);
-    ASSERT_LE(0, sampler.samplingRate());
-    ASSERT_GE(1, sampler.samplingRate());
+    ASSERT_EQ(0, sampler.samplingRate());
     sampler = ProbabilisticSampler(1.1);
-    ASSERT_LE(0, sampler.samplingRate());
-    ASSERT_GE(1, sampler.samplingRate());
+    ASSERT_EQ(1, sampler.samplingRate());
+    ASSERT_TRUE(sampler.isSampled(TraceID(0, 0), "").isSampled());
 }
 
 TEST(Sampler, testProbabilisticSampler)
@@ -109,11 +108,11 @@ TEST(Sampler, testProbabilisticSampler)
     auto result =
         sampler.isSampled(TraceID(0, kTestMaxID + 10), kTestOperationName);
     ASSERT_FALSE(result.isSampled());
-    CMP_TAGS(testProbablisticExpectedTags, result.tags());
+    CMP_TAGS(testProbabilisticExpectedTags, result.tags());
 
     result = sampler.isSampled(TraceID(0, kTestMaxID - 20), kTestOperationName);
     ASSERT_TRUE(result.isSampled());
-    CMP_TAGS(testProbablisticExpectedTags, result.tags());
+    CMP_TAGS(testProbabilisticExpectedTags, result.tags());
 }
 
 TEST(Sampler, testProbabilisticSamplerPerformance)
@@ -199,7 +198,7 @@ TEST(Sampler, testAdaptiveSampler)
 
     result = sampler.isSampled(TraceID(0, kTestMaxID - 20), kTestOperationName);
     ASSERT_TRUE(result.isSampled());
-    CMP_TAGS(testProbablisticExpectedTags, result.tags());
+    CMP_TAGS(testProbabilisticExpectedTags, result.tags());
 
     result = sampler.isSampled(TraceID(0, kTestMaxID + 10), kTestOperationName);
     ASSERT_FALSE(result.isSampled());
@@ -207,7 +206,7 @@ TEST(Sampler, testAdaptiveSampler)
     result =
         sampler.isSampled(TraceID(0, kTestMaxID), kTestFirstTimeOperationName);
     ASSERT_TRUE(result.isSampled());
-    CMP_TAGS(testProbablisticExpectedTags, result.tags());
+    CMP_TAGS(testProbabilisticExpectedTags, result.tags());
 }
 
 TEST(Sampler, testAdaptiveSamplerErrors)
