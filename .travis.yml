@@ -12,7 +12,8 @@ matrix:
         - g++-6
         - lcov
     env:
-    - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6 && COVERAGE=ON"
+    - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+    - COVERAGE=ON
   - os: linux
     addons:
       apt:
