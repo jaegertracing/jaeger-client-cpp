@@ -38,6 +38,10 @@ class Header {
     {
     }
 
+    const std::string& key() const { return _key; }
+
+    const std::string& value() const { return _value; }
+
   private:
     std::string _key;
     std::string _value;
@@ -74,7 +78,7 @@ inline std::istream& readLineCRLF(std::istream& in, std::string& line)
 
 inline void readHeaders(std::istream& in, std::vector<Header>& headers)
 {
-    const regex_namespace::regex headerPattern("([^:]+):(.+)$");
+    const regex_namespace::regex headerPattern("([^:]+): (.+)$");
     std::string line;
     regex_namespace::smatch match;
     while (readLineCRLF(in, line)) {

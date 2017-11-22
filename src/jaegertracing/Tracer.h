@@ -50,6 +50,8 @@ class Tracer : public opentracing::Tracer,
     using SystemClock = Span::SystemClock;
     using string_view = opentracing::string_view;
 
+    static constexpr auto kGen128BitOption = 1;
+
     static std::shared_ptr<opentracing::Tracer>
     make(const std::string& serviceName, const Config& config)
     {
@@ -73,6 +75,16 @@ class Tracer : public opentracing::Tracer,
          const std::shared_ptr<logging::Logger>& logger,
          metrics::StatsFactory& statsFactory)
     {
+        return make(serviceName, config, logger, statsFactory, 0);
+    }
+
+    static std::shared_ptr<opentracing::Tracer>
+    make(const std::string& serviceName,
+         const Config& config,
+         const std::shared_ptr<logging::Logger>& logger,
+         metrics::StatsFactory& statsFactory,
+         int options)
+    {
         if (serviceName.empty()) {
             throw std::invalid_argument("no service name provided");
         }
@@ -87,7 +99,8 @@ class Tracer : public opentracing::Tracer,
         std::shared_ptr<reporters::Reporter> reporter(
             config.reporter().makeReporter(serviceName, *logger, *metrics));
         return std::shared_ptr<Tracer>(
-            new Tracer(serviceName, sampler, reporter, logger, metrics));
+            new Tracer(
+                serviceName, sampler, reporter, logger, metrics, options));
     }
 
     ~Tracer() { Close(); }
@@ -138,22 +151,34 @@ class Tracer : public opentracing::Tracer,
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(std::istream& reader) const override
     {
+        const auto spanContext = _binaryPropagator.extract(reader);
+        if (spanContext == SpanContext()) {
+            return std::unique_ptr<opentracing::SpanContext>();
+        }
         return std::unique_ptr<opentracing::SpanContext>(
-            new SpanContext(_binaryPropagator.extract(reader)));
+            new SpanContext(spanContext));
     }
 
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(const opentracing::TextMapReader& reader) const override
     {
+        const auto spanContext = _textPropagator.extract(reader);
+        if (spanContext == SpanContext()) {
+            return std::unique_ptr<opentracing::SpanContext>();
+        }
         return std::unique_ptr<opentracing::SpanContext>(
-            new SpanContext(_textPropagator.extract(reader)));
+            new SpanContext(spanContext));
     }
 
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(const opentracing::HTTPHeadersReader& reader) const override
     {
+        const auto spanContext = _httpHeaderPropagator.extract(reader);
+        if (spanContext == SpanContext()) {
+            return std::unique_ptr<opentracing::SpanContext>();
+        }
         return std::unique_ptr<opentracing::SpanContext>(
-            new SpanContext(_httpHeaderPropagator.extract(reader)));
+            new SpanContext(spanContext));
     }
 
     void Close() noexcept override
@@ -192,7 +217,8 @@ class Tracer : public opentracing::Tracer,
            const std::shared_ptr<samplers::Sampler>& sampler,
            const std::shared_ptr<reporters::Reporter>& reporter,
            const std::shared_ptr<logging::Logger>& logger,
-           const std::shared_ptr<metrics::Metrics>& metrics)
+           const std::shared_ptr<metrics::Metrics>& metrics,
+           int options)
         : _serviceName(serviceName)
         , _hostIPv4(net::IPAddress::localIP(AF_INET))
         , _sampler(sampler)
@@ -206,6 +232,7 @@ class Tracer : public opentracing::Tracer,
         , _tags()
         , _restrictionManager(new baggage::DefaultRestrictionManager(0))
         , _baggageSetter(*_restrictionManager, *_metrics)
+        , _options(options)
     {
         _tags.push_back(Tag(kJaegerClientVersionTagKey, kJaegerClientVersion));
 
@@ -279,6 +306,7 @@ class Tracer : public opentracing::Tracer,
     std::vector<Tag> _tags;
     std::unique_ptr<baggage::RestrictionManager> _restrictionManager;
     baggage::BaggageSetter _baggageSetter;
+    int _options;
 };
 
 }  // namespace jaegertracing

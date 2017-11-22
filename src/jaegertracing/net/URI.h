@@ -17,8 +17,6 @@
 #ifndef JAEGERTRACING_NET_URI_H
 #define JAEGERTRACING_NET_URI_H
 
-#include <netdb.h>
-
 #include <functional>
 #include <memory>
 #include <sstream>
@@ -82,19 +80,6 @@ struct URI {
     std::string _path;
     std::string _query;
 };
-
-struct AddrInfoDeleter : public std::function<void(::addrinfo*)> {
-    void operator()(::addrinfo* addrInfo) const { ::freeaddrinfo(addrInfo); }
-};
-
-std::unique_ptr<::addrinfo, AddrInfoDeleter> resolveAddress(const URI& uri,
-                                                            int socketType);
-
-inline std::unique_ptr<::addrinfo, AddrInfoDeleter>
-resolveAddress(const std::string& uriStr, int socketType)
-{
-    return resolveAddress(URI::parse(uriStr), socketType);
-}
 
 }  // namespace net
 }  // namespace jaegertracing

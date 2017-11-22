@@ -64,8 +64,8 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
         SpanContext ctx;
         StrMap baggage;
         std::string debugID;
-        const auto result = reader.ForeachKey(
-            [this, &reader, &ctx, &debugID, &baggage](
+        const auto result =
+            reader.ForeachKey([this, &reader, &ctx, &debugID, &baggage](
                 const std::string& rawKey, const std::string& value) {
                 const auto key = normalizeKey(rawKey);
                 if (key == _headerKeys.traceContextHeaderName()) {

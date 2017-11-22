@@ -220,34 +220,5 @@ URI::QueryValueMap URI::parseQueryValues() const
     return values;
 }
 
-std::unique_ptr<::addrinfo, AddrInfoDeleter> resolveAddress(const URI& uri,
-                                                            int socketType)
-{
-    ::addrinfo hints;
-    std::memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = socketType;
-
-    std::string service;
-    if (uri._port != 0) {
-        service = std::to_string(uri._port);
-    }
-    else {
-        service = uri._scheme;
-    }
-
-    auto* servInfoPtr = static_cast<::addrinfo*>(nullptr);
-    const auto returnCode =
-        getaddrinfo(uri._host.c_str(), service.c_str(), &hints, &servInfoPtr);
-    std::unique_ptr<::addrinfo, AddrInfoDeleter> servInfo(servInfoPtr);
-    if (returnCode != 0) {
-        std::ostringstream oss;
-        oss << "Error resolving address: " << gai_strerror(returnCode);
-        throw std::runtime_error(oss.str());
-    }
-
-    return servInfo;
-}
-
 }  // namespace net
 }  // namespace jaegertracing

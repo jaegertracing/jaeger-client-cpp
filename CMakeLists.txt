@@ -6,10 +6,11 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/cmake/toolchain.cmake")
 
 set(HUNTER_CACHE_SERVERS "https://github.com/isaachier/cpp-client-hunter-cache")
 
+include(CMakeDependentOption)
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.19.141.tar.gz"
-    SHA1 "8d7162c0665aba01aaf6bf62f1ed015dc66c5e7c"
+    URL "https://github.com/ruslo/hunter/archive/v0.19.158.tar.gz"
+    SHA1 "7bd94f374bca4eff51292ca6ba029b5d688744db"
     LOCAL
 )
 
@@ -39,7 +40,7 @@ if(HUNTER_ENABLED)
   endif()
 endif()
 
-project(jaegertracing VERSION 0.0.7)
+project(jaegertracing VERSION 0.1.0)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -88,9 +89,16 @@ find_package(OpenTracing CONFIG REQUIRED)
 list(APPEND LIBS OpenTracing::opentracing-static)
 list(APPEND package_deps opentracing-cpp)
 
-option(JAEGERTRACING_WITH_YAML_CPP "Use yaml-cpp to parse config files" ON)
+hunter_add_package(nlohmann_json)
+find_package(nlohmann_json CONFIG REQUIRED)
+list(APPEND LIBS nlohmann_json)
+list(APPEND package_deps nlohmann_json)
+
 option(JAEGERTRACING_COVERAGE "Build with coverage" $ENV{COVERAGE})
-option(JAEGERTRACING_BUILD_EXAMPLES "Build examples" ON)
+option(JAEGERTRACING_BUILD_CROSSDOCK "Build crossdock" $ENV{CROSSDOCK})
+cmake_dependent_option(
+  JAEGERTRACING_WITH_YAML_CPP "Use yaml-cpp to parse config files" ON
+  "NOT JAEGERTRACING_BUILD_CROSSDOCK" ON)
 
 if(JAEGERTRACING_WITH_YAML_CPP)
   hunter_add_package(yaml-cpp)
@@ -118,20 +126,36 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-if(JAEGERTRACING_BUILD_EXAMPLES)
-  set(EXAMPLES_SRC
-      examples/hotrod/Delay.cpp
-      examples/hotrod/HTTPServer.cpp)
-  add_executable(customer examples/hotrod/CustomerService.cpp ${EXAMPLES_SRC})
-  # TODO: add_executable(driver examples/hotrod/DriverService.cpp)
-  # TODO: add_executable(frontend examples/hotrod/FrontendService.cpp)
-  # TODO: add_executable(route examples/hotrod/RouteService.cpp)
-  set(services customer) # TODO: driver frontend route)
-  foreach(service IN LISTS services)
-      target_include_directories(${service} PUBLIC
-          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/examples/hotrod>)
-      target_link_libraries(${service} PUBLIC jaegertracing-static)
-  endforeach()
+if(JAEGERTRACING_BUILD_CROSSDOCK)
+  set(CROSSDOCK_SRC crossdock/Server.cpp)
+  add_executable(crossdock ${CROSSDOCK_SRC})
+  target_include_directories(crossdock PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/crossdock>)
+  target_link_libraries(crossdock PUBLIC jaegertracing-static)
+
+  set(JAEGER_CROSSDOCK_URL
+"https://raw.githubusercontent.com/jaegertracing/jaeger/master/docker-compose/\
+jaeger-docker-compose.yml")
+  file(DOWNLOAD ${JAEGER_CROSSDOCK_URL}
+       "${PROJECT_SOURCE_DIR}/crossdock/jaeger-docker-compose.yml")
+  find_program(DOCKER_COMPOSE_EXE docker-compose REQUIRED)
+  set(DOCKER_COMPOSE_CMD ${DOCKER_COMPOSE_EXE}
+      -f ${PROJECT_SOURCE_DIR}/crossdock/docker-compose.yml
+      -f ${PROJECT_SOURCE_DIR}/crossdock/jaeger-docker-compose.yml)
+  add_custom_target(crossdock-kill
+    COMMAND ${DOCKER_COMPOSE_CMD} kill
+    COMMAND ${DOCKER_COMPOSE_CMD} rm --force)
+  add_custom_target(crossdock-run
+    COMMAND ${DOCKER_COMPOSE_CMD} build
+    COMMAND ${DOCKER_COMPOSE_CMD} run crossdock
+    DEPENDS crossdock-kill)
+  add_custom_target(crossdock-fresh
+    COMMAND ${DOCKER_COMPOSE_CMD} pull
+    COMMAND ${DOCKER_COMPOSE_CMD} build
+    COMMAND ${DOCKER_COMPOSE_CMD} run crossdock
+    DEPENDS crossdock-kill)
+  add_custom_target(crossdock-logs
+    COMMAND ${DOCKER_COMPOSE_CMD} logs)
 endif()
 
 set(SRC
@@ -147,10 +171,11 @@ set(SRC
     src/jaegertracing/Transport.cpp
     src/jaegertracing/UDPTransport.cpp
     src/jaegertracing/baggage/BaggageSetter.cpp
+    src/jaegertracing/baggage/RemoteRestrictionJSON.cpp
+    src/jaegertracing/baggage/RemoteRestrictionManager.cpp
     src/jaegertracing/baggage/Restriction.cpp
     src/jaegertracing/baggage/RestrictionManager.cpp
     src/jaegertracing/baggage/RestrictionsConfig.cpp
-    src/jaegertracing/baggage/RemoteRestrictionManager.cpp
     src/jaegertracing/metrics/Counter.cpp
     src/jaegertracing/metrics/Gauge.cpp
     src/jaegertracing/metrics/InMemoryStatsReporter.cpp
@@ -192,6 +217,7 @@ set(SRC
     src/jaegertracing/samplers/GuaranteedThroughputProbabilisticSampler.cpp
     src/jaegertracing/samplers/ProbabilisticSampler.cpp
     src/jaegertracing/samplers/RateLimitingSampler.cpp
+    src/jaegertracing/samplers/RemoteSamplingJSON.cpp
     src/jaegertracing/samplers/RemotelyControlledSampler.cpp
     src/jaegertracing/samplers/Sampler.cpp
     src/jaegertracing/samplers/SamplingStatus.cpp
