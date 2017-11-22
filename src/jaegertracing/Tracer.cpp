@@ -75,10 +75,20 @@ Tracer::StartSpanWithOptions(string_view operationName,
             ctx = ctx.withBaggage(parent->baggage());
         }
 
+        auto startSteadyTimestamp = options.start_steady_timestamp;
+        if (startSteadyTimestamp == SteadyClock::time_point()) {
+            startSteadyTimestamp = SteadyClock::now();
+        }
+
+        auto startSystemTimestamp = options.start_system_timestamp;
+        if (startSystemTimestamp == SystemClock::time_point()) {
+            startSystemTimestamp = SystemClock::now();
+        }
+
         return startSpanInternal(ctx,
                                  operationName,
-                                 options.start_system_timestamp,
-                                 options.start_steady_timestamp,
+                                 startSystemTimestamp,
+                                 startSteadyTimestamp,
                                  samplerTags,
                                  options.tags,
                                  newTrace,
