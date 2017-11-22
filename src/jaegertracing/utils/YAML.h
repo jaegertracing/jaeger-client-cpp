@@ -29,8 +29,8 @@ namespace yaml {
 
 template <typename ValueType, typename KeyType, typename DefaultValueType>
 ValueType findOrDefault(const YAML::Node& node,
-                        KeyType&& key,
-                        DefaultValueType&& defaultValue)
+                        const KeyType& key,
+                        const DefaultValueType& defaultValue)
 {
     const auto valueNode = node[key];
     if (!valueNode.IsDefined()) {
