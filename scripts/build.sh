@@ -21,7 +21,7 @@ function working() {
 
 mkdir -p build
 cd build || exit
-if [ $COVERAGE != "" ]; then
+if [ "x$COVERAGE" != "x" ]; then
   cmake -DCMAKE_BUILD_TYPE=Debug -DJAEGERTRACING_COVERAGE=ON ..
 else
   cmake -DCMAKE_BUILD_TYPE=Debug -DJAEGERTRACING_COVERAGE=OFF ..
