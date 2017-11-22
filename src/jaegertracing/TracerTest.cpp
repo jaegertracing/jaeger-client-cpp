@@ -81,6 +81,14 @@ struct ReaderMock : public BaseReader {
     const StrMap& _keyValuePairs;
 };
 
+template <typename ClockType>
+typename ClockType::duration absTimeDiff(
+    const typename ClockType::time_point& lhs,
+    const typename ClockType::time_point& rhs)
+{
+    return (rhs < lhs) ? (lhs - rhs) : (rhs - lhs);
+}
+
 }  // anonymous namespace
 
 TEST(Tracer, testTracer)
@@ -160,6 +168,46 @@ TEST(Tracer, testTracer)
     span.reset(static_cast<Span*>(
         tracer->StartSpanWithOptions("test-span-with-debug-parent", options)
             .release()));
+
+    options.references.clear();
+    options.references.emplace_back(
+        opentracing::SpanReferenceType::FollowsFromRef, &parentCtx);
+    options.start_steady_timestamp = Tracer::SteadyClock::now();
+    span.reset(static_cast<Span*>(
+        tracer->StartSpanWithOptions("test-span-with-default-system-timestamp",
+                                     options)
+            .release()));
+    const auto calculatedSystemTime =
+       static_cast<Tracer::SystemClock::time_point>(
+            opentracing::convert_time_point<Tracer::SystemClock>(
+                span->startTimeSteady()));
+    ASSERT_GE(
+        std::chrono::milliseconds(10),
+        absTimeDiff<Tracer::SystemClock>(
+            span->startTimeSystem(), calculatedSystemTime));
+
+    options.start_system_timestamp = Tracer::SystemClock::now();
+    span.reset(static_cast<Span*>(
+        tracer->StartSpanWithOptions("test-span-with-default-steady-timestamp",
+                                     options)
+            .release()));
+    const auto calculatedSteadyTime =
+       static_cast<Tracer::SteadyClock::time_point>(
+            opentracing::convert_time_point<Tracer::SteadyClock>(
+                span->startTimeSystem()));
+    ASSERT_GE(
+        std::chrono::milliseconds(10),
+        absTimeDiff<Tracer::SteadyClock>(
+            span->startTimeSteady(), calculatedSteadyTime));
+
+    options.start_system_timestamp = Tracer::SystemClock::now();
+    options.start_steady_timestamp = Tracer::SteadyClock::now();
+    span.reset(static_cast<Span*>(
+        tracer->StartSpanWithOptions("test-span-with-both-timestamps",
+                                     options)
+            .release()));
+    ASSERT_EQ(options.start_system_timestamp, span->startTimeSystem());
+    ASSERT_EQ(options.start_steady_timestamp, span->startTimeSteady());
 
     span.reset();
 

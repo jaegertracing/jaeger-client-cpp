@@ -80,15 +80,19 @@ void Span::SetBaggageItem(opentracing::string_view restrictedKey,
 void Span::FinishWithOptions(
     const opentracing::FinishSpanOptions& finishSpanOptions) noexcept
 {
+    const auto finishTimeSteady =
+        (finishSpanOptions.finish_steady_timestamp ==
+          SteadyClock::time_point())
+         ? SteadyClock::now() : finishSpanOptions.finish_steady_timestamp;
     std::shared_ptr<const Tracer> tracer;
     {
+
         std::lock_guard<std::mutex> lock(_mutex);
         if (isFinished()) {
             // Already finished, so return immediately.
             return;
         }
-        _duration =
-            finishSpanOptions.finish_steady_timestamp - _startTimeSteady;
+        _duration = finishTimeSteady - _startTimeSteady;
         tracer = _tracer;
     }
 

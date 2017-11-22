@@ -19,6 +19,35 @@
 #include "jaegertracing/Reference.h"
 
 namespace jaegertracing {
+namespace {
+
+using SystemClock = Tracer::SystemClock;
+using SteadyClock = Tracer::SteadyClock;
+using TimePoints = std::tuple<SystemClock::time_point, SteadyClock::time_point>;
+
+TimePoints determineStartTimes(const opentracing::StartSpanOptions& options)
+{
+    if (options.start_system_timestamp == SystemClock::time_point() &&
+        options.start_steady_timestamp == SteadyClock::time_point()) {
+        return std::make_tuple(SystemClock::now(), SteadyClock::now());
+    }
+    if (options.start_system_timestamp == SystemClock::time_point()) {
+        return std::make_tuple(
+            opentracing::convert_time_point<SystemClock>(
+                options.start_steady_timestamp),
+            options.start_steady_timestamp);
+    }
+    if (options.start_steady_timestamp == SteadyClock::time_point()) {
+        return std::make_tuple(
+            options.start_system_timestamp,
+            opentracing::convert_time_point<SteadyClock>(
+                options.start_system_timestamp));
+    }
+    return std::make_tuple(options.start_system_timestamp,
+                           options.start_steady_timestamp);
+}
+
+}  // anonymous namespace
 
 using StrMap = SpanContext::StrMap;
 
@@ -75,10 +104,14 @@ Tracer::StartSpanWithOptions(string_view operationName,
             ctx = ctx.withBaggage(parent->baggage());
         }
 
+        SystemClock::time_point startTimeSystem;
+        SteadyClock::time_point startTimeSteady;
+        std::tie(startTimeSystem, startTimeSteady) =
+            determineStartTimes(options);
         return startSpanInternal(ctx,
                                  operationName,
-                                 options.start_system_timestamp,
-                                 options.start_steady_timestamp,
+                                 startTimeSystem,
+                                 startTimeSteady,
                                  samplerTags,
                                  options.tags,
                                  newTrace,
