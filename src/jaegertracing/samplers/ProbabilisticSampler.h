@@ -27,8 +27,7 @@ class ProbabilisticSampler : public Sampler {
   public:
     explicit ProbabilisticSampler(double samplingRate)
         : _samplingRate(std::max(0.0, std::min(samplingRate, 1.0)))
-        , _samplingBoundary(
-              static_cast<uint64_t>(kMaxRandomNumber * _samplingRate))
+        , _samplingBoundary(computeSamplingBoundary(_samplingRate))
         , _tags({ { kSamplerTypeTagKey, kSamplerTypeProbabilistic },
                   { kSamplerParamTagKey, _samplingRate } })
     {
@@ -53,6 +52,20 @@ class ProbabilisticSampler : public Sampler {
     double _samplingRate;
     uint64_t _samplingBoundary;
     std::vector<Tag> _tags;
+
+    static uint64_t computeSamplingBoundary(long double samplingRate)
+    {
+        const long double maxRandNumber = kMaxRandomNumber;
+        const auto samplingBoundary = samplingRate * maxRandNumber;
+
+        // Protect against overflow in case samplingBoundary rounds
+        // higher than kMaxRandNumber.
+        if (samplingBoundary == maxRandNumber) {
+            return kMaxRandomNumber;
+        }
+
+        return static_cast<uint64_t>(samplingBoundary);
+    }
 };
 
 }  // namespace samplers
