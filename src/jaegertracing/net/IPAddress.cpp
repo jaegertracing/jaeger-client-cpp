@@ -57,5 +57,65 @@ IPAddress IPAddress::localIP(std::function<bool(const ifaddrs*)> filter)
     return IPAddress();
 }
 
+IPAddress IPAddress::versionFromString(
+    const std::string& ip, int port, int family)
+{
+    ::sockaddr_storage addrStorage;
+    std::memset(&addrStorage, 0, sizeof(addrStorage));
+
+    auto* addrBuffer = static_cast<void*>(nullptr);
+    if (family == AF_INET) {
+        ::sockaddr_in& addr =
+            *reinterpret_cast<::sockaddr_in*>(&addrStorage);
+        addr.sin_family = family;
+        addr.sin_port = htons(port);
+        addrBuffer = &addr.sin_addr;
+    }
+    else {
+        assert(family == AF_INET6);
+        ::sockaddr_in6& addr =
+            *reinterpret_cast<::sockaddr_in6*>(&addrStorage);
+        addr.sin6_family = family;
+        addr.sin6_port = htons(port);
+        addrBuffer = &addr.sin6_addr;
+    }
+
+    const auto returnCode = inet_pton(family, ip.c_str(), addrBuffer);
+    if (returnCode == 0) {
+        auto result = resolveAddress(ip, port, family);
+        assert(result);
+        std::memcpy(&addrStorage, result->ai_addr, result->ai_addrlen);
+    }
+    return IPAddress(addrStorage,
+                     family == AF_INET ? sizeof(::sockaddr_in)
+                                       : sizeof(::sockaddr_in6));
+}
+
+std::unique_ptr<::addrinfo, AddrInfoDeleter>
+resolveAddress(const std::string& host, int port, int family, int type)
+{
+    ::addrinfo hints;
+    std::memset(&hints, 0, sizeof(hints));
+    hints.ai_family = family;
+    hints.ai_socktype = type;
+
+    std::string service;
+    if (port != 0) {
+        service = std::to_string(port);
+    }
+
+    auto* servInfoPtr = static_cast<::addrinfo*>(nullptr);
+    const auto returnCode =
+        getaddrinfo(host.c_str(), service.c_str(), &hints, &servInfoPtr);
+    std::unique_ptr<::addrinfo, AddrInfoDeleter> servInfo(servInfoPtr);
+    if (returnCode != 0) {
+        std::ostringstream oss;
+        oss << "Error resolving address: " << gai_strerror(returnCode);
+        throw std::runtime_error(oss.str());
+    }
+
+    return servInfo;
+}
+
 }  // namespace net
 }  // namespace jaegertracing

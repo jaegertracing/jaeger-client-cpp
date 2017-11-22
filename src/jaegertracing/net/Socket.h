@@ -41,6 +41,7 @@ class Socket {
         , _family(socket._family)
         , _type(socket._type)
     {
+		socket._handle = -1;
     }
 
     Socket& operator=(Socket&& rhs)
@@ -110,7 +111,8 @@ class Socket {
 
     IPAddress connect(const URI& serverURI)
     {
-        auto result = resolveAddress(serverURI, _type);
+        auto result =
+            resolveAddress(serverURI._host, serverURI._port, AF_INET, _type);
         for (const auto* itr = result.get(); itr; itr = itr->ai_next) {
             const auto returnCode =
                 ::connect(_handle, itr->ai_addr, itr->ai_addrlen);
@@ -154,7 +156,7 @@ class Socket {
         return clientSocket;
     }
 
-    void close()
+    void close() noexcept
     {
         if (_handle >= 0) {
             ::close(_handle);

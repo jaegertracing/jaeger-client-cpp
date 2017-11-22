@@ -19,8 +19,6 @@
 #include <cassert>
 #include <sstream>
 
-#include <thrift/protocol/TJSONProtocol.h>
-
 #include "jaegertracing/metrics/Counter.h"
 #include "jaegertracing/metrics/Gauge.h"
 #include "jaegertracing/net/IPAddress.h"
@@ -28,6 +26,8 @@
 #include "jaegertracing/net/URI.h"
 #include "jaegertracing/net/http/Response.h"
 #include "jaegertracing/samplers/AdaptiveSampler.h"
+#include "jaegertracing/samplers/RemoteSamplingJSON.h"
+#include "jaegertracing/utils/ErrorUtil.h"
 
 namespace jaegertracing {
 namespace samplers {
@@ -42,14 +42,21 @@ class HTTPSamplingManager : public sampling_manager::thrift::SamplingManagerIf {
         : _serverURI(net::URI::parse(serverURL))
         , _logger(logger)
     {
-        net::Socket socket;
-        socket.open(AF_INET, SOCK_STREAM);
-        _serverAddr = socket.connect(serverURL);
+        try {
+            net::Socket socket;
+            socket.open(AF_INET, SOCK_STREAM);
+            _serverAddr = socket.connect(serverURL);
+        } catch (...) {
+            utils::ErrorUtil::logError(_logger, "cannot connect to socket");
+        }
     }
 
     void getSamplingStrategy(SamplingStrategyResponse& result,
                              const std::string& serviceName) override
     {
+        if (_serverAddr == net::IPAddress()) {
+            return;
+        }
         auto uri = _serverURI;
         uri._query = "service=" + net::URI::queryEscape(serviceName);
         const auto responseHTTP = net::http::get(uri);
@@ -63,16 +70,7 @@ class HTTPSamplingManager : public sampling_manager::thrift::SamplingManagerIf {
             return;
         }
 
-        boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> transport(
-            new apache::thrift::transport::TMemoryBuffer());
-        apache::thrift::protocol::TJSONProtocol protocol(transport);
-        std::vector<uint8_t> buffer;
-        buffer.reserve(responseHTTP.body().size());
-        buffer.insert(std::end(buffer),
-                      std::begin(responseHTTP.body()),
-                      std::end(responseHTTP.body()));
-        transport->write(&buffer[0], buffer.size());
-        result.read(&protocol);
+        result = nlohmann::json::parse(responseHTTP.body());
     }
 
   private:
