@@ -55,7 +55,7 @@ class ProbabilisticSampler : public Sampler {
 
     static uint64_t computeSamplingBoundary(long double samplingRate)
     {
-        const long double maxRandNumber = kMaxRandomNumber;
+        const auto maxRandNumber = static_cast<long double>(kMaxRandomNumber);
         const auto samplingBoundary = samplingRate * maxRandNumber;
 
         // Protect against overflow in case samplingBoundary rounds

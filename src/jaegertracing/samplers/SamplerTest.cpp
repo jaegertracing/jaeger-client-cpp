@@ -38,7 +38,8 @@ namespace {
 constexpr auto kTestOperationName = "op";
 constexpr auto kTestFirstTimeOperationName = "firstTimeOp";
 constexpr auto kTestDefaultSamplingProbability = 0.5;
-constexpr auto kTestMaxID = std::numeric_limits<uint64_t>::max() / 2 + 1;
+constexpr auto kTestMaxID =
+    static_cast<long double>(std::numeric_limits<uint64_t>::max()) / 2.0 + 1;
 constexpr auto kTestDefaultMaxOperations = 10;
 
 const Tag testProbablisticExpectedTags[] = {
@@ -216,7 +217,8 @@ TEST(Sampler, testAdaptiveSampler)
     ASSERT_FALSE(result.isSampled());
 
     result =
-        sampler.isSampled(TraceID(0, kTestMaxID), kTestFirstTimeOperationName);
+        sampler.isSampled(TraceID(0, kTestMaxID - 20),
+                kTestFirstTimeOperationName);
     ASSERT_TRUE(result.isSampled());
     CMP_TAGS(testProbablisticExpectedTags, result.tags());
 }
