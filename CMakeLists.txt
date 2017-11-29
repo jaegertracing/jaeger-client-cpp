@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.3)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -248,6 +248,7 @@ set(SRC
     src/jaegertracing/utils/ErrorUtil.cpp
     src/jaegertracing/utils/HexParsing.cpp
     src/jaegertracing/utils/RateLimiter.cpp
+    src/jaegertracing/utils/Regex.cpp
     src/jaegertracing/utils/UDPClient.cpp
     src/jaegertracing/utils/YAML.cpp)
 
@@ -305,7 +306,7 @@ if(BUILD_TESTING)
       src/jaegertracing/utils/UDPClientTest.cpp)
   add_executable(UnitTest ${TEST_SRC})
   target_compile_definitions(UnitTest PUBLIC
-      GTEST_HAS_TR1_TUPLE=0
+      GTEST_HAS_TR1_TUPLE=1
       GTEST_USE_OWN_TR1_TUPLE=0)
   target_link_libraries(
       UnitTest testutils GTest::main jaegertracing-static ${LIBS})
