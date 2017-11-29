@@ -9,8 +9,8 @@ set(HUNTER_CACHE_SERVERS "https://github.com/isaachier/cpp-client-hunter-cache")
 include(CMakeDependentOption)
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.19.158.tar.gz"
-    SHA1 "7bd94f374bca4eff51292ca6ba029b5d688744db"
+    URL "https://github.com/ruslo/hunter/archive/v0.19.174.tar.gz"
+    SHA1 "712898528fb6dc8532454e2e323404d93a76d8ec"
     LOCAL
 )
 
