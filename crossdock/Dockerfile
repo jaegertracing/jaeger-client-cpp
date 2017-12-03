@@ -1,8 +1,7 @@
 FROM gcc:7.2
 
 WORKDIR /
-RUN curl -O https://cmake.org/files/v3.10/cmake-3.10.0-rc5-Linux-x86_64.sh && \
-    bash cmake-3.10.0-rc5-Linux-x86_64.sh --skip-license
+RUN curl -O https://cmake.org/files/v3.10/cmake-3.10.0-rc5-Linux-x86_64.sh && bash cmake-3.10.0-rc5-Linux-x86_64.sh --skip-license
 
 COPY . /app/jaegertracing
 RUN rm -rf /app/jaegertracing/build && \
