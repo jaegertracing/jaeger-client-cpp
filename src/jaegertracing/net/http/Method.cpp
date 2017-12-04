@@ -15,8 +15,9 @@
  */
 
 #include "jaegertracing/net/http/Method.h"
-
 #include <algorithm>
+#include <initializer_list>
+#include <iterator>
 
 namespace jaegertracing {
 namespace net {

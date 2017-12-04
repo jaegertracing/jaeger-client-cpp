@@ -15,10 +15,9 @@
  */
 
 #include "jaegertracing/reporters/LoggingReporter.h"
-
-#include <sstream>
-
+#include "jaegertracing/Logging.h"
 #include "jaegertracing/Span.h"
+#include <sstream>
 
 namespace jaegertracing {
 namespace reporters {

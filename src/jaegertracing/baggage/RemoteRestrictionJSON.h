@@ -17,7 +17,10 @@
 #ifndef JAEGERTRACING_BAGGAGE_REMOTERESTRICTIONJSON_H
 #define JAEGERTRACING_BAGGAGE_REMOTERESTRICTIONJSON_H
 
+#include <cstdint>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
 
 #include "jaegertracing/thrift-gen/BaggageRestrictionManager.h"
 #include "jaegertracing/thrift-gen/baggage_types.h"
@@ -31,8 +34,8 @@ inline void to_json(nlohmann::json& json, const BaggageRestriction& restriction)
     json["maxValueLength"] = restriction.maxValueLength;
 }
 
-inline void from_json(
-    const nlohmann::json& json, BaggageRestriction& restriction)
+inline void from_json(const nlohmann::json& json,
+                      BaggageRestriction& restriction)
 {
     restriction.__set_baggageKey(json.at("baggageKey"));
     restriction.__set_maxValueLength(json.at("maxValueLength"));

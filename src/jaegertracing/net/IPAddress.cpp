@@ -57,24 +57,22 @@ IPAddress IPAddress::localIP(std::function<bool(const ifaddrs*)> filter)
     return IPAddress();
 }
 
-IPAddress IPAddress::versionFromString(
-    const std::string& ip, int port, int family)
+IPAddress
+IPAddress::versionFromString(const std::string& ip, int port, int family)
 {
     ::sockaddr_storage addrStorage;
     std::memset(&addrStorage, 0, sizeof(addrStorage));
 
     auto* addrBuffer = static_cast<void*>(nullptr);
     if (family == AF_INET) {
-        ::sockaddr_in& addr =
-            *reinterpret_cast<::sockaddr_in*>(&addrStorage);
+        ::sockaddr_in& addr = *reinterpret_cast<::sockaddr_in*>(&addrStorage);
         addr.sin_family = family;
         addr.sin_port = htons(port);
         addrBuffer = &addr.sin_addr;
     }
     else {
         assert(family == AF_INET6);
-        ::sockaddr_in6& addr =
-            *reinterpret_cast<::sockaddr_in6*>(&addrStorage);
+        ::sockaddr_in6& addr = *reinterpret_cast<::sockaddr_in6*>(&addrStorage);
         addr.sin6_family = family;
         addr.sin6_port = htons(port);
         addrBuffer = &addr.sin6_addr;

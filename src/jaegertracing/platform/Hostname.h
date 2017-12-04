@@ -17,10 +17,10 @@
 #ifndef JAEGERTRACING_PLATFORM_HOSTNAME_H
 #define JAEGERTRACING_PLATFORM_HOSTNAME_H
 
-#include <unistd.h>
-
+#include <errno.h>
 #include <string>
 #include <system_error>
+#include <unistd.h>
 
 namespace jaegertracing {
 namespace platform {

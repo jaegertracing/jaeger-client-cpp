@@ -17,35 +17,38 @@
 #ifndef JAEGERTRACING_SAMPLERS_REMOTESAMPLINGJSON_H
 #define JAEGERTRACING_SAMPLERS_REMOTESAMPLINGJSON_H
 
+#include "jaegertracing/thrift-gen/sampling_types.h"
+#include <cstdint>
+#include <iterator>
+#include <map>
+#include <nlohmann/json.hpp>
 #include <sstream>
 #include <stdexcept>
-
-#include <nlohmann/json.hpp>
-
-#include "jaegertracing/thrift-gen/sampling_types.h"
+#include <string>
+#include <vector>
 
 namespace jaegertracing {
 namespace sampling_manager {
 namespace thrift {
 
-#define JSON_FROM_FIELD(var, field) \
-    { \
-        json[#field] = var.field; \
+#define JSON_FROM_FIELD(var, field)                                            \
+    {                                                                          \
+        json[#field] = var.field;                                              \
     }
 
-#define FIELD_FROM_JSON(var, field) \
-    { \
-        var.__set_##field(json.at(#field)); \
+#define FIELD_FROM_JSON(var, field)                                            \
+    {                                                                          \
+        var.__set_##field(json.at(#field));                                    \
     }
 
-inline void to_json(
-    nlohmann::json& json, const SamplingStrategyType::type& type)
+inline void to_json(nlohmann::json& json,
+                    const SamplingStrategyType::type& type)
 {
     json = _SamplingStrategyType_VALUES_TO_NAMES.at(static_cast<int>(type));
 }
 
-inline void from_json(
-    const nlohmann::json& json, SamplingStrategyType::type& type)
+inline void from_json(const nlohmann::json& json,
+                      SamplingStrategyType::type& type)
 {
     const auto str = json.get<std::string>();
     if (str == "PROBABILISTIC") {
@@ -61,46 +64,46 @@ inline void from_json(
     throw std::invalid_argument(oss.str());
 }
 
-inline void to_json(
-    nlohmann::json& json, const ProbabilisticSamplingStrategy& strategy)
+inline void to_json(nlohmann::json& json,
+                    const ProbabilisticSamplingStrategy& strategy)
 {
     JSON_FROM_FIELD(strategy, samplingRate);
 }
 
-inline void from_json(
-    const nlohmann::json& json, ProbabilisticSamplingStrategy& strategy)
+inline void from_json(const nlohmann::json& json,
+                      ProbabilisticSamplingStrategy& strategy)
 {
     FIELD_FROM_JSON(strategy, samplingRate);
 }
 
-inline void to_json(
-    nlohmann::json& json, const RateLimitingSamplingStrategy& strategy)
+inline void to_json(nlohmann::json& json,
+                    const RateLimitingSamplingStrategy& strategy)
 {
     JSON_FROM_FIELD(strategy, maxTracesPerSecond);
 }
 
-inline void from_json(
-    const nlohmann::json& json, RateLimitingSamplingStrategy& strategy)
+inline void from_json(const nlohmann::json& json,
+                      RateLimitingSamplingStrategy& strategy)
 {
     FIELD_FROM_JSON(strategy, maxTracesPerSecond);
 }
 
-inline void to_json(
-    nlohmann::json& json, const OperationSamplingStrategy& strategy)
+inline void to_json(nlohmann::json& json,
+                    const OperationSamplingStrategy& strategy)
 {
     JSON_FROM_FIELD(strategy, operation);
     JSON_FROM_FIELD(strategy, probabilisticSampling);
 }
 
-inline void from_json(
-    const nlohmann::json& json, OperationSamplingStrategy& strategy)
+inline void from_json(const nlohmann::json& json,
+                      OperationSamplingStrategy& strategy)
 {
     FIELD_FROM_JSON(strategy, operation);
     FIELD_FROM_JSON(strategy, probabilisticSampling);
 }
 
-inline void to_json(
-    nlohmann::json& json, const PerOperationSamplingStrategies& strategies)
+inline void to_json(nlohmann::json& json,
+                    const PerOperationSamplingStrategies& strategies)
 {
     JSON_FROM_FIELD(strategies, defaultSamplingProbability);
     JSON_FROM_FIELD(strategies, defaultLowerBoundTracesPerSecond);
@@ -110,8 +113,8 @@ inline void to_json(
     }
 }
 
-inline void from_json(
-    const nlohmann::json& json, PerOperationSamplingStrategies& strategies)
+inline void from_json(const nlohmann::json& json,
+                      PerOperationSamplingStrategies& strategies)
 {
     FIELD_FROM_JSON(strategies, defaultSamplingProbability);
     FIELD_FROM_JSON(strategies, defaultLowerBoundTracesPerSecond);
@@ -122,8 +125,8 @@ inline void from_json(
     }
 }
 
-inline void to_json(
-    nlohmann::json& json, const SamplingStrategyResponse& response)
+inline void to_json(nlohmann::json& json,
+                    const SamplingStrategyResponse& response)
 {
     JSON_FROM_FIELD(response, strategyType);
     if (response.__isset.probabilisticSampling) {
@@ -137,8 +140,8 @@ inline void to_json(
     }
 }
 
-inline void from_json(
-    const nlohmann::json& json, SamplingStrategyResponse& response)
+inline void from_json(const nlohmann::json& json,
+                      SamplingStrategyResponse& response)
 {
     FIELD_FROM_JSON(response, strategyType);
     auto itr = json.find("probabilisticSampling");

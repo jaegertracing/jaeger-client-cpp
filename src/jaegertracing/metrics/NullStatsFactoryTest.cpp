@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-
+#include "jaegertracing/metrics/Counter.h"
+#include "jaegertracing/metrics/Gauge.h"
 #include "jaegertracing/metrics/NullStatsFactory.h"
+#include "jaegertracing/metrics/Timer.h"
+#include <gtest/gtest.h>
+#include <memory>
 
 namespace jaegertracing {
 namespace metrics {
