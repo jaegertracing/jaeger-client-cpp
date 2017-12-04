@@ -32,8 +32,8 @@ if(HUNTER_ENABLED)
     add_custom_target(
         hunter_upload_cache
         ${PYTHON_EXECUTABLE} ${hunter_upload_script}
-        --username isaachier
-        --repo-owner isaachier
+        --username jaegertracing
+        --repo-owner jaegertracing
         --repo cpp-client-hunter-cache
         --cache-dir ${hunter_cache_dir}
         --temp-dir ${hunter_tmp_dir})
