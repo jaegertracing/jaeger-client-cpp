@@ -39,14 +39,9 @@ after_success:
 - for f in $(find build -name '*.gcno'); do gcov-6 $f; done
 - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage
   reports"
-after_script: |
-  # Hunter: upload cache to the cache server.
-  # Copied from [cpp-ethereum](https://github.com/ethereum/cpp-ethereum/blob/develop/.travis.yml).
-  if [[ "$TRAVIS_EVENT_TYPE" != "pull_request" ]]; then
-    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo pip install --upgrade requests pyopenssl; fi
-    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install requests; fi
-    make -C $TRAVIS_BUILD_DIR/build hunter_upload_cache
-  fi
+cache:
+  directories:
+    - "$HOME/.hunter/_Base/Cache"
 env:
   global:
   - LANG="en_US.UTF-8"
