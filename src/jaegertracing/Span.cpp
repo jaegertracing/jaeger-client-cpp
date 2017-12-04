@@ -15,10 +15,13 @@
  */
 
 #include "jaegertracing/Span.h"
-
+#include <cassert>
+#include <cstdint>
+#include <istream>
+#include <memory>
 #include <opentracing/value.h>
-
 #include "jaegertracing/Tracer.h"
+#include "jaegertracing/baggage/BaggageSetter.h"
 
 namespace jaegertracing {
 namespace {

@@ -18,11 +18,18 @@
 #define JAEGERTRACING_SAMPLERS_GUARANTEEDTHROUGHPUTPROBABILISTICSAMPLER_H
 
 #include <memory>
-
+#include <string>
+#include <vector>
 #include "jaegertracing/Constants.h"
+#include "jaegertracing/Tag.h"
 #include "jaegertracing/samplers/ProbabilisticSampler.h"
 #include "jaegertracing/samplers/RateLimitingSampler.h"
 #include "jaegertracing/samplers/Sampler.h"
+#include "jaegertracing/samplers/SamplingStatus.h"
+
+namespace jaegertracing {
+class TraceID;
+}  // namespace jaegertracing
 
 namespace jaegertracing {
 namespace samplers {

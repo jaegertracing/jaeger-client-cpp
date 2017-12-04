@@ -15,10 +15,11 @@
  */
 
 #include <gtest/gtest.h>
-
+#include <algorithm>
 #include <sstream>
-
+#include <string>
 #include "jaegertracing/SpanContext.h"
+#include "jaegertracing/TraceID.h"
 
 namespace jaegertracing {
 namespace {

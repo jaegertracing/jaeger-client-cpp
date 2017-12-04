@@ -17,9 +17,13 @@
 #ifndef JAEGERTRACING_LOGRECORD_H
 #define JAEGERTRACING_LOGRECORD_H
 
+#include <algorithm>
 #include <chrono>
-
+#include <iterator>
+#include <type_traits>
+#include <vector>
 #include "jaegertracing/Tag.h"
+#include "jaegertracing/thrift-gen/jaeger_types.h"
 
 namespace jaegertracing {
 

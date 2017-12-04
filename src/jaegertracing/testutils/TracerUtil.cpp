@@ -15,6 +15,17 @@
  */
 
 #include "jaegertracing/testutils/TracerUtil.h"
+#include <memory>
+#include <ostream>
+#include <string>
+#include "jaegertracing/Config.h"
+#include "jaegertracing/Logging.h"
+#include "jaegertracing/Tracer.h"
+#include "jaegertracing/baggage/RestrictionsConfig.h"
+#include "jaegertracing/net/IPAddress.h"
+#include "jaegertracing/propagation/HeadersConfig.h"
+#include "jaegertracing/reporters/Config.h"
+#include "jaegertracing/samplers/Config.h"
 
 namespace jaegertracing {
 namespace testutils {

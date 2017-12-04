@@ -15,8 +15,15 @@
  */
 
 #include "jaegertracing/Tracer.h"
-
+#include <cassert>
+#include <algorithm>
+#include <chrono>
+#include <iterator>
+#include <tuple>
+#include <opentracing/util.h>
 #include "jaegertracing/Reference.h"
+#include "jaegertracing/TraceID.h"
+#include "jaegertracing/samplers/SamplingStatus.h"
 
 namespace jaegertracing {
 namespace {

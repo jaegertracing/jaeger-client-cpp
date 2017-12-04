@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-
+#include <sys/socket.h>
 #include <future>
+#include <stdexcept>
 #include <thread>
-
+#include <vector>
+#include <gtest/gtest.h>
+#include "jaegertracing/net/IPAddress.h"
+#include "jaegertracing/net/Socket.h"
+#include "jaegertracing/thrift-gen/jaeger_types.h"
+#include "jaegertracing/thrift-gen/zipkincore_types.h"
 #include "jaegertracing/utils/UDPClient.h"
 
 namespace jaegertracing {

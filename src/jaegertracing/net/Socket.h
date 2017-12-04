@@ -17,6 +17,16 @@
 #ifndef JAEGERTRACING_NET_SOCKET_H
 #define JAEGERTRACING_NET_SOCKET_H
 
+#include <errno.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <memory>
+#include <ostream>
+#include <stdexcept>
+#include <string>
+#include <system_error>
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/net/URI.h"
 

@@ -17,6 +17,9 @@
 #ifndef JAEGERTRACING_BAGGAGE_REMOTERESTRICTIONJSON_H
 #define JAEGERTRACING_BAGGAGE_REMOTERESTRICTIONJSON_H
 
+#include <cstdint>
+#include <string>
+#include <vector>
 #include <nlohmann/json.hpp>
 
 #include "jaegertracing/thrift-gen/BaggageRestrictionManager.h"

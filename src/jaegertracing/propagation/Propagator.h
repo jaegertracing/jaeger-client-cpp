@@ -20,9 +20,7 @@
 #include <cctype>
 #include <climits>
 #include <sstream>
-
 #include <opentracing/propagation.h>
-
 #include "jaegertracing/SpanContext.h"
 #include "jaegertracing/metrics/Metrics.h"
 #include "jaegertracing/net/URI.h"
@@ -65,7 +63,7 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
         StrMap baggage;
         std::string debugID;
         const auto result =
-            reader.ForeachKey([this, &reader, &ctx, &debugID, &baggage](
+            reader.ForeachKey([this, &ctx, &debugID, &baggage](
                 const std::string& rawKey, const std::string& value) {
                 const auto key = normalizeKey(rawKey);
                 if (key == _headerKeys.traceContextHeaderName()) {

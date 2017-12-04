@@ -17,6 +17,7 @@
 #ifndef JAEGERTRACING_METRICS_NULLGAUGE_H
 #define JAEGERTRACING_METRICS_NULLGAUGE_H
 
+#include <cstdint>
 #include "jaegertracing/metrics/Gauge.h"
 
 namespace jaegertracing {

@@ -16,11 +16,22 @@
 
 #include "jaegertracing/UDPTransport.h"
 
+#include <cstdint>
+#include <algorithm>
 #include <iostream>
-
+#include <iterator>
+#include <string>
+#include <thrift/protocol/TCompactProtocol.h>
+#include <thrift/transport/TBufferTransports.h>
+#include "jaegertracing/Span.h"
+#include "jaegertracing/Tag.h"
 #include "jaegertracing/Tracer.h"
 
 namespace jaegertracing {
+namespace net {
+class IPAddress;
+}  // namespace net
+
 namespace {
 
 constexpr auto kEmitBatchOverhead = 30;

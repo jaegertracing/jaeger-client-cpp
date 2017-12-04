@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+#include <sys/socket.h>
+#include <array>
+#include <cstdint>
+#include <string>
 #include <thread>
-
 #include <gtest/gtest.h>
-
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/net/Socket.h"
 #include "jaegertracing/testutils/TUDPTransport.h"

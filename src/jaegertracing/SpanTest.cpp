@@ -15,7 +15,7 @@
  */
 
 #include <gtest/gtest.h>
-
+#include <string>
 #include "jaegertracing/Span.h"
 
 namespace jaegertracing {

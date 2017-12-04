@@ -15,7 +15,11 @@
  */
 
 #include <gtest/gtest.h>
-
+#include <iosfwd>
+#include <iterator>
+#include <string>
+#include <unordered_map>
+#include <utility>
 #include "jaegertracing/net/URI.h"
 
 namespace jaegertracing {

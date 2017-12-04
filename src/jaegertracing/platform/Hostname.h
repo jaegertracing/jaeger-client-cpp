@@ -17,8 +17,8 @@
 #ifndef JAEGERTRACING_PLATFORM_HOSTNAME_H
 #define JAEGERTRACING_PLATFORM_HOSTNAME_H
 
+#include <errno.h>
 #include <unistd.h>
-
 #include <string>
 #include <system_error>
 

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
+#include <sys/socket.h>
+#include <stdexcept>
 #include <gtest/gtest.h>
-
 #include "jaegertracing/net/IPAddress.h"
 
 namespace jaegertracing {

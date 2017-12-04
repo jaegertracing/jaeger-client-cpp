@@ -15,8 +15,12 @@
  */
 
 #include <gtest/gtest.h>
-
+#include <sys/socket.h>
+#include <stdexcept>
+#include <system_error>
+#include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/net/Socket.h"
+#include "jaegertracing/net/URI.h"
 
 namespace jaegertracing {
 namespace net {

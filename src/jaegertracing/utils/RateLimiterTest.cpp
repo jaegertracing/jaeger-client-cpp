@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+#include <chrono>
 #include <gtest/gtest.h>
-
 #include "jaegertracing/utils/RateLimiter.h"
 
 namespace jaegertracing {

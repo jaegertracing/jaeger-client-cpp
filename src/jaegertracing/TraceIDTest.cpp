@@ -15,9 +15,7 @@
  */
 
 #include <gtest/gtest.h>
-
 #include <sstream>
-
 #include "jaegertracing/TraceID.h"
 
 namespace jaegertracing {

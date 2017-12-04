@@ -17,10 +17,12 @@
 #ifndef JAEGERTRACING_TAG_H
 #define JAEGERTRACING_TAG_H
 
+#include <cstdint>
+#include <algorithm>
 #include <string>
-
+#include <opentracing/string_view.h>
 #include <opentracing/value.h>
-
+#include <opentracing/variant/variant.hpp>
 #include "jaegertracing/thrift-gen/jaeger_types.h"
 
 namespace jaegertracing {

@@ -18,6 +18,7 @@
 #define JAEGERTRACING_TRANSPORT_H
 
 #include <stdexcept>
+#include <string>
 
 namespace jaegertracing {
 

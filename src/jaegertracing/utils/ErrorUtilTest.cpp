@@ -15,9 +15,14 @@
  */
 
 #include <algorithm>
-
+#include <iosfwd>
+#include <iterator>
+#include <stdexcept>
+#include <string>
+#include <system_error>
 #include <gtest/gtest.h>
-
+#include "jaegertracing/Logging.h"
+#include "jaegertracing/Transport.h"
 #include "jaegertracing/utils/ErrorUtil.h"
 
 namespace jaegertracing {

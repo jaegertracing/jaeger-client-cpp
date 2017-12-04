@@ -17,9 +17,9 @@
 #ifndef JAEGERTRACING_METRICS_NULLSTATSREPORTER_H
 #define JAEGERTRACING_METRICS_NULLSTATSREPORTER_H
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
-
 #include "jaegertracing/metrics/StatsReporter.h"
 
 namespace jaegertracing {

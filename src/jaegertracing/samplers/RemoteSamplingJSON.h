@@ -17,11 +17,14 @@
 #ifndef JAEGERTRACING_SAMPLERS_REMOTESAMPLINGJSON_H
 #define JAEGERTRACING_SAMPLERS_REMOTESAMPLINGJSON_H
 
+#include <cstdint>
+#include <iterator>
+#include <map>
 #include <sstream>
 #include <stdexcept>
-
+#include <string>
+#include <vector>
 #include <nlohmann/json.hpp>
-
 #include "jaegertracing/thrift-gen/sampling_types.h"
 
 namespace jaegertracing {

@@ -15,7 +15,6 @@
  */
 
 #include <gtest/gtest.h>
-
 #include "jaegertracing/net/http/Method.h"
 
 namespace jaegertracing {

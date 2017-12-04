@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-#include "jaegertracing/net/http/Method.h"
-
 #include <algorithm>
+#include <initializer_list>
+#include <iterator>
+#include "jaegertracing/net/http/Method.h"
 
 namespace jaegertracing {
 namespace net {

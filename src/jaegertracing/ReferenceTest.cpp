@@ -15,8 +15,9 @@
  */
 
 #include <gtest/gtest.h>
-
+#include <stdexcept>
 #include "jaegertracing/Reference.h"
+#include "jaegertracing/SpanContext.h"
 
 namespace jaegertracing {
 

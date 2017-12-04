@@ -14,11 +14,36 @@
  * limitations under the License.
  */
 
-#include <sstream>
-
+#include <sys/socket.h>
 #include <gtest/gtest.h>
-
+#include <algorithm>
+#include <chrono>
+#include <iterator>
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+#include <opentracing/expected/expected.hpp>
+#include <opentracing/noop.h>
+#include <opentracing/propagation.h>
+#include <opentracing/span.h>
+#include <opentracing/string_view.h>
+#include <opentracing/tracer.h>
+#include <opentracing/util.h>
+#include "jaegertracing/Config.h"
+#include "jaegertracing/Constants.h"
+#include "jaegertracing/Span.h"
+#include "jaegertracing/SpanContext.h"
+#include "jaegertracing/Tag.h"
+#include "jaegertracing/TraceID.h"
 #include "jaegertracing/Tracer.h"
+#include "jaegertracing/baggage/RestrictionsConfig.h"
+#include "jaegertracing/net/IPAddress.h"
+#include "jaegertracing/propagation/HeadersConfig.h"
+#include "jaegertracing/reporters/Config.h"
+#include "jaegertracing/samplers/Config.h"
 #include "jaegertracing/testutils/TracerUtil.h"
 
 namespace jaegertracing {

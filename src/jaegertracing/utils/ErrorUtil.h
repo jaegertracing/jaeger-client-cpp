@@ -20,7 +20,6 @@
 #include <sstream>
 #include <string>
 #include <system_error>
-
 #include "jaegertracing/Logging.h"
 #include "jaegertracing/Transport.h"
 

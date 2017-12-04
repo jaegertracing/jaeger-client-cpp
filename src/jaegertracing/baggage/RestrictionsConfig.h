@@ -19,7 +19,8 @@
 
 #include <chrono>
 #include <string>
-
+#include <yaml-cpp/yaml.h>
+#include "jaegertracing/Constants.h"
 #include "jaegertracing/utils/YAML.h"
 
 namespace jaegertracing {
