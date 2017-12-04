@@ -15,11 +15,11 @@
  */
 
 #include "jaegertracing/samplers/AdaptiveSampler.h"
+#include "jaegertracing/samplers/GuaranteedThroughputProbabilisticSampler.h"
 #include <cassert>
 #include <iterator>
 #include <memory>
 #include <utility>
-#include "jaegertracing/samplers/GuaranteedThroughputProbabilisticSampler.h"
 
 namespace jaegertracing {
 class TraceID;

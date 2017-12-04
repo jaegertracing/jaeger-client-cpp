@@ -15,12 +15,12 @@
  */
 
 #include "jaegertracing/metrics/StatsFactoryImpl.h"
-#include <cstdint>
 #include "jaegertracing/metrics/Counter.h"
 #include "jaegertracing/metrics/Gauge.h"
 #include "jaegertracing/metrics/Metric.h"
 #include "jaegertracing/metrics/StatsReporter.h"
 #include "jaegertracing/metrics/Timer.h"
+#include <cstdint>
 
 namespace jaegertracing {
 namespace metrics {

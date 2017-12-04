@@ -15,10 +15,10 @@
  */
 
 #include "jaegertracing/TraceID.h"
-#include <stddef.h>
-#include <iterator>
-#include <string>
 #include "jaegertracing/utils/HexParsing.h"
+#include <iterator>
+#include <stddef.h>
+#include <string>
 
 namespace jaegertracing {
 

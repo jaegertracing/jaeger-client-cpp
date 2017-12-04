@@ -17,10 +17,10 @@
 #ifndef JAEGERTRACING_PROPAGATION_HEADERSCONFIG_H
 #define JAEGERTRACING_PROPAGATION_HEADERSCONFIG_H
 
-#include <yaml-cpp/yaml.h>
-#include <string>
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/utils/YAML.h"
+#include <string>
+#include <yaml-cpp/yaml.h>
 
 namespace jaegertracing {
 namespace propagation {

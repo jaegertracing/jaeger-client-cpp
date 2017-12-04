@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-#include <cstdint>
-#include <iterator>
-#include <memory>
-#include <unordered_map>
-#include <utility>
-#include <gtest/gtest.h>
 #include "jaegertracing/metrics/Counter.h"
 #include "jaegertracing/metrics/Gauge.h"
 #include "jaegertracing/metrics/InMemoryStatsReporter.h"
 #include "jaegertracing/metrics/Metrics.h"
 #include "jaegertracing/metrics/StatsFactoryImpl.h"
 #include "jaegertracing/metrics/Timer.h"
+#include <cstdint>
+#include <gtest/gtest.h>
+#include <iterator>
+#include <memory>
+#include <unordered_map>
+#include <utility>
 
 namespace jaegertracing {
 namespace metrics {

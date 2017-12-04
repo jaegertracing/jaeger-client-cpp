@@ -17,6 +17,13 @@
 #ifndef JAEGERTRACING_TESTUTILS_MOCKAGENT_H
 #define JAEGERTRACING_TESTUTILS_MOCKAGENT_H
 
+#include "jaegertracing/baggage/RemoteRestrictionManager.h"
+#include "jaegertracing/net/IPAddress.h"
+#include "jaegertracing/testutils/SamplingManager.h"
+#include "jaegertracing/testutils/TUDPTransport.h"
+#include "jaegertracing/thrift-gen/Agent.h"
+#include "jaegertracing/thrift-gen/jaeger_types.h"
+#include "jaegertracing/utils/UDPClient.h"
 #include <atomic>
 #include <future>
 #include <memory>
@@ -27,13 +34,6 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include "jaegertracing/baggage/RemoteRestrictionManager.h"
-#include "jaegertracing/net/IPAddress.h"
-#include "jaegertracing/testutils/SamplingManager.h"
-#include "jaegertracing/testutils/TUDPTransport.h"
-#include "jaegertracing/thrift-gen/Agent.h"
-#include "jaegertracing/thrift-gen/jaeger_types.h"
-#include "jaegertracing/utils/UDPClient.h"
 
 namespace jaegertracing {
 namespace baggage {

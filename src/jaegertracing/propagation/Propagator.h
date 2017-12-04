@@ -17,10 +17,6 @@
 #ifndef JAEGERTRACING_PROPAGATION_PROPAGATOR_H
 #define JAEGERTRACING_PROPAGATION_PROPAGATOR_H
 
-#include <cctype>
-#include <climits>
-#include <sstream>
-#include <opentracing/propagation.h>
 #include "jaegertracing/SpanContext.h"
 #include "jaegertracing/metrics/Metrics.h"
 #include "jaegertracing/net/URI.h"
@@ -28,6 +24,10 @@
 #include "jaegertracing/propagation/Extractor.h"
 #include "jaegertracing/propagation/HeadersConfig.h"
 #include "jaegertracing/propagation/Injector.h"
+#include <cctype>
+#include <climits>
+#include <opentracing/propagation.h>
+#include <sstream>
 
 namespace jaegertracing {
 
@@ -62,9 +62,9 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
         SpanContext ctx;
         StrMap baggage;
         std::string debugID;
-        const auto result =
-            reader.ForeachKey([this, &ctx, &debugID, &baggage](
-                const std::string& rawKey, const std::string& value) {
+        const auto result = reader.ForeachKey(
+            [this, &ctx, &debugID, &baggage](const std::string& rawKey,
+                                             const std::string& value) {
                 const auto key = normalizeKey(rawKey);
                 if (key == _headerKeys.traceContextHeaderName()) {
                     const auto safeValue = decodeValue(value);

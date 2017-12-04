@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+#include "jaegertracing/net/http/Header.h"
+#include <gtest/gtest.h>
 #include <ostream>
 #include <string>
 #include <vector>
-#include <gtest/gtest.h>
-#include "jaegertracing/net/http/Header.h"
 
 namespace jaegertracing {
 namespace net {

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
+#include "jaegertracing/Logging.h"
+#include "jaegertracing/Transport.h"
+#include "jaegertracing/utils/ErrorUtil.h"
 #include <algorithm>
+#include <gtest/gtest.h>
 #include <iosfwd>
 #include <iterator>
 #include <stdexcept>
 #include <string>
 #include <system_error>
-#include <gtest/gtest.h>
-#include "jaegertracing/Logging.h"
-#include "jaegertracing/Transport.h"
-#include "jaegertracing/utils/ErrorUtil.h"
 
 namespace jaegertracing {
 namespace utils {

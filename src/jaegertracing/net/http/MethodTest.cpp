@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include "jaegertracing/net/http/Method.h"
+#include <gtest/gtest.h>
 
 namespace jaegertracing {
 namespace net {

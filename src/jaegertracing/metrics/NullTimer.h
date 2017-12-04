@@ -17,8 +17,8 @@
 #ifndef JAEGERTRACING_METRICS_NULLTIMER_H
 #define JAEGERTRACING_METRICS_NULLTIMER_H
 
-#include <cstdint>
 #include "jaegertracing/metrics/Timer.h"
+#include <cstdint>
 
 namespace jaegertracing {
 namespace metrics {

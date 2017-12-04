@@ -17,14 +17,14 @@
 #ifndef JAEGERTRACING_SAMPLERS_RATELIMITINGSAMPLER_H
 #define JAEGERTRACING_SAMPLERS_RATELIMITINGSAMPLER_H
 
-#include <algorithm>
-#include <string>
-#include <vector>
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/Tag.h"
 #include "jaegertracing/samplers/Sampler.h"
 #include "jaegertracing/samplers/SamplingStatus.h"
 #include "jaegertracing/utils/RateLimiter.h"
+#include <algorithm>
+#include <string>
+#include <vector>
 
 namespace jaegertracing {
 class TraceID;

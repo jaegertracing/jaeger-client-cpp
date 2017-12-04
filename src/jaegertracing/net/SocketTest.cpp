@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-#include <sys/socket.h>
-#include <stdexcept>
-#include <system_error>
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/net/Socket.h"
 #include "jaegertracing/net/URI.h"
+#include <gtest/gtest.h>
+#include <stdexcept>
+#include <sys/socket.h>
+#include <system_error>
 
 namespace jaegertracing {
 namespace net {

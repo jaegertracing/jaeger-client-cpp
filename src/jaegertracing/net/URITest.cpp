@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+#include "jaegertracing/net/URI.h"
 #include <gtest/gtest.h>
 #include <iosfwd>
 #include <iterator>
 #include <string>
 #include <unordered_map>
 #include <utility>
-#include "jaegertracing/net/URI.h"
 
 namespace jaegertracing {
 namespace net {

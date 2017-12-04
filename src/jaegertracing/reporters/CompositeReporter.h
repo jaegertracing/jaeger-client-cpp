@@ -17,11 +17,11 @@
 #ifndef JAEGERTRACING_REPORTERS_COMPOSITEREPORTER_H
 #define JAEGERTRACING_REPORTERS_COMPOSITEREPORTER_H
 
+#include "jaegertracing/reporters/Reporter.h"
 #include <algorithm>
 #include <iterator>
 #include <memory>
 #include <vector>
-#include "jaegertracing/reporters/Reporter.h"
 
 namespace jaegertracing {
 class Span;

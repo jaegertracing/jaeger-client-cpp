@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+#include "jaegertracing/Span.h"
 #include <gtest/gtest.h>
 #include <string>
-#include "jaegertracing/Span.h"
 
 namespace jaegertracing {
 

@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-#include <sys/socket.h>
-#include <unistd.h>
-#include <array>
-#include <future>
-#include <ostream>
-#include <string>
-#include <thread>
-#include <gtest/gtest.h>
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/net/Socket.h"
 #include "jaegertracing/net/URI.h"
 #include "jaegertracing/net/http/Response.h"
+#include <array>
+#include <future>
+#include <gtest/gtest.h>
+#include <ostream>
+#include <string>
+#include <sys/socket.h>
+#include <thread>
+#include <unistd.h>
 
 namespace jaegertracing {
 namespace net {
