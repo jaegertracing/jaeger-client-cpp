@@ -37,7 +37,8 @@ struct IfAddrDeleter : public std::function<void(ifaddrs*)> {
 IPAddress IPAddress::localIP(int family)
 {
     return localIP([family](const ifaddrs* ifAddr) {
-        return ifAddr->ifa_addr->sa_family == family;
+        return ifAddr->ifa_addr != nullptr &&
+               ifAddr->ifa_addr->sa_family == family;
     });
 }
 
