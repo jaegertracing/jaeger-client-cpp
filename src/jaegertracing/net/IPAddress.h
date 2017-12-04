@@ -176,11 +176,8 @@ struct AddrInfoDeleter : public std::function<void(::addrinfo*)> {
     void operator()(::addrinfo* addrInfo) const { ::freeaddrinfo(addrInfo); }
 };
 
-std::unique_ptr<::addrinfo, AddrInfoDeleter>
-resolveAddress(const std::string& host,
-               int port,
-               int family,
-               int type = SOCK_STREAM);
+std::unique_ptr<::addrinfo, AddrInfoDeleter> resolveAddress(
+    const std::string& host, int port, int family, int type = SOCK_STREAM);
 
 }  // namespace net
 }  // namespace jaegertracing

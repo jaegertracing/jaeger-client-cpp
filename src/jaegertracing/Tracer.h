@@ -98,9 +98,8 @@ class Tracer : public opentracing::Tracer,
             config.sampler().makeSampler(serviceName, *logger, *metrics));
         std::shared_ptr<reporters::Reporter> reporter(
             config.reporter().makeReporter(serviceName, *logger, *metrics));
-        return std::shared_ptr<Tracer>(
-            new Tracer(
-                serviceName, sampler, reporter, logger, metrics, options));
+        return std::shared_ptr<Tracer>(new Tracer(
+            serviceName, sampler, reporter, logger, metrics, options));
     }
 
     ~Tracer() { Close(); }

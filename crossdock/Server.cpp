@@ -34,14 +34,14 @@ namespace jaegertracing {
 namespace crossdock {
 namespace thrift {
 
-#define JSON_FROM_FIELD(var, field) \
-    { \
-        json[#field] = var.field; \
+#define JSON_FROM_FIELD(var, field)                                            \
+    {                                                                          \
+        json[#field] = var.field;                                              \
     }
 
-#define FIELD_FROM_JSON(var, field) \
-    { \
-        var.__set_##field(json.at(#field)); \
+#define FIELD_FROM_JSON(var, field)                                            \
+    {                                                                          \
+        var.__set_##field(json.at(#field));                                    \
     }
 
 void to_json(nlohmann::json& json, const Transport::type& transport)
@@ -241,9 +241,9 @@ class RequestWriter : public opentracing::HTTPHeadersWriter {
     {
     }
 
-    opentracing::expected<void> Set(
-        opentracing::string_view key, opentracing::string_view value)
-        const override
+    opentracing::expected<void>
+    Set(opentracing::string_view key,
+        opentracing::string_view value) const override
     {
         _requestStream << key << ": " << value << "\r\n";
         return opentracing::make_expected();
@@ -292,7 +292,8 @@ thrift::TraceResponse callDownstreamHTTP(const opentracing::SpanContext& ctx,
     tracer.Inject(ctx, writer);
     oss << "Connection: close\r\n"
            "Content-Type: application/json\r\n"
-           "Content-Length: " << requestJSON.size() << "\r\n\r\n"
+           "Content-Length: "
+        << requestJSON.size() << "\r\n\r\n"
         << requestJSON;
     const auto message = oss.str();
     logger.info("Sending request downstream: " + escape(message));
@@ -335,12 +336,11 @@ thrift::TraceResponse callDownstream(const opentracing::SpanContext& ctx,
     return response;
 }
 
-thrift::TraceResponse prepareResponse(
-    const opentracing::SpanContext& ctx,
-    const std::string& role,
-    const thrift::Downstream* downstream,
-    opentracing::Tracer& tracer,
-    logging::Logger& logger)
+thrift::TraceResponse prepareResponse(const opentracing::SpanContext& ctx,
+                                      const std::string& role,
+                                      const thrift::Downstream* downstream,
+                                      opentracing::Tracer& tracer,
+                                      logging::Logger& logger)
 {
     const auto observedSpan = observeSpan(ctx);
     thrift::TraceResponse response;
@@ -435,15 +435,15 @@ class Server::SocketListener {
                         std::istringstream iss(requestStr);
                         const auto request = net::http::Request::parse(iss);
                         const auto responseStr = _handler(request);
-                        const auto numWritten = ::write(
-                            client.handle(),
-                            &responseStr[0],
-                            responseStr.size());
+                        const auto numWritten = ::write(client.handle(),
+                                                        &responseStr[0],
+                                                        responseStr.size());
                         if (numWritten !=
                             static_cast<int>(responseStr.size())) {
                             std::ostringstream oss;
                             oss << "Unable to write entire response"
-                                   ", numWritten=" << numWritten
+                                   ", numWritten="
+                                << numWritten
                                 << ", responseSize=" << responseStr.size();
                             _logger->error(oss.str());
                         }
@@ -453,14 +453,13 @@ class Server::SocketListener {
                             "HTTP/1.1 500 Internal Server Error\r\n\r\n";
                         constexpr auto messageSize = sizeof(message) - 1;
                         const auto numWritten =
-                            ::write(client.handle(),
-                                    message,
-                                    messageSize);
+                            ::write(client.handle(), message, messageSize);
                         (void)numWritten;
                     }
 
                     client.close();
-            }, std::move(client));
+                },
+                std::move(client));
             tasks.emplace_back(std::move(future));
         }
 
@@ -505,17 +504,16 @@ class Server::EndToEndHandler {
   private:
     Config makeEndToEndConfig(const std::string& samplerType) const
     {
-        return Config(
-            false,
-            samplers::Config(samplerType,
-                             1.0,
-                             _samplingServerURL,
-                             samplers::Config::kDefaultMaxOperations,
-                             std::chrono::seconds(5)),
-            reporters::Config(reporters::Config::kDefaultQueueSize,
-                              std::chrono::seconds(1),
-                              false,
-                              _agentHostPort));
+        return Config(false,
+                      samplers::Config(samplerType,
+                                       1.0,
+                                       _samplingServerURL,
+                                       samplers::Config::kDefaultMaxOperations,
+                                       std::chrono::seconds(5)),
+                      reporters::Config(reporters::Config::kDefaultQueueSize,
+                                        std::chrono::seconds(1),
+                                        false,
+                                        _agentHostPort));
     }
 
     TracerPtr init(const std::string& samplerType)
@@ -539,15 +537,17 @@ Server::Server(const net::IPAddress& clientIP,
     : _logger(logging::consoleLogger())
     , _tracer(Tracer::make(kDefaultTracerServiceName, Config(), _logger))
     , _clientListener(
-          new SocketListener(clientIP, _logger,
-          [this](const net::http::Request& request) {
-              return handleRequest(request);
-          }))
+          new SocketListener(clientIP,
+                             _logger,
+                             [this](const net::http::Request& request) {
+                                 return handleRequest(request);
+                             }))
     , _serverListener(
-          new SocketListener(serverIP, _logger,
-          [this](const net::http::Request& request) {
-              return handleRequest(request);
-          }))
+          new SocketListener(serverIP,
+                             _logger,
+                             [this](const net::http::Request& request) {
+                                 return handleRequest(request);
+                             }))
     , _handler(new EndToEndHandler(agentHostPort, samplingServerURL))
 {
 }
@@ -576,7 +576,8 @@ std::string Server::handleJSON(
         oss.str("");
         oss.clear();
         oss << "HTTP/1.1 400 Bad Request\r\n"
-               "Content-Length: " << message.size() << "\r\n\r\n"
+               "Content-Length: "
+            << message.size() << "\r\n\r\n"
             << message;
     }
 
@@ -601,7 +602,8 @@ std::string Server::handleJSON(
         oss.str("");
         oss.clear();
         oss << "HTTP/1.1 500 Internal Server Error\r\n"
-               "Content-Length: " << message.size() << "\r\n\r\n"
+               "Content-Length: "
+            << message.size() << "\r\n\r\n"
             << message;
         return oss.str();
     } catch (...) {
@@ -611,7 +613,8 @@ std::string Server::handleJSON(
         oss.str("");
         oss.clear();
         oss << "HTTP/1.1 500 Internal Server Error\r\n"
-               "Content-Length: " << message.size() << "\r\n\r\n"
+               "Content-Length: "
+            << message.size() << "\r\n\r\n"
             << message;
         return oss.str();
     }
@@ -622,7 +625,8 @@ std::string Server::handleJSON(
         std::ostringstream oss;
         oss << "HTTP/1.1 200 OK\r\n"
                "Content-Type: application/json\r\n"
-               "Content-Length: " << message.size() << "\r\n\r\n"
+               "Content-Length: "
+            << message.size() << "\r\n\r\n"
             << message;
         return oss.str();
     } catch (const std::exception& ex) {
@@ -632,7 +636,8 @@ std::string Server::handleJSON(
         oss.str("");
         oss.clear();
         oss << "HTTP/1.1 500 Internal Server Error\r\n"
-               "Content-Length: " << message.size() << "\r\n\r\n"
+               "Content-Length: "
+            << message.size() << "\r\n\r\n"
             << message;
         return oss.str();
     } catch (...) {
@@ -642,7 +647,8 @@ std::string Server::handleJSON(
         oss.str("");
         oss.clear();
         oss << "HTTP/1.1 500 Internal Server Error\r\n"
-               "Content-Length: " << message.size() << "\r\n\r\n"
+               "Content-Length: "
+            << message.size() << "\r\n\r\n"
             << message;
         return oss.str();
     }
@@ -684,24 +690,23 @@ Server::startTrace(const crossdock::thrift::StartTraceRequest& request)
     }
     span->SetBaggageItem(kBaggageKey, request.baggage);
 
-    return prepareResponse(
-        span->context(),
-        request.serverRole,
-        &request.downstream,
-        *_tracer,
-        *_logger);
+    return prepareResponse(span->context(),
+                           request.serverRole,
+                           &request.downstream,
+                           *_tracer,
+                           *_logger);
 }
 
 thrift::TraceResponse
 Server::joinTrace(const crossdock::thrift::JoinTraceRequest& request,
                   const opentracing::SpanContext& ctx)
 {
-    return prepareResponse(
-        ctx,
-        request.serverRole,
-        request.__isset.downstream ? &request.downstream : nullptr,
-        *_tracer,
-        *_logger);
+    return prepareResponse(ctx,
+                           request.serverRole,
+                           request.__isset.downstream ? &request.downstream
+                                                      : nullptr,
+                           *_tracer,
+                           *_logger);
 }
 
 std::string Server::generateTraces(const net::http::Request& requestHTTP)
@@ -716,14 +721,16 @@ std::string Server::generateTraces(const net::http::Request& requestHTTP)
         oss.str("");
         oss.clear();
         oss << "HTTP/1.1 400 Bad Request\r\n"
-               "Content-Length: " << message.size() << "\r\n\r\n"
+               "Content-Length: "
+            << message.size() << "\r\n\r\n"
             << message;
         return oss.str();
     } catch (...) {
         const std::string message("JSON payload is invalid");
         std::ostringstream oss;
         oss << "HTTP/1.1 400 Bad Request\r\n"
-               "Content-Length: " << message.size() << "\r\n\r\n"
+               "Content-Length: "
+            << message.size() << "\r\n\r\n"
             << message;
         return oss.str();
     }
@@ -733,7 +740,8 @@ std::string Server::generateTraces(const net::http::Request& requestHTTP)
         const std::string message("Tracer is not initialized");
         std::ostringstream oss;
         oss << "HTTP/1.1 500 Internal Server Error\r\n"
-               "Content-Length: " << message.size() << "\r\n"
+               "Content-Length: "
+            << message.size() << "\r\n"
             << message;
         return oss.str();
     }

@@ -17,11 +17,13 @@
 #ifndef JAEGERTRACING_CONFIG_H
 #define JAEGERTRACING_CONFIG_H
 
+#include "jaegertracing/Constants.h"
 #include "jaegertracing/baggage/RestrictionsConfig.h"
 #include "jaegertracing/propagation/HeadersConfig.h"
 #include "jaegertracing/reporters/Config.h"
 #include "jaegertracing/samplers/Config.h"
 #include "jaegertracing/utils/YAML.h"
+#include <yaml-cpp/yaml.h>
 
 namespace jaegertracing {
 

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-
 #include "jaegertracing/Reference.h"
+#include "jaegertracing/SpanContext.h"
+#include <gtest/gtest.h>
+#include <stdexcept>
 
 namespace jaegertracing {
 
