@@ -4,7 +4,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/cmake/toolchain.cmake")
 
-set(HUNTER_CACHE_SERVERS "https://github.com/isaachier/cpp-client-hunter-cache")
+set(HUNTER_CACHE_SERVERS "https://github.com/jaegertracing/cpp-client-hunter-cache")
 
 include(CMakeDependentOption)
 include(HunterGate)
