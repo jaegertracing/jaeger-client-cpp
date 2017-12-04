@@ -17,12 +17,11 @@
 #ifndef JAEGERTRACING_UTILS_ERRORUTIL_H
 #define JAEGERTRACING_UTILS_ERRORUTIL_H
 
+#include "jaegertracing/Logging.h"
+#include "jaegertracing/Transport.h"
 #include <sstream>
 #include <string>
 #include <system_error>
-
-#include "jaegertracing/Logging.h"
-#include "jaegertracing/Transport.h"
 
 namespace jaegertracing {
 namespace utils {

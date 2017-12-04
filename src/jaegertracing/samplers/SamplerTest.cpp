@@ -106,26 +106,28 @@ TEST(Sampler, testProbabilisticSamplerErrors)
 
 TEST(Sampler, testProbabilisticSampler)
 {
-  {
-    ProbabilisticSampler sampler(0.5);
-    auto result =
-        sampler.isSampled(TraceID(0, kTestMaxID + 10), kTestOperationName);
-    ASSERT_FALSE(result.isSampled());
-    CMP_TAGS(testProbablisticExpectedTags, result.tags());
+    {
+        ProbabilisticSampler sampler(0.5);
+        auto result =
+            sampler.isSampled(TraceID(0, kTestMaxID + 10), kTestOperationName);
+        ASSERT_FALSE(result.isSampled());
+        CMP_TAGS(testProbablisticExpectedTags, result.tags());
 
-    result = sampler.isSampled(TraceID(0, kTestMaxID - 20), kTestOperationName);
-    ASSERT_TRUE(result.isSampled());
-    CMP_TAGS(testProbablisticExpectedTags, result.tags());
-  }
-  {
-    ProbabilisticSampler sampler(1.0);
-    auto result =
-        sampler.isSampled(TraceID(0, kTestMaxID), kTestOperationName);
-    ASSERT_TRUE(result.isSampled());
+        result =
+            sampler.isSampled(TraceID(0, kTestMaxID - 20), kTestOperationName);
+        ASSERT_TRUE(result.isSampled());
+        CMP_TAGS(testProbablisticExpectedTags, result.tags());
+    }
+    {
+        ProbabilisticSampler sampler(1.0);
+        auto result =
+            sampler.isSampled(TraceID(0, kTestMaxID), kTestOperationName);
+        ASSERT_TRUE(result.isSampled());
 
-    result = sampler.isSampled(TraceID(0, kTestMaxID - 20), kTestOperationName);
-    ASSERT_TRUE(result.isSampled());
-  }
+        result =
+            sampler.isSampled(TraceID(0, kTestMaxID - 20), kTestOperationName);
+        ASSERT_TRUE(result.isSampled());
+    }
 }
 
 TEST(Sampler, testProbabilisticSamplerPerformance)
@@ -216,9 +218,8 @@ TEST(Sampler, testAdaptiveSampler)
     result = sampler.isSampled(TraceID(0, kTestMaxID + 10), kTestOperationName);
     ASSERT_FALSE(result.isSampled());
 
-    result =
-        sampler.isSampled(TraceID(0, kTestMaxID - 20),
-                kTestFirstTimeOperationName);
+    result = sampler.isSampled(TraceID(0, kTestMaxID - 20),
+                               kTestFirstTimeOperationName);
     ASSERT_TRUE(result.isSampled());
     CMP_TAGS(testProbablisticExpectedTags, result.tags());
 }

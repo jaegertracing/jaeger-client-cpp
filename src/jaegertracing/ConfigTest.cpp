@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-
 #include "jaegertracing/Config.h"
+#include "jaegertracing/Constants.h"
+#include "jaegertracing/propagation/HeadersConfig.h"
+#include "jaegertracing/samplers/Config.h"
+#include <gtest/gtest.h>
+#include <yaml-cpp/yaml.h>
 
 namespace jaegertracing {
 

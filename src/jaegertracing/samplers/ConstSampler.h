@@ -18,7 +18,15 @@
 #define JAEGERTRACING_SAMPLERS_CONSTSAMPLER_H
 
 #include "jaegertracing/Constants.h"
+#include "jaegertracing/Tag.h"
 #include "jaegertracing/samplers/Sampler.h"
+#include "jaegertracing/samplers/SamplingStatus.h"
+#include <string>
+#include <vector>
+
+namespace jaegertracing {
+class TraceID;
+}  // namespace jaegertracing
 
 namespace jaegertracing {
 namespace samplers {

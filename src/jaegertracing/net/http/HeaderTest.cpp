@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-
 #include "jaegertracing/net/http/Header.h"
+#include <gtest/gtest.h>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace jaegertracing {
 namespace net {
 namespace http {
+
+class ParseError;
 
 TEST(Header, readLine)
 {
