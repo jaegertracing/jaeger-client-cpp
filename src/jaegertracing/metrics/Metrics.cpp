@@ -15,13 +15,13 @@
  */
 
 #include "jaegertracing/metrics/Metrics.h"
-
-#include <map>
-#include <sstream>
-
 #include "jaegertracing/metrics/Counter.h"
 #include "jaegertracing/metrics/Gauge.h"
 #include "jaegertracing/metrics/NullStatsFactory.h"
+#include <iterator>
+#include <map>
+#include <sstream>
+#include <utility>
 
 namespace jaegertracing {
 namespace metrics {

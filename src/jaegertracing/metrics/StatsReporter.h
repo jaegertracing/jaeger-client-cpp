@@ -17,6 +17,7 @@
 #ifndef JAEGERTRACING_METRICS_STATSREPORTER_H
 #define JAEGERTRACING_METRICS_STATSREPORTER_H
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 

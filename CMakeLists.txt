@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.3)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/cmake/toolchain.cmake")
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/toolchain.cmake"
+    CACHE FILEPATH
+    "Toolchain to use for building this package and dependencies")
 
 set(HUNTER_CACHE_SERVERS "https://github.com/isaachier/cpp-client-hunter-cache")
 
@@ -121,7 +123,7 @@ if(BUILD_TESTING)
   if(JAEGERTRACING_COVERAGE)
       include(CodeCoverage)
       append_coverage_compiler_flags()
-      set(COVERAGE_EXCLUDES "${CMAKE_SOURCE_DIR}/src/jaegertracing/thrift-gen/*"
+      set(COVERAGE_EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/src/jaegertracing/thrift-gen/*"
                             "*Test.cpp")
   endif()
 endif()
@@ -276,7 +278,7 @@ configure_file(
 set(CMAKE_INSTALL_CURRENT_DIR ON)
 
 if(BUILD_TESTING)
-  add_subdirectory("${CMAKE_SOURCE_DIR}/src/jaegertracing/testutils")
+  add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/jaegertracing/testutils")
   set(TEST_SRC
       src/jaegertracing/ConfigTest.cpp
       src/jaegertracing/ReferenceTest.cpp

@@ -34,8 +34,8 @@ class Timer;
 class StatsFactoryImpl : public StatsFactory {
   public:
     using StatsFactory::createCounter;
-    using StatsFactory::createTimer;
     using StatsFactory::createGauge;
+    using StatsFactory::createTimer;
 
     explicit StatsFactoryImpl(StatsReporter& reporter);
 

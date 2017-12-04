@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-
-#include <sstream>
-
 #include "jaegertracing/TraceID.h"
+#include <gtest/gtest.h>
+#include <sstream>
 
 namespace jaegertracing {
 

@@ -17,10 +17,11 @@
 #ifndef JAEGERTRACING_BAGGAGE_RESTRICTIONSCONFIG_H
 #define JAEGERTRACING_BAGGAGE_RESTRICTIONSCONFIG_H
 
+#include "jaegertracing/Constants.h"
+#include "jaegertracing/utils/YAML.h"
 #include <chrono>
 #include <string>
-
-#include "jaegertracing/utils/YAML.h"
+#include <yaml-cpp/yaml.h>
 
 namespace jaegertracing {
 namespace baggage {

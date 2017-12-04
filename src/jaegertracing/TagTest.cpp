@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-
 #include "jaegertracing/Tag.h"
+#include <gtest/gtest.h>
+#include <string>
 
 namespace jaegertracing {
 

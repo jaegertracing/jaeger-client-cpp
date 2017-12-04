@@ -36,8 +36,8 @@ class Timer;
 class NullStatsFactory : public StatsFactory {
   public:
     using StatsFactory::createCounter;
-    using StatsFactory::createTimer;
     using StatsFactory::createGauge;
+    using StatsFactory::createTimer;
 
     std::unique_ptr<Counter>
     createCounter(const std::string&,
