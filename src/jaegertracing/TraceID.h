@@ -17,6 +17,7 @@
 #ifndef JAEGERTRACING_TRACEID_H
 #define JAEGERTRACING_TRACEID_H
 
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 

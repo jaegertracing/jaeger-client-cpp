@@ -17,10 +17,10 @@
 #ifndef JAEGERTRACING_METRICS_INMEMORYSTATSREPORTER_H
 #define JAEGERTRACING_METRICS_INMEMORYSTATSREPORTER_H
 
+#include "jaegertracing/metrics/StatsReporter.h"
+#include <cstdint>
 #include <string>
 #include <unordered_map>
-
-#include "jaegertracing/metrics/StatsReporter.h"
 
 namespace jaegertracing {
 namespace metrics {

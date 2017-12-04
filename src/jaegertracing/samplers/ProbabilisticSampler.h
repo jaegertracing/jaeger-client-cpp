@@ -18,7 +18,15 @@
 #define JAEGERTRACING_SAMPLERS_PROBABILISTICSAMPLER_H
 
 #include "jaegertracing/Constants.h"
+#include "jaegertracing/Tag.h"
+#include "jaegertracing/TraceID.h"
 #include "jaegertracing/samplers/Sampler.h"
+#include "jaegertracing/samplers/SamplingStatus.h"
+#include <algorithm>
+#include <cstdint>
+#include <limits>
+#include <string>
+#include <vector>
 
 namespace jaegertracing {
 namespace samplers {

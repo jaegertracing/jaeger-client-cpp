@@ -15,10 +15,13 @@
  */
 
 #include "jaegertracing/Span.h"
-
-#include <opentracing/value.h>
-
 #include "jaegertracing/Tracer.h"
+#include "jaegertracing/baggage/BaggageSetter.h"
+#include <cassert>
+#include <cstdint>
+#include <istream>
+#include <memory>
+#include <opentracing/value.h>
 
 namespace jaegertracing {
 namespace {
@@ -81,9 +84,9 @@ void Span::FinishWithOptions(
     const opentracing::FinishSpanOptions& finishSpanOptions) noexcept
 {
     const auto finishTimeSteady =
-        (finishSpanOptions.finish_steady_timestamp ==
-          SteadyClock::time_point())
-         ? SteadyClock::now() : finishSpanOptions.finish_steady_timestamp;
+        (finishSpanOptions.finish_steady_timestamp == SteadyClock::time_point())
+            ? SteadyClock::now()
+            : finishSpanOptions.finish_steady_timestamp;
     std::shared_ptr<const Tracer> tracer;
     {
 

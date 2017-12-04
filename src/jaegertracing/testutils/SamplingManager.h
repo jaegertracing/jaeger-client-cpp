@@ -17,12 +17,13 @@
 #ifndef JAEGERTRACING_TESTUTILS_SAMPLINGMANAGER_H
 #define JAEGERTRACING_TESTUTILS_SAMPLINGMANAGER_H
 
+#include "jaegertracing/thrift-gen/SamplingManager.h"
+#include "jaegertracing/thrift-gen/sampling_types.h"
+#include <iterator>
 #include <mutex>
 #include <string>
 #include <unordered_map>
-
-#include "jaegertracing/thrift-gen/SamplingManager.h"
-#include "jaegertracing/thrift-gen/sampling_types.h"
+#include <utility>
 
 namespace jaegertracing {
 namespace testutils {

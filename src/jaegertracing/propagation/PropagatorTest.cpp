@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-#include <random>
-
-#include <gtest/gtest.h>
-
+#include "jaegertracing/SpanContext.h"
+#include "jaegertracing/TraceID.h"
 #include "jaegertracing/propagation/Propagator.h"
+#include <gtest/gtest.h>
+#include <iosfwd>
+#include <random>
+#include <stddef.h>
+#include <string>
+#include <unordered_map>
 
 namespace jaegertracing {
 namespace propagation {

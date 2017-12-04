@@ -18,6 +18,7 @@
 #define JAEGERTRACING_METRICS_NULLCOUNTER_H
 
 #include "jaegertracing/metrics/Counter.h"
+#include <cstdint>
 
 namespace jaegertracing {
 namespace metrics {

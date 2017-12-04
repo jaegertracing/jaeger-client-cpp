@@ -15,8 +15,15 @@
  */
 
 #include "jaegertracing/Tracer.h"
-
 #include "jaegertracing/Reference.h"
+#include "jaegertracing/TraceID.h"
+#include "jaegertracing/samplers/SamplingStatus.h"
+#include <algorithm>
+#include <cassert>
+#include <chrono>
+#include <iterator>
+#include <opentracing/util.h>
+#include <tuple>
 
 namespace jaegertracing {
 namespace {
@@ -32,16 +39,14 @@ TimePoints determineStartTimes(const opentracing::StartSpanOptions& options)
         return std::make_tuple(SystemClock::now(), SteadyClock::now());
     }
     if (options.start_system_timestamp == SystemClock::time_point()) {
-        return std::make_tuple(
-            opentracing::convert_time_point<SystemClock>(
-                options.start_steady_timestamp),
-            options.start_steady_timestamp);
+        return std::make_tuple(opentracing::convert_time_point<SystemClock>(
+                                   options.start_steady_timestamp),
+                               options.start_steady_timestamp);
     }
     if (options.start_steady_timestamp == SteadyClock::time_point()) {
-        return std::make_tuple(
-            options.start_system_timestamp,
-            opentracing::convert_time_point<SteadyClock>(
-                options.start_system_timestamp));
+        return std::make_tuple(options.start_system_timestamp,
+                               opentracing::convert_time_point<SteadyClock>(
+                                   options.start_system_timestamp));
     }
     return std::make_tuple(options.start_system_timestamp,
                            options.start_steady_timestamp);

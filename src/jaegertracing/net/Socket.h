@@ -19,6 +19,16 @@
 
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/net/URI.h"
+#include <errno.h>
+#include <memory>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <ostream>
+#include <stdexcept>
+#include <string>
+#include <sys/socket.h>
+#include <system_error>
+#include <unistd.h>
 
 namespace jaegertracing {
 namespace net {
@@ -41,7 +51,7 @@ class Socket {
         , _family(socket._family)
         , _type(socket._type)
     {
-		socket._handle = -1;
+        socket._handle = -1;
     }
 
     Socket& operator=(Socket&& rhs)

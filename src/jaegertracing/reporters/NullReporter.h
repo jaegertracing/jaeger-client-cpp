@@ -20,6 +20,10 @@
 #include "jaegertracing/reporters/Reporter.h"
 
 namespace jaegertracing {
+class Span;
+}  // namespace jaegertracing
+
+namespace jaegertracing {
 namespace reporters {
 
 class NullReporter : public Reporter {
