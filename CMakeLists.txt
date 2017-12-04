@@ -6,8 +6,6 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/toolchain.cmake"
     CACHE FILEPATH
     "Toolchain to use for building this package and dependencies")
 
-set(HUNTER_CACHE_SERVERS "https://github.com/isaachier/cpp-client-hunter-cache")
-
 include(CMakeDependentOption)
 include(HunterGate)
 HunterGate(
@@ -15,32 +13,6 @@ HunterGate(
     SHA1 "712898528fb6dc8532454e2e323404d93a76d8ec"
     LOCAL
 )
-
-# Copied from [cpp-ethereum]
-# (https://github.com/ethereum/cpp-ethereum/blob/develop/CMakeLists.txt)
-if(HUNTER_ENABLED)
-  find_package(PythonInterp QUIET)
-  if(PYTHONINTERP_FOUND)
-    hunter_gate_self(
-        "${HUNTER_CACHED_ROOT}"
-        "${HUNTER_VERSION}"
-        "${HUNTER_SHA1}"
-        hunter_dir
-    )
-    set(hunter_upload_script
-        "${hunter_dir}/maintenance/upload-cache-to-github.py")
-    set(hunter_cache_dir "${HUNTER_GATE_ROOT}/_Base/Cache")
-    set(hunter_tmp_dir "${HUNTER_GATE_ROOT}/tmp")
-    add_custom_target(
-        hunter_upload_cache
-        ${PYTHON_EXECUTABLE} ${hunter_upload_script}
-        --username isaachier
-        --repo-owner isaachier
-        --repo cpp-client-hunter-cache
-        --cache-dir ${hunter_cache_dir}
-        --temp-dir ${hunter_tmp_dir})
-  endif()
-endif()
 
 project(jaegertracing VERSION 0.2.0)
 

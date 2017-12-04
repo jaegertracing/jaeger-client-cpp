@@ -39,16 +39,10 @@ after_success:
 - for f in $(find build -name '*.gcno'); do gcov-6 $f; done
 - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage
   reports"
-after_script: |
-  # Hunter: upload cache to the cache server.
-  # Copied from [cpp-ethereum](https://github.com/ethereum/cpp-ethereum/blob/develop/.travis.yml).
-  if [[ "$TRAVIS_EVENT_TYPE" != "pull_request" ]]; then
-    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo pip install --upgrade requests pyopenssl; fi
-    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install requests; fi
-    make -C $TRAVIS_BUILD_DIR/build hunter_upload_cache
-  fi
+cache:
+  directories:
+    - "$HOME/.hunter/_Base/Cache"
 env:
   global:
   - LANG="en_US.UTF-8"
   - PATH="$TRAVIS_BUILD_DIR/cmake-download/bin:$PATH"
-  - secure: 1Pz1mI4PZdzFf2M33snYoaYu/gWxRGK22rw5h9DYtAMFyrqcTKJOI0WnXsIHxjZ5obqVLL/MaNTnO6PbO+sKGEueqNibZhYfjUbZtAV94/uXNkc6Qn6lNALJykqAueGXIkf04CLGpQaJoS8OebFdZODZMJzad58BpckJlF9O/v2OXNx244/bl4Eu61qvbLa/IgRUnLRwGUiHY4CN7Q8+6kNn2cu0nNb2bc+S01jB9PjC+lrkP39ant9f1fY3qWkN3blhLH7OsMaQ9tgs0c/fwCRpyNl95LYodL3Zzi/F61G0PPJL/B2jCGYwFPMsjIj+O6PwF+8k9iAnmA/hUdIQ7+a2l+/Pe9HrPstJD4V99Q922INBYLvgIkvCh7HIV9NDfJ3Ok8tA9PvvGXJ4y12aWvP6QYEfdDFcX6Yrc3NraVMMsz+UhkznHiLdTrj5UwFlmro4a0iRzKeEAOfBmb/pgeD8eESR2IGaZiFsGcLQ0RHFb477fiMJzCstLm/gfhlO6pOvbTMKItEswqePoJI9g0AxQT2Ib8F58Hp91G3U7kbtubZGIT4OZAv6ePj0WnL4FojFWM8TirmPkbVeKwBggxuI85BQO2XE8HhdJPZSz+vzUPPHZbspPdqMaEbk5WgnHv10TmL83VKof48sA4GxfDuXm+NlTan4sWgdPNKpSow=
