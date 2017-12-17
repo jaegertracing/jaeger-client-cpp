@@ -21,7 +21,7 @@
 
 namespace jaegertracing {
 
-static constexpr auto kJaegerClientVersion = "@PROJECT_VERSION@";
+static constexpr auto kJaegerClientVersion = "C++-@PROJECT_VERSION@";
 static constexpr auto kJaegerClientVersionTagKey = "jaeger.version";
 static constexpr auto kJaegerDebugHeader = "jaeger-debug-id";
 static constexpr auto kJaegerBaggageHeader = "jaeger-baggage";
