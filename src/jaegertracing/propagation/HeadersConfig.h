@@ -20,7 +20,6 @@
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/utils/YAML.h"
 #include <string>
-#include <yaml-cpp/yaml.h>
 
 namespace jaegertracing {
 namespace propagation {

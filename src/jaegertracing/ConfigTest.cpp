@@ -18,8 +18,8 @@
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/propagation/HeadersConfig.h"
 #include "jaegertracing/samplers/Config.h"
+#include "jaegertracing/utils/YAML.h"
 #include <gtest/gtest.h>
-#include <yaml-cpp/yaml.h>
 
 namespace jaegertracing {
 

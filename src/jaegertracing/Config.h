@@ -23,7 +23,6 @@
 #include "jaegertracing/reporters/Config.h"
 #include "jaegertracing/samplers/Config.h"
 #include "jaegertracing/utils/YAML.h"
-#include <yaml-cpp/yaml.h>
 
 namespace jaegertracing {
 
