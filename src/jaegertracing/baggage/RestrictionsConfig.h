@@ -21,7 +21,6 @@
 #include "jaegertracing/utils/YAML.h"
 #include <chrono>
 #include <string>
-#include <yaml-cpp/yaml.h>
 
 namespace jaegertracing {
 namespace baggage {
