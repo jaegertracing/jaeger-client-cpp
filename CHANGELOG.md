@@ -1,6 +1,11 @@
 Changes by Version
 ==================
 
+0.3.0 (unreleased)
+------------------
+- Nothing yet
+
+
 0.2.0 (2018-01-25)
 ------------------
 - Fix bug in localIP and revert change in TR1 tuple definition (#31)
