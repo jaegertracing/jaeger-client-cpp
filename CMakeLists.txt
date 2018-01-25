@@ -14,7 +14,7 @@ HunterGate(
     LOCAL
 )
 
-project(jaegertracing VERSION 0.2.0)
+project(jaegertracing VERSION 0.3.0)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID MATCHES "Clang")
