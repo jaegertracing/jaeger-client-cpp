@@ -7,6 +7,7 @@ Changes by Version
 - Add language prefix to Jaeger client version tag (#35)
 - Fix yaml-cpp issues (#39)
 
+
 0.1.0 (2017-11-29)
 ------------------
 - Don't use forwarding reference (#11)
