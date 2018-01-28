@@ -9,11 +9,21 @@ matrix:
         sources:
         - ubuntu-toolchain-r-test
         packages:
+        - g++-7
+        - lcov
+    env:
+    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+    - COVERAGE=ON
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
         - g++-6
         - lcov
     env:
     - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
-    - COVERAGE=ON
   - os: linux
     addons:
       apt:
@@ -36,7 +46,7 @@ before_install:
 script:
   - ./scripts/build.sh
 after_success:
-- for f in $(find build -name '*.gcno'); do gcov-6 $f; done
+- for f in $(find build -name '*.gcno'); do gcov-7 $f; done
 - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage
   reports"
 cache:
