@@ -247,7 +247,7 @@ configure_file(
   src/jaegertracing/Constants.h.in
   src/jaegertracing/Constants.h
   @ONLY)
-set(CMAKE_INSTALL_CURRENT_DIR ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(BUILD_TESTING)
   add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/jaegertracing/testutils")
