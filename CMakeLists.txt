@@ -49,10 +49,7 @@ hunter_add_package(Boost COMPONENTS regex)
 find_package(Boost ${hunter_config} REQUIRED regex)
 
 hunter_add_package(thrift)
-find_package(thrift 0.9.2 ${hunter_config} REQUIRED)
-if(thrift_VERSION VERSION_GREATER "0.9.3")
-  message(WARNING "jaeger-cpp is only known to work with Thrift 0.9.2 and Thrift 0.9.3")
-endif()
+find_package(thrift 0.9.2 ${hunter_config} EXACT REQUIRED)
 
 hunter_add_package(opentracing-cpp)
 # Not `${hunter_config}` because OpenTracing provides its own
