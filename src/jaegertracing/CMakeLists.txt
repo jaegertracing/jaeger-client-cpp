@@ -180,7 +180,7 @@ install(
 
 # Headers:
 #   * Tracer.h -> <prefix>/include/jaegertracing/Tracer.h
-install(DIRECTORY "."
+install(DIRECTORY "${jaegertracing_SOURCE_DIR}/src/jaegertracing"
         DESTINATION "${include_install_dir}"
         FILES_MATCHING
         PATTERN "*.h"
