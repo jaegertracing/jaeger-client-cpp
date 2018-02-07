@@ -39,6 +39,7 @@ RemoteReporter::RemoteReporter(const Clock::duration& bufferFlushInterval,
     , _running(true)
     , _lastFlush(Clock::now())
     , _cv()
+    , _cv_flush()
     , _mutex()
     , _thread()
 {
@@ -94,8 +95,10 @@ void RemoteReporter::sweepQueue()
                 sendSpan(span);
             }
             else if (bufferFlushIntervalExpired()) {
-                flush();
+                async_flush();
             }
+			/* If anyone's waiting on flush completion, notify them */
+            _cv_flush.notify_one();
         } catch (...) {
             auto logger = logging::consoleLogger();
             assert(logger);
@@ -122,12 +125,13 @@ void RemoteReporter::sendSpan(const Span& span)
     }
 }
 
-void RemoteReporter::flush()
+void RemoteReporter::async_flush()
 {
     try {
         const auto flushed = _sender->flush();
         if (flushed > 0) {
             _metrics.reporterSuccess().inc(flushed);
+            _cv.notify_one();
         }
     } catch (const Transport::Exception& ex) {
         _metrics.reporterFailure().inc(ex.numFailed());
@@ -135,6 +139,15 @@ void RemoteReporter::flush()
     }
 
     _lastFlush = Clock::now();
+}
+
+void RemoteReporter::flush()
+{
+    std::unique_lock<std::mutex> lock(_mutex);
+    _cv_flush.wait(lock, [this]() {
+        async_flush();
+        return !_running || _queue.empty();
+    });
 }
 
 }  // namespace reporters

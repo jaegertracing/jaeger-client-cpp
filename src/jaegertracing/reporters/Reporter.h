@@ -30,6 +30,8 @@ class Reporter {
     virtual void report(const Span& span) = 0;
 
     virtual void close() = 0;
+
+    virtual void flush() {};
 };
 
 }  // namespace reporters

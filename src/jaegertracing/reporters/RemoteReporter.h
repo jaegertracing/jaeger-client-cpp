@@ -48,12 +48,14 @@ class RemoteReporter : public Reporter {
 
     void close() override;
 
+    void flush() override;
+
   private:
     void sweepQueue();
 
     void sendSpan(const Span& span);
 
-    void flush();
+    void async_flush();
 
     bool bufferFlushIntervalExpired() const
     {
@@ -70,6 +72,7 @@ class RemoteReporter : public Reporter {
     bool _running;
     Clock::time_point _lastFlush;
     std::condition_variable _cv;
+    std::condition_variable _cv_flush;
     std::mutex _mutex;
     std::thread _thread;
 };
