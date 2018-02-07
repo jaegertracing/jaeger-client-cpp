@@ -35,7 +35,9 @@ else
 fi
 
 info "Running tests..."
-if ./UnitTest; then
+if [ -e src/jaegertracing/UnitTest ] && src/jaegertracing/UnitTest; then
+    true
+elif src/jaegertracing/UnitTestStatic; then
     true
 else
     error "Error: test failure"
