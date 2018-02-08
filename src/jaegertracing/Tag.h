@@ -38,6 +38,13 @@ class Tag {
     {
     }
 
+    template <typename ValueArg>
+    Tag(const std::pair<std::string,ValueArg> & tag_pair)
+        : _key(tag_pair.first)
+        , _value(tag_pair.second)
+    {
+    }
+
     bool operator==(const Tag& rhs) const
     {
         return _key == rhs._key && _value == rhs._value;
