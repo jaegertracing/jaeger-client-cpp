@@ -180,7 +180,12 @@ TEST(Tracer, testTracer)
     ASSERT_EQ("test-baggage-item-value",
               span->BaggageItem("test-baggage-item-key"));
     span->Log({ { "log-bool", true } });
-    span->Finish();
+    opentracing::FinishSpanOptions foptions;
+    opentracing::LogRecord lr{};
+    lr.fields = { {"options-log", "yep"} };
+    foptions.log_records.push_back(std::move(lr));
+    lr.timestamp = opentracing::SystemClock::now();
+    span->FinishWithOptions(foptions);
     ASSERT_GE(Span::SteadyClock::now(),
               span->startTimeSteady() + span->duration());
     span->SetOperationName("test-set-operation-after-finish");
