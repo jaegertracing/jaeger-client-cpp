@@ -69,10 +69,10 @@ void RemoteReporter::close() noexcept
                 return;
             }
             _running = false;
-            flush();
         }
         _cv.notify_one();
         _thread.join();
+        flush();
     } catch (...) {
         utils::ErrorUtil::logError(_logger, "Failed in Reporter::close");
     }
