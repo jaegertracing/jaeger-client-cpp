@@ -89,3 +89,10 @@ if(BUILD_TESTING)
   endif()
 
 endif(BUILD_TESTING)
+
+add_executable(shortlived "shortlived.cpp")
+target_link_libraries(shortlived jaegertracing)
+target_include_directories(shortlived PRIVATE
+  $<BUILD_INTERFACE:${jaegertracing_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:${jaegertracing_BINARY_DIR}/src>)
+
