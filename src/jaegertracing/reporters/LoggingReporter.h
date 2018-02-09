@@ -30,9 +30,9 @@ class LoggingReporter : public Reporter {
     {
     }
 
-    void report(const Span& span) override;
+    void report(const Span& span) noexcept override;
 
-    void close() override {}
+    void close() noexcept override {}
 
   private:
     logging::Logger& _logger;

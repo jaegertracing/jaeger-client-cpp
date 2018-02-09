@@ -45,7 +45,7 @@ RemoteReporter::RemoteReporter(const Clock::duration& bufferFlushInterval,
     _thread = std::thread([this]() { sweepQueue(); });
 }
 
-void RemoteReporter::report(const Span& span)
+void RemoteReporter::report(const Span& span) noexcept
 {
     std::unique_lock<std::mutex> lock(_mutex);
     const auto pushed = (static_cast<int>(_queue.size()) < _fixedQueueSize);
@@ -60,21 +60,25 @@ void RemoteReporter::report(const Span& span)
     }
 }
 
-void RemoteReporter::close()
+void RemoteReporter::close() noexcept
 {
-    {
-        std::unique_lock<std::mutex> lock(_mutex);
-        if (!_running) {
-            return;
+    try {
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            if (!_running) {
+                return;
+            }
+            _running = false;
+            flush();
         }
-        _running = false;
-        lock.unlock();
         _cv.notify_one();
+        _thread.join();
+    } catch (...) {
+        utils::ErrorUtil::logError(_logger, "Failed in Reporter::close");
     }
-    _thread.join();
 }
 
-void RemoteReporter::sweepQueue()
+void RemoteReporter::sweepQueue() noexcept
 {
     while (true) {
         try {
@@ -97,15 +101,13 @@ void RemoteReporter::sweepQueue()
                 flush();
             }
         } catch (...) {
-            auto logger = logging::consoleLogger();
-            assert(logger);
-            utils::ErrorUtil::logError(*logger,
+            utils::ErrorUtil::logError(_logger,
                                        "Failed in Reporter::sweepQueue");
         }
     }
 }
 
-void RemoteReporter::sendSpan(const Span& span)
+void RemoteReporter::sendSpan(const Span& span) noexcept
 {
     try {
         const auto flushed = _sender->append(span);
@@ -122,7 +124,7 @@ void RemoteReporter::sendSpan(const Span& span)
     }
 }
 
-void RemoteReporter::flush()
+void RemoteReporter::flush() noexcept
 {
     try {
         const auto flushed = _sender->flush();

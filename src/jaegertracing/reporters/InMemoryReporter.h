@@ -36,27 +36,27 @@ class InMemoryReporter : public Reporter {
         _spans.reserve(kInitialCapacity);
     }
 
-    void report(const Span& span) override
+    void report(const Span& span) noexcept override
     {
         std::lock_guard<std::mutex> lock(_mutex);
         _spans.push_back(span);
     }
 
-    void close() override {}
+    void close() noexcept override {}
 
-    int spansSubmitted() const
+    int spansSubmitted() const noexcept
     {
         std::lock_guard<std::mutex> lock(_mutex);
         return _spans.size();
     }
 
-    std::vector<Span> spans() const
+    std::vector<Span> spans() const noexcept
     {
         std::lock_guard<std::mutex> lock(_mutex);
         return _spans;
     }
 
-    void reset()
+    void reset() noexcept
     {
         std::lock_guard<std::mutex> lock(_mutex);
         _spans.clear();

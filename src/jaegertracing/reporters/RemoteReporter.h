@@ -44,16 +44,16 @@ class RemoteReporter : public Reporter {
 
     ~RemoteReporter() { close(); }
 
-    void report(const Span& span) override;
+    void report(const Span& span) noexcept override;
 
-    void close() override;
+    void close() noexcept override;
 
   private:
-    void sweepQueue();
+    void sweepQueue() noexcept;
 
-    void sendSpan(const Span& span);
+    void sendSpan(const Span& span) noexcept;
 
-    void flush();
+    void flush() noexcept;
 
     bool bufferFlushIntervalExpired() const
     {
