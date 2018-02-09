@@ -102,7 +102,7 @@ class Tracer : public opentracing::Tracer,
             serviceName, sampler, reporter, logger, metrics, options));
     }
 
-    ~Tracer() { Close(); }
+    ~Tracer() { close(); }
 
     std::unique_ptr<opentracing::Span>
     StartSpanWithOptions(string_view operationName,
@@ -182,6 +182,12 @@ class Tracer : public opentracing::Tracer,
 
     void Close() noexcept override
     {
+        flush();
+        close();
+    }
+
+    void close() noexcept
+    {
         try {
             _reporter->close();
             _sampler->close();
@@ -192,7 +198,10 @@ class Tracer : public opentracing::Tracer,
         }
     }
 
-    void close() noexcept { Close(); }
+    void flush()
+    {
+        _reporter->flush();
+    }
 
     const std::string& serviceName() const { return _serviceName; }
 
