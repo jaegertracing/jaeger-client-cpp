@@ -27,9 +27,9 @@ class Reporter {
   public:
     virtual ~Reporter() = default;
 
-    virtual void report(const Span& span) = 0;
+    virtual void report(const Span& span) noexcept = 0;
 
-    virtual void close() = 0;
+    virtual void close() noexcept = 0;
 };
 
 }  // namespace reporters

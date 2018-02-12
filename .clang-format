@@ -33,7 +33,6 @@ BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: true
-BreakStringLiterals: true
 ColumnLimit:     80
 CommentPragmas:  '^ IWYU pragma:'
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
@@ -50,7 +49,6 @@ IncludeCategories:
     Priority:        3
   - Regex:           '.*'
     Priority:        1
-IncludeIsMainRegex: '$'
 IndentCaseLabels: false
 IndentWidth:     4
 IndentWrappedFunctionNames: false
@@ -72,7 +70,6 @@ PointerAlignment: Left
 ReflowComments:  true
 SortIncludes:    true
 SpaceAfterCStyleCast: false
-SpaceAfterTemplateKeyword: true
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: ControlStatements
 SpaceInEmptyParentheses: false

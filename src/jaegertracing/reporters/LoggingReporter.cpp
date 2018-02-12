@@ -22,7 +22,7 @@
 namespace jaegertracing {
 namespace reporters {
 
-void LoggingReporter::report(const Span& span)
+void LoggingReporter::report(const Span& span) noexcept
 {
     std::ostringstream oss;
     oss << "Reporting span " << span;
