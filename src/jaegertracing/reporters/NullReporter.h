@@ -28,9 +28,9 @@ namespace reporters {
 
 class NullReporter : public Reporter {
   public:
-    void report(const Span&) override {}
+    void report(const Span&) noexcept override {}
 
-    void close() override {}
+    void close() noexcept override {}
 };
 
 }  // namespace reporters

@@ -41,7 +41,7 @@ class CompositeReporter : public Reporter {
 
     ~CompositeReporter() { close(); }
 
-    void report(const Span& span) override
+    void report(const Span& span) noexcept override
     {
         std::for_each(
             std::begin(_reporters),
@@ -49,7 +49,7 @@ class CompositeReporter : public Reporter {
             [&span](const ReporterPtr& reporter) { reporter->report(span); });
     }
 
-    void close() override
+    void close() noexcept override
     {
         std::for_each(std::begin(_reporters),
                       std::end(_reporters),
