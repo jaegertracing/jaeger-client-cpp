@@ -21,6 +21,23 @@ The code can be re-generated with
 but at time of writing (Thrift 0.11.0) the resulting code is invalid due to
 https://issues.apache.org/jira/browse/THRIFT-4484
 
+## Use from C
+
+Care is required:
+
+* All functions called from C must be `extern "C"` linkage
+* No exceptions may be thrown into C code (assuming standard C)
+* Memory allocated in c++ must be `delete`d appropriately not `free()`d
+* Memory allocated in c must be `free`d appropriately not `delete`d
+* etc
+
+but it works well. See `src/cdemo`.
+
+The general idea is to expose a set of C functions as thunks for your tracing
+and to expose facilities like exporting and importing trace context data. Then
+use only those functions from C, passing around any C++ objects you need as
+opaque pointers.
+
 [ci-img]: https://travis-ci.org/jaegertracing/cpp-client.svg?branch=master
 [ci]: https://travis-ci.org/jaegertracing/cpp-client
 [cov-img]: https://codecov.io/gh/jaegertracing/cpp-client/branch/master/graph/badge.svg
