@@ -21,11 +21,21 @@ function working() {
 
 mkdir -p build
 cd build || exit
+
+cmake_opts="-DCMAKE_BUILD_TYPE=Debug"
 if [ "x$COVERAGE" != "x" ]; then
-  cmake -DCMAKE_BUILD_TYPE=Debug -DJAEGERTRACING_COVERAGE=ON ..
+  cmake_opts="$cmake_opts -DJAEGERTRACING_COVERAGE=ON"
 else
-  cmake -DCMAKE_BUILD_TYPE=Debug -DJAEGERTRACING_COVERAGE=OFF ..
+  cmake_opts="$cmake_opts -DJAEGERTRACING_COVERAGE=OFF"
 fi
+
+if [ "x$NO_HUNTER" != "x" ]; then
+  cmake_opts="$cmake_opts -DHUNTER_ENABLED=OFF"
+else
+  cmake_opts="$cmake_opts -DHUNTER_ENABLED=ON"
+fi
+
+cmake $cmake_opts ..
 
 if make -j3 UnitTest; then
     true
