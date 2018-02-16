@@ -2,6 +2,11 @@
 /build
 /crossdock/crossdock
 /crossdock/jaeger-docker-compose.yml
+CMakeFiles
+cmake_install.cmake
+Makefile
+/generated
+CMakeCache.txt
 
 # vim swap files
 *.swo
