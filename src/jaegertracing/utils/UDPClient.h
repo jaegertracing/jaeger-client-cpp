@@ -25,6 +25,8 @@
 #include <thrift/protocol/TCompactProtocol.h>
 #include <thrift/transport/TBufferTransports.h>
 
+#include "jaegertracing/jaeger_smartptr.h"
+
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/net/Socket.h"
 #include "jaegertracing/thrift-gen/Agent.h"
@@ -37,12 +39,6 @@ class UDPClient : public agent::thrift::AgentIf {
     UDPClient(const net::IPAddress& serverAddr, int maxPacketSize);
 
     ~UDPClient() { close(); }
-
-    void emitZipkinBatch(
-        const std::vector<twitter::zipkin::thrift::Span>& spans) override
-    {
-        throw std::logic_error("emitZipkinBatch not implemented");
-    }
 
     void emitBatch(const thrift::Batch& batch) override
     {
@@ -75,7 +71,7 @@ class UDPClient : public agent::thrift::AgentIf {
 
   private:
     int _maxPacketSize;
-    boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> _buffer;
+    jaegertracing::stdcxx::shared_ptr<apache::thrift::transport::TMemoryBuffer> _buffer;
     net::Socket _socket;
     net::IPAddress _serverAddr;
     std::unique_ptr<agent::thrift::AgentClient> _client;

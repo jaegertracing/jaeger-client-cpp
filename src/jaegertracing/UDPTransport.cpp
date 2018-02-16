@@ -16,6 +16,7 @@
 
 #include "jaegertracing/UDPTransport.h"
 
+#include "jaegertracing/jaeger_smartptr.h"
 #include "jaegertracing/Span.h"
 #include "jaegertracing/Tag.h"
 #include "jaegertracing/Tracer.h"
@@ -32,6 +33,8 @@ namespace net {
 class IPAddress;
 }  // namespace net
 
+using namespace jaegertracing::stdcxx;
+
 namespace {
 
 constexpr auto kEmitBatchOverhead = 30;
@@ -39,7 +42,7 @@ constexpr auto kEmitBatchOverhead = 30;
 template <typename ThriftType>
 int calcSizeOfSerializedThrift(const ThriftType& base, int maxPacketSize)
 {
-    boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> buffer(
+    shared_ptr<apache::thrift::transport::TMemoryBuffer> buffer(
         new apache::thrift::transport::TMemoryBuffer(maxPacketSize));
     apache::thrift::protocol::TCompactProtocolFactory factory;
     auto protocol = factory.getProtocol(buffer);

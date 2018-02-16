@@ -49,7 +49,7 @@ hunter_add_package(Boost COMPONENTS regex)
 find_package(Boost ${hunter_config} REQUIRED regex)
 
 hunter_add_package(thrift)
-find_package(thrift 0.9.2 ${hunter_config} EXACT REQUIRED)
+find_package(thrift 0.11.0 ${hunter_config} EXACT REQUIRED)
 
 hunter_add_package(opentracing-cpp)
 # Not `${hunter_config}` because OpenTracing provides its own
@@ -124,4 +124,3 @@ if (BUILD_TESTING)
 endif()
 
 add_subdirectory(src/jaegertracing)
-add_subdirectory(crossdock)

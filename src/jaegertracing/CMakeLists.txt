@@ -70,8 +70,6 @@ set(SRC
     thrift-gen/Collector.cpp
     thrift-gen/Dependency.cpp
     thrift-gen/SamplingManager.cpp
-    thrift-gen/TracedService.cpp
-    thrift-gen/ZipkinCollector.cpp
     thrift-gen/agent_constants.cpp
     thrift-gen/agent_types.cpp
     thrift-gen/aggregation_validator_constants.cpp
@@ -84,10 +82,6 @@ set(SRC
     thrift-gen/jaeger_types.cpp
     thrift-gen/sampling_constants.cpp
     thrift-gen/sampling_types.cpp
-    thrift-gen/tracetest_constants.cpp
-    thrift-gen/tracetest_types.cpp
-    thrift-gen/zipkincore_constants.cpp
-    thrift-gen/zipkincore_types.cpp
     utils/ErrorUtil.cpp
     utils/HexParsing.cpp
     utils/RateLimiter.cpp

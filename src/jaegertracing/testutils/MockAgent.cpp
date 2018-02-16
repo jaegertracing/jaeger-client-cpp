@@ -31,6 +31,8 @@
 #include "jaegertracing/utils/Regex.h"
 #include "jaegertracing/utils/UDPClient.h"
 
+using namespace jaegertracing::stdcxx;
+
 namespace jaegertracing {
 namespace testutils {
 namespace {
@@ -90,14 +92,19 @@ void MockAgent::serveUDP(std::promise<void>& started)
         apache::thrift::protocol::TCompactProtocolFactory;
     using TMemoryBuffer = apache::thrift::transport::TMemoryBuffer;
 
+#if defined(JAEGER_USE_BOOST_SMART_PTR)
     // Trick for converting `std::shared_ptr` into `boost::shared_ptr`. See
     // https://stackoverflow.com/a/12315035/1930331.
     auto ptr = shared_from_this();
     boost::shared_ptr<agent::thrift::AgentIf> iface(
         ptr.get(), [ptr](MockAgent*) mutable { ptr.reset(); });
+#else
+	std::shared_ptr iface { shared_from_this() };
+#endif
+
     agent::thrift::AgentProcessor handler(iface);
     TCompactProtocolFactory protocolFactory;
-    boost::shared_ptr<TMemoryBuffer> trans(
+    shared_ptr<TMemoryBuffer> trans(
         new TMemoryBuffer(net::kUDPPacketMaxLength));
 
     // Notify main thread that setup is done.

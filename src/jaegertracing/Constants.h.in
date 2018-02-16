@@ -40,4 +40,6 @@ static constexpr auto kSamplerTypeLowerBound = "lowerbound";
 
 }  // namespace jaegertracing
 
+#include "jaegertracing/jaeger_smartptr.h"
+
 #endif  // JAEGERTRACING_CONSTANTS_H

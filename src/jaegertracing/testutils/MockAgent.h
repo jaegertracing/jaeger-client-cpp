@@ -40,13 +40,6 @@ namespace baggage {
 class Restriction;
 }  // namespace baggage
 }  // namespace jaegertracing
-namespace twitter {
-namespace zipkin {
-namespace thrift {
-class Span;
-}  // namespace thrift
-}  // namespace zipkin
-}  // namespace twitter
 
 namespace jaegertracing {
 namespace testutils {
@@ -69,12 +62,6 @@ class MockAgent : public agent::thrift::AgentIf,
     void start();
 
     void close();
-
-    void
-    emitZipkinBatch(const std::vector<twitter::zipkin::thrift::Span>&) override
-    {
-        throw std::logic_error("emitZipkinBatch not implemented");
-    }
 
     void emitBatch(const thrift::Batch& batch) override;
 

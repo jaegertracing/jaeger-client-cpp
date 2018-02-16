@@ -1,2 +1,3 @@
 Constants.h
 thrift-gen/*.skeleton.cpp
+/shortlived

@@ -238,7 +238,8 @@ The code can be re-generated with
 
     git submodule init
     git submodule update
-    find idl/thrift/ -type f -name \*.thrift -exec thrift -gen cpp -out src/jaegertracing/thrift-gen {} \;
+    sed -i '/zipkin/d' idl/thrift/agent.thrift
+    find idl/thrift/ -type f -name \*.thrift -not -name tracetest.thrift -not -name zipkincore.thrift -exec thrift -gen cpp -out src/jaegertracing/thrift-gen {} \;
 
 but at time of writing (Thrift 0.11.0) the resulting code is invalid due to
 https://issues.apache.org/jira/browse/THRIFT-4484

@@ -47,7 +47,7 @@ class UDPTransport : public Transport {
     int _maxSpanBytes;
     int _byteBufferSize;
     std::vector<thrift::Span> _spanBuffer;
-    boost::shared_ptr<apache::thrift::protocol::TProtocol> _protocol;
+    jaegertracing::stdcxx::shared_ptr<apache::thrift::protocol::TProtocol> _protocol;
     thrift::Process _process;
     int _processByteSize;
 };
