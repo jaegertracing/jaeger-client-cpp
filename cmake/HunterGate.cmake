@@ -54,6 +54,7 @@ include(CMakeParseArguments) # cmake_parse_arguments
 
 option(HUNTER_STATUS_PRINT "Print working status" ON)
 option(HUNTER_STATUS_DEBUG "Print a lot info" OFF)
+option(HUNTER_TLS_VERIFY "Enable/disable TLS certificate checking on downloads" ON)
 
 set(HUNTER_WIKI "https://github.com/ruslo/hunter/wiki")
 
@@ -275,6 +276,8 @@ function(hunter_gate_download dir)
       "    SHA1=${HUNTER_GATE_SHA1}\n"
       "    DOWNLOAD_DIR\n"
       "    \"${dir}\"\n"
+      "    TLS_VERIFY\n"
+      "    ${HUNTER_TLS_VERIFY}\n"
       "    SOURCE_DIR\n"
       "    \"${dir}/Unpacked\"\n"
       "    CONFIGURE_COMMAND\n"
