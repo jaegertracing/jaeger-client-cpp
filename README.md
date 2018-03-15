@@ -1,4 +1,5 @@
 [![Build Status][ci-img]][ci] [![Coverage Status][cov-img]][cov] [![OpenTracing 1.0 Enabled][ot-img]][ot-url]
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjaegertracing%2Fcpp-client.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjaegertracing%2Fcpp-client?ref=badge_shield)
 
 # cpp-client
 C++ OpenTracing binding for Jaeger
@@ -27,3 +28,7 @@ https://issues.apache.org/jira/browse/THRIFT-4484
 [cov]: https://codecov.io/gh/jaegertracing/cpp-client
 [ot-img]: https://img.shields.io/badge/OpenTracing--1.0-enabled-blue.svg
 [ot-url]: http://opentracing.io
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjaegertracing%2Fcpp-client.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjaegertracing%2Fcpp-client?ref=badge_large)
