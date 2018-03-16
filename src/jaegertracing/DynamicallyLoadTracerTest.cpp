@@ -16,20 +16,26 @@
 #include <iostream>
 #include <string>
 
-#include <gtest/gtest.h>
 #include <opentracing/dynamic_load.h>
 
-namespace jaegertracing {
-TEST(DynamicLoad, invalidVersion)
+int main(int argc, char* argv[])
 {
-    const void* errorCategory = nullptr;
-    void* tracerFactory = nullptr;
-    const auto rcode = OpenTracingMakeTracerFactory(
-        "1.0.0" /*invalid version*/, &errorCategory, &tracerFactory);
-    ASSERT_EQ(rcode, opentracing::incompatible_library_versions_error.value());
-    ASSERT_EQ(
-        errorCategory,
-        static_cast<const void*>(&opentracing::dynamic_load_error_category()));
-    ASSERT_EQ(tracerFactory, nullptr);
+    if (argc != 2) {
+        std::cerr << "DynamicLoadTest <tracer-librar>\n";
+        return -1;
+    }
+    const char* library = argv[1];
+    std::string errorMessage;
+    auto tracerFactoryMaybe =
+        opentracing::DynamicallyLoadTracingLibrary(library, errorMessage);
+    if (!errorMessage.empty()) {
+        std::cerr << "Failed to load tracing tracer: " << errorMessage << "\n";
+        return -1;
+    }
+    if (!tracerFactoryMaybe) {
+        std::cerr << "Failed to load tracing library: "
+                  << tracerFactoryMaybe.error().message() << "\n";
+        return -1;
+    }
+    return 0;
 }
-}  // namespace jaegertracing

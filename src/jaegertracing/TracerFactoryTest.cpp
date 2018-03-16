@@ -23,11 +23,11 @@ TEST(TracerFactory, testInvalidConfig)
     const char* invalidConfigTestCases[] = { "",
                                              "abc: {"
                                              R"({
-      service_name: {}
+      "service_name": {}
     })",
                                              R"({
-      service_name: "t",
-      badField: 97
+      "service_name": "t",
+      "badField": 97
     })" };
     TracerFactory tracerFactory;
     for (auto&& invalidConfig : invalidConfigTestCases) {
@@ -43,28 +43,28 @@ TEST(TracerFactory, testValidConfig)
 {
     const char* config = R"(
   {
-    service_name: "test",
-    disabled: true,
-    sampler: {
-      type: "probabilistic",
-      param: 0.001
+    "service_name": "test",
+    "disabled": true,
+    "sampler": {
+      "type": "probabilistic",
+      "param": 0.001
     },
-    reporter: {
-      queueSize: 100,
-      bufferFlushInterval: 10,
-      logSpans: false,
-      localAgentHostPort: "127.0.0.1:6831"
+    "reporter": {
+      "queueSize": 100,
+      "bufferFlushInterval": 10,
+      "logSpans": false,
+      "localAgentHostPort": "127.0.0.1:6831"
     },
-    headers: {
-      jaegerDebugHeader: "debug-id",
-      jaegerBaggageHeader: "baggage",
-      TraceContextHeaderName: "trace-id",
-      traceBaggageHeaderPrefix: "testctx-"
+    "headers": {
+      "jaegerDebugHeader": "debug-id",
+      "jaegerBaggageHeader": "baggage",
+      "TraceContextHeaderName": "trace-id",
+      "traceBaggageHeaderPrefix": "testctx-"
     },
-    baggage_restrictions: {
-        denyBaggageOnInitializationFailure: false,
-        hostPort: "127.0.0.1:5778",
-        refreshInterval: 60
+    "baggage_restrictions": {
+        "denyBaggageOnInitializationFailure": false,
+        "hostPort": "127.0.0.1:5778",
+        "refreshInterval": 60
     }
   })";
     TracerFactory tracerFactory;
