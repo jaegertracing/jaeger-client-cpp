@@ -142,6 +142,8 @@ set(SRC
     src/jaegertracing/Tag.cpp
     src/jaegertracing/TraceID.cpp
     src/jaegertracing/Tracer.cpp
+    src/jaegertracing/TracerFactory.cpp
+    src/jaegertracing/DynamicLoad.cpp
     src/jaegertracing/Transport.cpp
     src/jaegertracing/UDPTransport.cpp
     src/jaegertracing/baggage/BaggageSetter.cpp
@@ -259,6 +261,7 @@ if(BUILD_TESTING)
       src/jaegertracing/TagTest.cpp
       src/jaegertracing/TraceIDTest.cpp
       src/jaegertracing/TracerTest.cpp
+      src/jaegertracing/TracerFactoryTest.cpp
       src/jaegertracing/UDPTransportTest.cpp
       src/jaegertracing/baggage/BaggageTest.cpp
       src/jaegertracing/metrics/MetricsTest.cpp
@@ -285,6 +288,12 @@ if(BUILD_TESTING)
   target_link_libraries(
       UnitTest testutils GTest::main jaegertracing-static ${LIBS})
   add_test(NAME UnitTest COMMAND UnitTest)
+
+  add_executable(DynamicLoadTest src/jaegertracing/DynamicLoadTest.cpp)
+  target_link_libraries(
+    DynamicLoadTest OpenTracing::opentracing-static)
+  add_test(NAME DynamicLoadTest COMMAND DynamicLoadTest 
+           ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}jaegertracing${CMAKE_SHARED_LIBRARY_SUFFIX})
   if(JAEGERTRACING_COVERAGE)
       setup_target_for_coverage(NAME UnitTestCoverage
                                 EXECUTABLE UnitTest
