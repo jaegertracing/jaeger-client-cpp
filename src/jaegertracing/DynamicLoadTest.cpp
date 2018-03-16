@@ -32,4 +32,15 @@ TEST(DynamicLoad, invalidVersion)
         static_cast<const void*>(&opentracing::dynamic_load_error_category()));
     ASSERT_EQ(tracerFactory, nullptr);
 }
+
+TEST(DynamicLoad, validVersion)
+{
+    const void* errorCategory = nullptr;
+    void* tracerFactory = nullptr;
+    const auto rcode = OpenTracingMakeTracerFactory(
+        OPENTRACING_VERSION, &errorCategory, &tracerFactory);
+    ASSERT_EQ(rcode, 0);
+    ASSERT_EQ(errorCategory, nullptr);
+    delete static_cast<opentracing::TracerFactory*>(tracerFactory);
+}
 }  // namespace jaegertracing
