@@ -23,7 +23,7 @@ TEST(TracerFactory, testInvalidConfig)
     const char* invalidConfigTestCases[] = { "",
                                              "abc: {"
                                              R"({
-      service_name: 22
+      service_name: {}
     })",
                                              R"({
       service_name: "t",
