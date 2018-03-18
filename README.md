@@ -3,6 +3,10 @@
 # cpp-client
 C++ OpenTracing binding for Jaeger
 
+## Contributing 
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Generated files
 
 This project uses Apache Thrift for wire-format protocol support code
@@ -27,3 +31,7 @@ https://issues.apache.org/jira/browse/THRIFT-4484
 [cov]: https://codecov.io/gh/jaegertracing/cpp-client
 [ot-img]: https://img.shields.io/badge/OpenTracing--1.0-enabled-blue.svg
 [ot-url]: http://opentracing.io
+
+## License
+  
+[Apache 2.0 License](./LICENSE).
