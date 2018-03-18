@@ -15,7 +15,7 @@ We gratefully welcome improvements to documentation as well as to code.
 Discussing your proposed changes ahead of time will make the contribution process smooth for everyone.
 
 Once we've discussed your changes and you've got your code ready, make sure
-that tests are passing and open your pull request. 
+that tests are passing and open your pull request. Your pull request is most likely to be accepted if it:
 
 * Includes tests for new functionality.
 * Follows the code style guidelines.
@@ -32,7 +32,7 @@ contributor, have the legal right to make the contribution. See the [DCO](DCO)
 file for details.
 
 /*
- * Copyright (c) 2017, The Jaeger Authors
+ * Copyright (c) 2018, The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
