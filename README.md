@@ -25,6 +25,10 @@ The code can be re-generated with
 but at time of writing (Thrift 0.11.0) the resulting code is invalid due to
 https://issues.apache.org/jira/browse/THRIFT-4484
 
+## License
+  
+[Apache 2.0 License](./LICENSE).
+
 [ci-img]: https://travis-ci.org/jaegertracing/cpp-client.svg?branch=master
 [ci]: https://travis-ci.org/jaegertracing/cpp-client
 [cov-img]: https://codecov.io/gh/jaegertracing/cpp-client/branch/master/graph/badge.svg
@@ -32,6 +36,3 @@ https://issues.apache.org/jira/browse/THRIFT-4484
 [ot-img]: https://img.shields.io/badge/OpenTracing--1.0-enabled-blue.svg
 [ot-url]: http://opentracing.io
 
-## License
-  
-[Apache 2.0 License](./LICENSE).
