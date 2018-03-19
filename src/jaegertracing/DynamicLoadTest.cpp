@@ -41,6 +41,7 @@ TEST(DynamicLoad, validVersion)
         OPENTRACING_VERSION, &errorCategory, &tracerFactory);
     ASSERT_EQ(rcode, 0);
     ASSERT_EQ(errorCategory, nullptr);
+    ASSERT_NE(tracerFactory, nullptr);
     delete static_cast<opentracing::TracerFactory*>(tracerFactory);
 }
 }  // namespace jaegertracing

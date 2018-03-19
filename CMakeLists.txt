@@ -287,7 +287,7 @@ if(BUILD_TESTING)
       GTEST_HAS_TR1_TUPLE=0
       GTEST_USE_OWN_TR1_TUPLE=0)
   target_link_libraries(
-      UnitTest testutils GTest::main jaegertracing-static ${LIBS})
+      UnitTest testutils GTest::main jaegertracing ${LIBS})
   add_test(NAME UnitTest COMMAND UnitTest)
 
   add_executable(DynamicallyLoadTracerTest src/jaegertracing/DynamicallyLoadTracerTest.cpp)
