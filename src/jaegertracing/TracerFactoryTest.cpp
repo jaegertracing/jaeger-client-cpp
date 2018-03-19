@@ -21,7 +21,7 @@ namespace jaegertracing {
 TEST(TracerFactory, testInvalidConfig)
 {
     const char* invalidConfigTestCases[] = { "",
-                                             "abc: {"
+                                             "abc: {",
                                              R"({
       "service_name": {}
     })",
