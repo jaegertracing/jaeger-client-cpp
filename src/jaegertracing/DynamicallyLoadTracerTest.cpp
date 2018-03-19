@@ -18,6 +18,8 @@
 
 #include <opentracing/dynamic_load.h>
 
+// Verify that Jaeger's shared library can be dynamically loaded and used
+// as a plugin.
 int main(int argc, char* argv[])
 {
     if (argc != 2) {
