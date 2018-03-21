@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstring>
 #include <system_error>
 
@@ -10,6 +11,7 @@ int OpenTracingMakeTracerFactory(const char* opentracingVersion,
                                  const void** errorCategory,
                                  void** tracerFactory)
 {
+    assert(tracerFactory != nullptr);
     if (std::strcmp(opentracingVersion, OPENTRACING_VERSION) != 0) {
         *errorCategory = static_cast<const void*>(
             &opentracing::dynamic_load_error_category());
