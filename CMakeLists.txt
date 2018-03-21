@@ -294,7 +294,7 @@ if(BUILD_TESTING)
   target_link_libraries(
     DynamicallyLoadTracerTest OpenTracing::opentracing-static)
   add_test(NAME DynamicallyLoadTracerTest COMMAND DynamicallyLoadTracerTest 
-           ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}jaegertracing${CMAKE_SHARED_LIBRARY_SUFFIX})
+    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}jaegertracing${CMAKE_SHARED_LIBRARY_SUFFIX})
   if(JAEGERTRACING_COVERAGE)
       setup_target_for_coverage(NAME UnitTestCoverage
                                 EXECUTABLE UnitTest
