@@ -23,6 +23,12 @@ namespace jaegertracing {
 opentracing::expected<std::shared_ptr<opentracing::Tracer>>
 TracerFactory::MakeTracer(const char* configuration,
                           std::string& errorMessage) const noexcept try {
+#ifndef JAEGERTRACING_WITH_YAML_CPP
+    errorMessage =
+        "Failed to construct tracer: Jaeger was not build with yaml support.";
+    return opentracing::make_unexpected(
+        std::make_error_code(std::errc::not_supported));
+#else
     YAML::Node yaml;
     try {
         yaml = YAML::Load(configuration);
@@ -47,6 +53,7 @@ TracerFactory::MakeTracer(const char* configuration,
 
     const auto tracerConfig = jaegertracing::Config::parse(yaml);
     return jaegertracing::Tracer::make(serviceName, tracerConfig);
+#endif  // JAEGERTRACING_WITH_YAML_CPP
 } catch (const std::bad_alloc&) {
     return opentracing::make_unexpected(
         std::make_error_code(std::errc::not_enough_memory));

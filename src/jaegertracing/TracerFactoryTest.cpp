@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 namespace jaegertracing {
+#ifdef JAEGERTRACING_WITH_YAML_CPP
 TEST(TracerFactory, testInvalidConfig)
 {
     const char* invalidConfigTestCases[] = { "",
@@ -73,4 +74,15 @@ TEST(TracerFactory, testValidConfig)
     ASSERT_EQ(errorMessage, "");
     ASSERT_TRUE(tracerMaybe);
 }
+#else
+TEST(TracerFactory, failsWithoutYAML)
+{
+    const char* config = "";
+    TracerFactory tracerFactory;
+    std::string errorMessage;
+    auto tracerMaybe = tracerFactory.MakeTracer(config, errorMessage);
+    ASSERT_NE(errorMessage, "");
+    ASSERT_FALSE(tracerMaybe);
+}
+#endif  // JAEGERTRACING_WITH_YAML_CPP
 }  // namespace jaegertracing

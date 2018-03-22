@@ -30,6 +30,7 @@ int main(int argc, char* argv[])
     std::string errorMessage;
     auto tracerFactoryMaybe =
         opentracing::DynamicallyLoadTracingLibrary(library, errorMessage);
+#ifdef JAEGERTRACING_WITH_YAML_CPP
     if (!errorMessage.empty()) {
         std::cerr << "Failed to load tracing tracer: " << errorMessage << "\n";
         return -1;
@@ -39,5 +40,12 @@ int main(int argc, char* argv[])
                   << tracerFactoryMaybe.error().message() << "\n";
         return -1;
     }
+#else
+    if (tracerFactoryMaybe) {
+        std::cerr << "Dynamically loading a tracing library should fail "
+                     "without YAML support\n";
+        return -1;
+    }
+#endif  // JAEGERTRACING_WITH_YAML_CPP
     return 0;
 }

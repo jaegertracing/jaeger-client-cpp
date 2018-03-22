@@ -16,10 +16,12 @@
 #include <iostream>
 #include <string>
 
+#include "jaegertracing/Constants.h"
 #include <gtest/gtest.h>
 #include <opentracing/dynamic_load.h>
 
 namespace jaegertracing {
+#ifdef JAEGERTRACING_WITH_YAML_CPP
 TEST(DynamicLoad, invalidVersion)
 {
     const void* errorCategory = nullptr;
@@ -44,4 +46,14 @@ TEST(DynamicLoad, validVersion)
     ASSERT_NE(tracerFactory, nullptr);
     delete static_cast<opentracing::TracerFactory*>(tracerFactory);
 }
+#else
+TEST(DynamicLoad, noYAML)
+{
+    const void* errorCategory = nullptr;
+    void* tracerFactory = nullptr;
+    const auto rcode = OpenTracingMakeTracerFactory(
+        OPENTRACING_VERSION, &errorCategory, &tracerFactory);
+    ASSERT_NE(rcode, 0);
+}
+#endif  // JAEGERTRACING_WITH_YAML_CPP
 }  // namespace jaegertracing
