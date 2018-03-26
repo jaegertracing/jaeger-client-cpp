@@ -25,6 +25,8 @@
 #include <type_traits>
 #include <vector>
 
+#include <opentracing/span.h>
+
 namespace jaegertracing {
 
 class LogRecord {
@@ -42,6 +44,12 @@ class LogRecord {
               FieldIterator last)
         : _timestamp(timestamp)
         , _fields(first, last)
+    {
+    }
+
+    LogRecord(const opentracing::LogRecord & other)
+        : _timestamp(other.timestamp),
+          _fields(other.fields.begin(), other.fields.end())
     {
     }
 

@@ -97,6 +97,10 @@ void Span::FinishWithOptions(
         }
         _duration = finishTimeSteady - _startTimeSteady;
         tracer = _tracer;
+
+        std::copy(finishSpanOptions.log_records.begin(),
+                  finishSpanOptions.log_records.end(),
+                  std::back_inserter(_logs));
     }
 
     // Call `reportSpan` even for non-sampled traces.
