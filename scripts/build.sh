@@ -31,7 +31,7 @@ if make -j3 UnitTest; then
     true
 else
     error "Error: compilation errors"
-    exit 3
+    exit 1
 fi
 
 info "Running tests..."
@@ -39,6 +39,7 @@ if ./UnitTest; then
     true
 else
     error "Error: test failure"
+    exit 1
 fi
 
 working "All tests compiled and passed"
