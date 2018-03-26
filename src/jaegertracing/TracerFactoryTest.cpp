@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "jaegertracing/Constants.h"
 #include "jaegertracing/TracerFactory.h"
 #include <gtest/gtest.h>
 
