@@ -23,7 +23,7 @@
 int main(int argc, char* argv[])
 {
     if (argc != 2) {
-        std::cerr << "DynamicLoadTest <tracer-librar>\n";
+        std::cerr << "DynamicLoadTest <tracer-library>\n";
         return -1;
     }
     const char* library = argv[1];
