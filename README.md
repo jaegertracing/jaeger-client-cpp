@@ -3,6 +3,10 @@
 # cpp-client
 C++ OpenTracing binding for Jaeger
 
+## Contributing 
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Generated files
 
 This project uses Apache Thrift for wire-format protocol support code
@@ -27,9 +31,8 @@ Care is required:
 
 * All functions called from C must be `extern "C"` linkage
 * No exceptions may be thrown into C code (assuming standard C)
-* Memory allocated in c++ must be `delete`d appropriately not `free()`d
-* Memory allocated in c must be `free`d appropriately not `delete`d
-* etc
+* Memory allocated in C++ must be `delete`d appropriately not `free()`d
+* Memory allocated in C must be `free`d appropriately not `delete`d
 
 but it works well. See `src/cdemo`.
 
@@ -38,9 +41,14 @@ and to expose facilities like exporting and importing trace context data. Then
 use only those functions from C, passing around any C++ objects you need as
 opaque pointers.
 
+## License
+  
+[Apache 2.0 License](./LICENSE).
+
 [ci-img]: https://travis-ci.org/jaegertracing/cpp-client.svg?branch=master
 [ci]: https://travis-ci.org/jaegertracing/cpp-client
 [cov-img]: https://codecov.io/gh/jaegertracing/cpp-client/branch/master/graph/badge.svg
 [cov]: https://codecov.io/gh/jaegertracing/cpp-client
 [ot-img]: https://img.shields.io/badge/OpenTracing--1.0-enabled-blue.svg
 [ot-url]: http://opentracing.io
+

@@ -9,8 +9,8 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/toolchain.cmake"
 include(CMakeDependentOption)
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.19.174.tar.gz"
-    SHA1 "712898528fb6dc8532454e2e323404d93a76d8ec"
+    URL "https://github.com/ruslo/hunter/archive/v0.20.18.tar.gz"
+    SHA1 "c2614bc107a5172c167a5784f476b6fb39e314a9"
     LOCAL
 )
 
@@ -142,6 +142,8 @@ set(SRC
     src/jaegertracing/Tag.cpp
     src/jaegertracing/TraceID.cpp
     src/jaegertracing/Tracer.cpp
+    src/jaegertracing/TracerFactory.cpp
+    src/jaegertracing/DynamicLoad.cpp
     src/jaegertracing/Transport.cpp
     src/jaegertracing/UDPTransport.cpp
     src/jaegertracing/baggage/BaggageSetter.cpp
@@ -260,6 +262,8 @@ if(BUILD_TESTING)
       src/jaegertracing/TagTest.cpp
       src/jaegertracing/TraceIDTest.cpp
       src/jaegertracing/TracerTest.cpp
+      src/jaegertracing/TracerFactoryTest.cpp
+      src/jaegertracing/DynamicLoadTest.cpp
       src/jaegertracing/UDPTransportTest.cpp
       src/jaegertracing/baggage/BaggageTest.cpp
       src/jaegertracing/metrics/MetricsTest.cpp
@@ -284,8 +288,14 @@ if(BUILD_TESTING)
       GTEST_HAS_TR1_TUPLE=0
       GTEST_USE_OWN_TR1_TUPLE=0)
   target_link_libraries(
-      UnitTest testutils GTest::main jaegertracing-static ${LIBS})
+      UnitTest testutils GTest::main jaegertracing ${LIBS})
   add_test(NAME UnitTest COMMAND UnitTest)
+
+  add_executable(DynamicallyLoadTracerTest src/jaegertracing/DynamicallyLoadTracerTest.cpp)
+  target_link_libraries(
+    DynamicallyLoadTracerTest OpenTracing::opentracing-static)
+  add_test(NAME DynamicallyLoadTracerTest COMMAND DynamicallyLoadTracerTest 
+    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}jaegertracing${CMAKE_SHARED_LIBRARY_SUFFIX})
   if(JAEGERTRACING_COVERAGE)
       setup_target_for_coverage(NAME UnitTestCoverage
                                 EXECUTABLE UnitTest

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2017-2018 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,16 +122,15 @@ TEST(Tracer, testTracer)
     const auto tracer =
         std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
 
-    auto tagItr =
-        std::find_if(std::begin(tracer->tags()),
-                     std::end(tracer->tags()),
-                     [](const Tag& tag) {
-                         return tag.key() == kJaegerClientVersionTagKey;
-                     });
+    auto tagItr = std::find_if(
+        std::begin(tracer->tags()),
+        std::end(tracer->tags()),
+        [](const Tag& tag) { return tag.key() == kJaegerClientVersionTagKey; });
     ASSERT_NE(std::end(tracer->tags()), tagItr);
     ASSERT_TRUE(tagItr->value().is<const char*>());
     ASSERT_EQ("C++-",
-        static_cast<std::string>(tagItr->value().get<const char*>()).substr(0, 4));
+              static_cast<std::string>(tagItr->value().get<const char*>())
+                  .substr(0, 4));
 
     opentracing::StartSpanOptions options;
     options.tags.push_back({ "tag-key", 1.23 });
