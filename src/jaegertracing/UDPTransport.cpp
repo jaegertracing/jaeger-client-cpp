@@ -116,13 +116,13 @@ int UDPTransport::flush()
 
     try {
 	    _client->emitBatch(batch);
-    } catch (const std::logic_error &ex) {
-    	std::ostringstream oss;
-	oss << "Could not send span " << ex.what();
-	throw Transport::Exception(oss.str(), _spanBuffer.size());
     } catch (const std::system_error& ex) {
 	std::ostringstream oss;
 	oss << "Could not send span " << ex.what() << ", code=" << ex.code().value();
+	throw Transport::Exception(oss.str(), _spanBuffer.size());
+    } catch (const std::exception &ex) {
+	std::ostringstream oss;
+	oss << "Could not send span " << ex.what();
 	throw Transport::Exception(oss.str(), _spanBuffer.size());
     }
 
