@@ -251,6 +251,7 @@ configure_file(
   @ONLY)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+
 if(BUILD_TESTING)
   add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/jaegertracing/testutils")
   set(TEST_SRC
@@ -300,6 +301,8 @@ if(BUILD_TESTING)
                                 EXECUTABLE UnitTest
                                 DEPENDENCIES UnitTest)
   endif()
+
+  add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/cdemo")
 endif()
 
 # Installation (https://github.com/forexample/package-example)
