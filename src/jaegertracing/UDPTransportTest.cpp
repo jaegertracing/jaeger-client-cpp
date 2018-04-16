@@ -27,7 +27,7 @@ namespace {
 
 class MockUDPClient : public utils::UDPClient {
   public:
-    enum class ExceptionType { kSystemError, kException };
+    enum class ExceptionType { kSystemError, kException, kString };
 
     MockUDPClient(const net::IPAddress& serverAddr,
                   int maxPacketSize,
@@ -43,9 +43,11 @@ class MockUDPClient : public utils::UDPClient {
         switch (_type) {
         case ExceptionType::kSystemError:
             throw std::system_error();
-        default:
-            assert(_type == ExceptionType::kException);
+        case ExceptionType::kException:
             throw std::exception();
+        default:
+            assert(_type == ExceptionType::kString);
+            throw "error";
         }
     }
 
@@ -91,15 +93,13 @@ TEST(UDPTransport, testExceptions)
     Span span(tracer);
     span.SetOperationName("test");
 
-    {
-        MockUDPTransport sender(
-            net::IPAddress(), 0, MockUDPClient::ExceptionType::kSystemError);
-        sender.append(span);
-        ASSERT_THROW(sender.flush(), Transport::Exception);
-    }
-    {
-        MockUDPTransport sender(
-            net::IPAddress(), 0, MockUDPClient::ExceptionType::kException);
+    const MockUDPClient::ExceptionType exceptionTypes[] = {
+        MockUDPClient::ExceptionType::kSystemError,
+        MockUDPClient::ExceptionType::kException,
+        MockUDPClient::ExceptionType::kString
+    };
+    for (auto type : exceptionTypes) {
+        MockUDPTransport sender(net::IPAddress(), 0, type);
         sender.append(span);
         ASSERT_THROW(sender.flush(), Transport::Exception);
     }
