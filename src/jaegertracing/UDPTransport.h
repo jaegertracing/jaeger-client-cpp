@@ -36,6 +36,12 @@ class UDPTransport : public Transport {
 
     void close() override { _client->close(); }
 
+  protected:
+    void setClient(std::unique_ptr<utils::UDPClient>&& client)
+    {
+        _client = std::move(client);
+    }
+
   private:
     void resetBuffers()
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2017-2018 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,15 +115,19 @@ int UDPTransport::flush()
     batch.__set_spans(_spanBuffer);
 
     try {
-	    _client->emitBatch(batch);
+        _client->emitBatch(batch);
     } catch (const std::system_error& ex) {
-	std::ostringstream oss;
-	oss << "Could not send span " << ex.what() << ", code=" << ex.code().value();
-	throw Transport::Exception(oss.str(), _spanBuffer.size());
-    } catch (const std::exception &ex) {
-	std::ostringstream oss;
-	oss << "Could not send span " << ex.what();
-	throw Transport::Exception(oss.str(), _spanBuffer.size());
+        std::ostringstream oss;
+        oss << "Could not send span " << ex.what()
+            << ", code=" << ex.code().value();
+        throw Transport::Exception(oss.str(), _spanBuffer.size());
+    } catch (const std::exception& ex) {
+        std::ostringstream oss;
+        oss << "Could not send span " << ex.what();
+        throw Transport::Exception(oss.str(), _spanBuffer.size());
+    } catch (...) {
+        throw Transport::Exception("Could not send span, unknown error",
+                                   _spanBuffer.size());
     }
 
     resetBuffers();
