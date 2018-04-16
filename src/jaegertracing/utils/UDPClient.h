@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2017-2018 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ class UDPClient : public agent::thrift::AgentIf {
         if (static_cast<int>(size) > _maxPacketSize) {
             std::ostringstream oss;
             oss << "Data does not fit within one UDP packet"
-                   "; size "
+                   ", size "
                 << size << ", max " << _maxPacketSize << ", spans "
                 << batch.spans.size();
             throw std::logic_error(oss.str());

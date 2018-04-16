@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2017-2018 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,48 @@
 #include "jaegertracing/utils/ErrorUtil.h"
 
 namespace jaegertracing {
+namespace {
+
+class MockUDPClient : public utils::UDPClient {
+  public:
+    enum class ExceptionType { kSystemError, kException };
+
+    MockUDPClient(const net::IPAddress& serverAddr,
+                  int maxPacketSize,
+                  ExceptionType type)
+        : UDPClient(serverAddr, maxPacketSize)
+        , _type(type)
+    {
+    }
+
+  private:
+    void emitBatch(const thrift::Batch& batch) override
+    {
+        switch (_type) {
+        case ExceptionType::kSystemError:
+            throw std::system_error();
+        default:
+            assert(_type == ExceptionType::kException);
+            throw std::exception();
+        }
+    }
+
+    ExceptionType _type;
+};
+
+class MockUDPTransport : public UDPTransport {
+  public:
+    MockUDPTransport(const net::IPAddress& ip,
+                     int maxPacketSize,
+                     MockUDPClient::ExceptionType type)
+        : UDPTransport(ip, maxPacketSize)
+    {
+        setClient(std::unique_ptr<utils::UDPClient>(
+            new MockUDPClient(ip, maxPacketSize, type)));
+    }
+};
+
+}  // anonymous namespace
 
 TEST(UDPTransport, testManyMessages)
 {
@@ -37,6 +79,29 @@ TEST(UDPTransport, testManyMessages)
         Span span(tracer);
         span.SetOperationName("test" + std::to_string(i));
         ASSERT_NO_THROW(sender.append(span));
+    }
+}
+
+TEST(UDPTransport, testExceptions)
+{
+    const auto handle = testutils::TracerUtil::installGlobalTracer();
+    const auto tracer =
+        std::static_pointer_cast<const Tracer>(opentracing::Tracer::Global());
+
+    Span span(tracer);
+    span.SetOperationName("test");
+
+    {
+        MockUDPTransport sender(
+            net::IPAddress(), 0, MockUDPClient::ExceptionType::kSystemError);
+        sender.append(span);
+        ASSERT_THROW(sender.flush(), Transport::Exception);
+    }
+    {
+        MockUDPTransport sender(
+            net::IPAddress(), 0, MockUDPClient::ExceptionType::kException);
+        sender.append(span);
+        ASSERT_THROW(sender.flush(), Transport::Exception);
     }
 }
 
