@@ -1,9 +1,13 @@
 Changes by Version
 ==================
 
-0.3.0 (unreleased)
+0.3.0 (2018-04-17)
 ------------------
-- Nothing yet
+- Use LogRecord in Span::FinishWithOptions (#58)
+- Flush pending spans in RemoteReporter destructor (#59)
+- Add support for dynamic loading (#64)
+- Fix unhandled exception when Jaeger agent unavailable (#80)
+- Fix potential race condition in concurrent baggage access (#83)
 
 
 0.2.0 (2018-01-25)
