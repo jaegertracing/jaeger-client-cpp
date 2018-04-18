@@ -19,6 +19,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 
@@ -41,6 +42,7 @@ class SpanContext : public opentracing::SpanContext {
         , _spanID(0)
         , _parentID(0)
         , _flags(0)
+        , _mutex()
     {
     }
 
@@ -56,6 +58,7 @@ class SpanContext : public opentracing::SpanContext {
         , _flags(flags)
         , _baggage(baggage)
         , _debugID(debugID)
+        , _mutex()
     {
     }
 
@@ -98,6 +101,7 @@ class SpanContext : public opentracing::SpanContext {
 
     SpanContext withBaggage(const StrMap& baggage) const
     {
+        std::lock_guard<std::mutex> lock(_mutex);
         return SpanContext(
             _traceID, _spanID, _parentID, _flags, baggage, _debugID);
     }
@@ -105,6 +109,7 @@ class SpanContext : public opentracing::SpanContext {
     template <typename Function>
     void forEachBaggageItem(Function f) const
     {
+        std::lock_guard<std::mutex> lock(_mutex);
         for (auto&& pair : _baggage) {
             if (!f(pair.first, pair.second)) {
                 break;
@@ -115,6 +120,7 @@ class SpanContext : public opentracing::SpanContext {
     template <typename Function>
     void forEachBaggageItem(Function f)
     {
+        std::lock_guard<std::mutex> lock(_mutex);
         for (auto&& pair : _baggage) {
             if (!f(pair.first, pair.second)) {
                 break;
@@ -160,9 +166,17 @@ class SpanContext : public opentracing::SpanContext {
 
     bool operator==(const SpanContext& rhs) const
     {
+        {
+            std::lock(_mutex, rhs._mutex);
+            std::lock_guard<std::mutex> lock(_mutex, std::adopt_lock);
+            std::lock_guard<std::mutex> rhsLock(rhs._mutex, std::adopt_lock);
+            if (_baggage != rhs._baggage) {
+                return false;
+            }
+        }
         return _traceID == rhs._traceID && _spanID == rhs._spanID &&
                _parentID == rhs._parentID && _flags == rhs._flags &&
-               _baggage == rhs._baggage && _debugID == rhs._debugID;
+               _debugID == rhs._debugID;
     }
 
   private:
@@ -172,6 +186,7 @@ class SpanContext : public opentracing::SpanContext {
     unsigned char _flags;
     StrMap _baggage;
     std::string _debugID;
+    mutable std::mutex _mutex;  // Protects _baggage.
 };
 
 }  // namespace jaegertracing
