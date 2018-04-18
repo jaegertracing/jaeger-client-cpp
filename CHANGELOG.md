@@ -1,6 +1,11 @@
 Changes by Version
 ==================
 
+0.4.0 (unreleased)
+------------------
+- Nothing yet
+
+
 0.3.0 (2018-04-17)
 ------------------
 - Use LogRecord in Span::FinishWithOptions (#58)
