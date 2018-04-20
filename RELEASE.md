@@ -2,7 +2,6 @@
 
 1. Create a PR "Preparing for release X.Y.Z" against master branch
     * Alter CHANGELOG.md from `<placeholder_version> (unreleased)` to `<X.Y.Z> (YYYY-MM-DD)`
-    * Update project version in CMakeLists.txt to `X.Y.Z`
 2. Create a release "Release X.Y.Z" on Github
     * Create Tag `vX.Y.Z`
     * Copy CHANGELOG.md into the release notes
