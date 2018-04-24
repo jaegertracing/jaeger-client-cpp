@@ -42,7 +42,8 @@ class MockUDPClient : public utils::UDPClient {
     {
         switch (_type) {
         case ExceptionType::kSystemError:
-            throw std::system_error();
+            throw std::system_error(
+                std::make_error_code(std::errc::invalid_argument));
         case ExceptionType::kException:
             throw std::exception();
         default:
