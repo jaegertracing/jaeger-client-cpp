@@ -52,7 +52,7 @@ else()
   message(FATAL_ERROR "Compiler is not gcc nor clang! Aborting...")
 endif()
 
-set(COVERAGE_COMPILER_FLAGS "${extra_coverage_flags} -g -O0 --coverage -fprofile-arcs -ftest-coverage"
+set(COVERAGE_COMPILER_FLAGS "${extra_coverage_flags};-g;-O0;--coverage;-fprofile-arcs;-ftest-coverage"
   CACHE INTERNAL "")
 
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -71,14 +71,14 @@ endif()
 # the coverage generation will not complete.
 #
 # setup_target_for_coverage(
-#     NAME testrunner_coverage                    # New target name
-#     EXECUTABLE testrunner -j ${PROCESSOR_COUNT} # Executable in PROJECT_BINARY_DIR
-#     DEPENDENCIES testrunner                     # Dependencies to build first
+#     NAME testrunner_coverage       # New target name
+#     EXECUTABLE testrunner          # Executable in PROJECT_BINARY_DIR
+#     DEPENDENCIES testrunner        # Dependencies to build first
 # )
 function(setup_target_for_coverage)
   set(options NONE)
   set(oneValueArgs NAME)
-  set(multiValueArgs EXECUTABLE EXECUTABLE_ARGS DEPENDENCIES)
+  set(multiValueArgs EXECUTABLE DEPENDENCIES)
   cmake_parse_arguments(Coverage "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   if(NOT LCOV_PATH)
@@ -90,6 +90,7 @@ function(setup_target_for_coverage)
   endif() # NOT GENHTML_PATH
 
   foreach(exe ${Coverage_EXECUTABLE})
+    message(STATUS "exe: ${exe}")
     list(APPEND exe_commands COMMAND ${exe})
   endforeach()
 
@@ -105,7 +106,7 @@ function(setup_target_for_coverage)
     ${exe_commands}
 
     # Capturing lcov counters and generating report
-    COMMAND ${LCOV_INVOKE} --base-directory ${CMAKE_SOURCE_DIR} --directory . --capture --output-file ${Coverage_NAME}.info --no-external
+    COMMAND ${LCOV_INVOKE} --base-directory ${CMAKE_CURRENT_SOURCE_DIR} --directory . --capture --output-file ${Coverage_NAME}.info --no-external
     COMMAND ${LCOV_INVOKE} --remove ${Coverage_NAME}.info ${COVERAGE_EXCLUDES} --output-file ${Coverage_NAME}.info.cleaned
     COMMAND ${GENHTML_PATH} --legend --demangle-cpp -o ${Coverage_NAME} ${Coverage_NAME}.info.cleaned
     COMMAND ${CMAKE_COMMAND} -E rename ${Coverage_NAME}.info.cleaned coverage.info
@@ -124,6 +125,7 @@ function(setup_target_for_coverage)
 endfunction() # setup_target_for_coverage
 
 function(append_coverage_compiler_flags flags_var)
-  set(${flags_var} "${${flags_var}} ${COVERAGE_COMPILER_FLAGS}" PARENT_SCOPE)
+  set(${flags_var} "${${flags_var}};${COVERAGE_COMPILER_FLAGS}" PARENT_SCOPE)
+  string(REPLACE ";" " " split_flags "${${flags_var}}")
   message(STATUS "Appending code coverage compiler flags: ${COVERAGE_COMPILER_FLAGS}")
 endfunction() # append_coverage_compiler_flags

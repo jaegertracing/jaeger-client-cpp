@@ -18,11 +18,11 @@ project(jaegertracing VERSION 0.4.0)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pedantic")
+  list(APPEND cxx_flags -Wall -Werror -pedantic)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
+  list(APPEND cxx_flags -Wno-unused-private-field)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
@@ -94,7 +94,7 @@ if(BUILD_TESTING)
 
   if(JAEGERTRACING_COVERAGE)
       include(CodeCoverage)
-      append_coverage_compiler_flags()
+      append_coverage_compiler_flags(cxx_flags)
       set(COVERAGE_EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/src/jaegertracing/thrift-gen/*"
                             "*Test.cpp")
   endif()
@@ -229,6 +229,7 @@ set(SRC
     src/jaegertracing/utils/YAML.cpp)
 
 add_library(jaegertracing SHARED ${SRC})
+target_compile_options(jaegertracing PRIVATE ${cxx_flags})
 target_include_directories(jaegertracing PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>)
@@ -238,6 +239,7 @@ set_target_properties(jaegertracing PROPERTIES
   SOVERSION ${PROJECT_VERSION_MAJOR})
 
 add_library(jaegertracing-static STATIC ${SRC})
+target_compile_options(jaegertracing-static PRIVATE ${cxx_flags})
 target_include_directories(jaegertracing-static PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>)
@@ -291,16 +293,17 @@ if(BUILD_TESTING)
   add_test(NAME UnitTest COMMAND UnitTest)
 
   add_executable(DynamicallyLoadTracerTest src/jaegertracing/DynamicallyLoadTracerTest.cpp)
+  target_compile_options(DynamicallyLoadTracerTest PRIVATE ${cxx_flags})
   target_include_directories(DynamicallyLoadTracerTest PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>)
   target_link_libraries(
     DynamicallyLoadTracerTest OpenTracing::opentracing-static)
-  add_test(NAME DynamicallyLoadTracerTest COMMAND DynamicallyLoadTracerTest
-    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}jaegertracing${CMAKE_SHARED_LIBRARY_SUFFIX})
+  add_test(NAME DynamicallyLoadTracerTest
+           COMMAND DynamicallyLoadTracerTest $<TARGET_FILE:jaegertracing>)
   if(JAEGERTRACING_COVERAGE)
       setup_target_for_coverage(NAME UnitTestCoverage
-                                EXECUTABLE UnitTest
-                                DEPENDENCIES UnitTest)
+                                EXECUTABLE ctest
+                                DEPENDENCIES UnitTest DynamicallyLoadTracerTest)
   endif()
 endif()
 
