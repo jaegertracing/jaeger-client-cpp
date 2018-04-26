@@ -6,6 +6,9 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/toolchain.cmake"
     CACHE FILEPATH
     "Toolchain to use for building this package and dependencies")
 
+set(HUNTER_CONFIGURATION_TYPES "Release;Debug" CACHE STRING
+    "Configuration types used when building Hunter dependencies")
+
 include(CMakeDependentOption)
 include(HunterGate)
 HunterGate(
@@ -25,7 +28,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
 endif()
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS true)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(HUNTER_ENABLED)
   set(hunter_config "CONFIG")
@@ -70,9 +73,12 @@ list(APPEND package_deps nlohmann_json)
 
 option(JAEGERTRACING_COVERAGE "Build with coverage" $ENV{COVERAGE})
 option(JAEGERTRACING_BUILD_CROSSDOCK "Build crossdock" $ENV{CROSSDOCK})
+if(NOT JAEGERTRACING_BUILD_CROSSDOCK)
+  set(no_crossdock ON)
+endif()
 cmake_dependent_option(
   JAEGERTRACING_WITH_YAML_CPP "Use yaml-cpp to parse config files" ON
-  "NOT JAEGERTRACING_BUILD_CROSSDOCK" ON)
+  "no_crossdock" ON)
 
 if(JAEGERTRACING_WITH_YAML_CPP)
   hunter_add_package(yaml-cpp)
@@ -104,18 +110,18 @@ if(JAEGERTRACING_BUILD_CROSSDOCK)
   set(CROSSDOCK_SRC crossdock/Server.cpp)
   add_executable(crossdock ${CROSSDOCK_SRC})
   target_include_directories(crossdock PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/crossdock>)
-  target_link_libraries(crossdock PUBLIC jaegertracing-static)
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/crossdock>)
+  target_link_libraries(crossdock PUBLIC ${JAEGERTRACING_LIB})
 
   set(JAEGER_CROSSDOCK_URL
 "https://raw.githubusercontent.com/jaegertracing/jaeger/master/docker-compose/\
 jaeger-docker-compose.yml")
   file(DOWNLOAD ${JAEGER_CROSSDOCK_URL}
-       "${PROJECT_SOURCE_DIR}/crossdock/jaeger-docker-compose.yml")
+       "${CMAKE_CURRENT_SOURCE_DIR}/crossdock/jaeger-docker-compose.yml")
   find_program(DOCKER_COMPOSE_EXE docker-compose REQUIRED)
   set(DOCKER_COMPOSE_CMD ${DOCKER_COMPOSE_EXE}
-      -f ${PROJECT_SOURCE_DIR}/crossdock/docker-compose.yml
-      -f ${PROJECT_SOURCE_DIR}/crossdock/jaeger-docker-compose.yml)
+      -f ${CMAKE_CURRENT_SOURCE_DIR}/crossdock/docker-compose.yml
+      -f ${CMAKE_CURRENT_SOURCE_DIR}/crossdock/jaeger-docker-compose.yml)
   add_custom_target(crossdock-kill
     COMMAND ${DOCKER_COMPOSE_CMD} kill
     COMMAND ${DOCKER_COMPOSE_CMD} rm --force)
@@ -134,6 +140,7 @@ endif()
 
 set(SRC
     src/jaegertracing/Config.cpp
+    src/jaegertracing/DynamicLoad.cpp
     src/jaegertracing/LogRecord.cpp
     src/jaegertracing/Logging.cpp
     src/jaegertracing/Reference.cpp
@@ -143,7 +150,6 @@ set(SRC
     src/jaegertracing/TraceID.cpp
     src/jaegertracing/Tracer.cpp
     src/jaegertracing/TracerFactory.cpp
-    src/jaegertracing/DynamicLoad.cpp
     src/jaegertracing/Transport.cpp
     src/jaegertracing/UDPTransport.cpp
     src/jaegertracing/baggage/BaggageSetter.cpp
@@ -228,28 +234,54 @@ set(SRC
     src/jaegertracing/utils/UDPClient.cpp
     src/jaegertracing/utils/YAML.cpp)
 
-add_library(jaegertracing SHARED ${SRC})
-target_include_directories(jaegertracing PUBLIC
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
-  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>)
-target_link_libraries(jaegertracing ${LIBS})
-set_target_properties(jaegertracing PROPERTIES
-  VERSION ${PROJECT_VERSION}
-  SOVERSION ${PROJECT_VERSION_MAJOR})
+function(add_lib_deps lib)
+  target_include_directories(${lib} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>)
+  target_link_libraries(${lib} PUBLIC ${LIBS})
+endfunction()
+
+option(JAEGERTRACING_PLUGIN "Build dynamic plugin" OFF)
+if(NOT JAEGERTRACING_PLUGIN)
+  set(no_plugin)
+endif()
+cmake_dependent_option(BUILD_SHARED_LIBS "Build shared libraries" ON
+  "no_plugin" OFF)
+
+if(BUILD_SHARED_LIBS)
+  add_library(jaegertracing SHARED ${SRC})
+  add_lib_deps(jaegertracing)
+  set_target_properties(jaegertracing PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR})
+  set(JAEGERTRACING_LIB jaegertracing)
+  list(APPEND JAEGERTRACING_LIBS jaegertracing)
+endif()
+
+if(JAEGERTRACING_PLUGIN)
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/export.map
+    "{ global: OpenTracingMakeTracerFactory; local: *; };")
+  add_library(jaegertracing_plugin MODULE ${SRC})
+  add_lib_deps(jaegertracing_plugin)
+  target_link_libraries(jaegertracing_plugin PUBLIC
+    -static-libgcc
+    -static-libstdc++
+    -Wl,--version-script=${CMAKE_CURRENT_BINARY_DIR}/export.map)
+endif()
 
 add_library(jaegertracing-static STATIC ${SRC})
-target_include_directories(jaegertracing-static PUBLIC
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
-  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>)
-target_link_libraries(jaegertracing-static ${LIBS})
 set_target_properties(jaegertracing-static PROPERTIES
   OUTPUT_NAME jaegertracing)
+add_lib_deps(jaegertracing-static)
+if(NOT JAEGERTRACING_LIB)
+  set(JAEGERTRACING_LIB jaegertracing-static)
+endif()
+list(APPEND JAEGERTRACING_LIBS jaegertracing-static)
 
 configure_file(
   src/jaegertracing/Constants.h.in
   src/jaegertracing/Constants.h
   @ONLY)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(BUILD_TESTING)
   add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/jaegertracing/testutils")
@@ -262,7 +294,6 @@ if(BUILD_TESTING)
       src/jaegertracing/TraceIDTest.cpp
       src/jaegertracing/TracerTest.cpp
       src/jaegertracing/TracerFactoryTest.cpp
-      src/jaegertracing/DynamicLoadTest.cpp
       src/jaegertracing/UDPTransportTest.cpp
       src/jaegertracing/baggage/BaggageTest.cpp
       src/jaegertracing/metrics/MetricsTest.cpp
@@ -287,7 +318,7 @@ if(BUILD_TESTING)
       GTEST_HAS_TR1_TUPLE=0
       GTEST_USE_OWN_TR1_TUPLE=0)
   target_link_libraries(
-      UnitTest testutils GTest::main jaegertracing ${LIBS})
+      UnitTest testutils GTest::main ${JAEGERTRACING_LIB} ${LIBS})
   add_test(NAME UnitTest COMMAND UnitTest)
 
   add_executable(DynamicallyLoadTracerTest src/jaegertracing/DynamicallyLoadTracerTest.cpp)
@@ -347,7 +378,7 @@ configure_package_config_file(
 #   * header location after install: <prefix>/include/jaegertracing/Tracer.h
 #   * headers can be included by C++ code `#include <jaegertracing/Tracer.h>`
 install(
-  TARGETS jaegertracing jaegertracing-static
+  TARGETS ${JAEGERTRACING_LIBS}
   EXPORT "${TARGETS_EXPORT_NAME}"
   LIBRARY DESTINATION "lib"
   ARCHIVE DESTINATION "lib"
