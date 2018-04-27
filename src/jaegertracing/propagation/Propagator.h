@@ -212,6 +212,13 @@ class BinaryPropagator : public Extractor<std::istream&>,
   public:
     using StrMap = SpanContext::StrMap;
 
+    explicit BinaryPropagator(const std::shared_ptr<metrics::Metrics>& metrics =
+                                  std::shared_ptr<metrics::Metrics>())
+        : _metrics(metrics == nullptr ? metrics::Metrics::makeNullMetrics()
+                                      : metrics)
+    {
+    }
+
     void inject(const SpanContext& ctx, std::ostream& out) const override
     {
         writeBinary(out, ctx.traceID().high());
@@ -251,11 +258,17 @@ class BinaryPropagator : public Extractor<std::istream&>,
         for (auto i = static_cast<uint32_t>(0); i < numBaggageItems; ++i) {
             const auto keyLength = readBinary<uint32_t>(in);
             std::string key(keyLength, '\0');
-            in.read(&key[0], keyLength);
+            if (!in.read(&key[0], keyLength)) {
+                _metrics->decodingErrors().inc(1);
+                return SpanContext();
+            }
 
             const auto valueLength = readBinary<uint32_t>(in);
             std::string value(valueLength, '\0');
-            in.read(&value[0], valueLength);
+            if (!in.read(&value[0], valueLength)) {
+                _metrics->decodingErrors().inc(1);
+                return SpanContext();
+            }
 
             baggage[key] = value;
         }
@@ -294,6 +307,9 @@ class BinaryPropagator : public Extractor<std::istream&>,
         }
         return platform::endian::fromBigEndian(value);
     }
+
+  private:
+    std::shared_ptr<metrics::Metrics> _metrics;
 };
 
 }  // namespace propagation

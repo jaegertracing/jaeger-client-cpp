@@ -98,8 +98,13 @@ class Tracer : public opentracing::Tracer,
             config.sampler().makeSampler(serviceName, *logger, *metrics));
         std::shared_ptr<reporters::Reporter> reporter(
             config.reporter().makeReporter(serviceName, *logger, *metrics));
-        return std::shared_ptr<Tracer>(new Tracer(
-            serviceName, sampler, reporter, logger, metrics, options));
+        return std::shared_ptr<Tracer>(new Tracer(serviceName,
+                                                  sampler,
+                                                  reporter,
+                                                  logger,
+                                                  metrics,
+                                                  config.headers(),
+                                                  options));
     }
 
     ~Tracer() { Close(); }
@@ -217,6 +222,7 @@ class Tracer : public opentracing::Tracer,
            const std::shared_ptr<reporters::Reporter>& reporter,
            const std::shared_ptr<logging::Logger>& logger,
            const std::shared_ptr<metrics::Metrics>& metrics,
+           const propagation::HeadersConfig& headersConfig,
            int options)
         : _serviceName(serviceName)
         , _hostIPv4(net::IPAddress::localIP(AF_INET))
@@ -225,9 +231,9 @@ class Tracer : public opentracing::Tracer,
         , _metrics(metrics)
         , _logger(logger)
         , _randomNumberGenerator()
-        , _textPropagator()
-        , _httpHeaderPropagator()
-        , _binaryPropagator()
+        , _textPropagator(headersConfig, _metrics)
+        , _httpHeaderPropagator(headersConfig, _metrics)
+        , _binaryPropagator(_metrics)
         , _tags()
         , _restrictionManager(new baggage::DefaultRestrictionManager(0))
         , _baggageSetter(*_restrictionManager, *_metrics)
