@@ -164,19 +164,24 @@ class SpanContext : public opentracing::SpanContext {
         forEachBaggageItem(f);
     }
 
-    bool operator==(const SpanContext& rhs) const
+    friend bool operator==(const SpanContext& lhs, const SpanContext& rhs)
     {
         {
-            std::lock(_mutex, rhs._mutex);
-            std::lock_guard<std::mutex> lock(_mutex, std::adopt_lock);
+            std::lock(lhs._mutex, rhs._mutex);
+            std::lock_guard<std::mutex> lhsLock(lhs._mutex, std::adopt_lock);
             std::lock_guard<std::mutex> rhsLock(rhs._mutex, std::adopt_lock);
-            if (_baggage != rhs._baggage) {
+            if (lhs._baggage != rhs._baggage) {
                 return false;
             }
         }
-        return _traceID == rhs._traceID && _spanID == rhs._spanID &&
-               _parentID == rhs._parentID && _flags == rhs._flags &&
-               _debugID == rhs._debugID;
+        return lhs._traceID == rhs._traceID && lhs._spanID == rhs._spanID &&
+               lhs._parentID == rhs._parentID && lhs._flags == rhs._flags &&
+               lhs._debugID == rhs._debugID;
+    }
+
+    friend bool operator!=(const SpanContext& lhs, const SpanContext& rhs)
+    {
+        return !operator==(lhs, rhs);
     }
 
   private:

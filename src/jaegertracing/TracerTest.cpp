@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+#include "jaegertracing/Tracer.h"
 #include "jaegertracing/Config.h"
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/Span.h"
 #include "jaegertracing/SpanContext.h"
 #include "jaegertracing/Tag.h"
 #include "jaegertracing/TraceID.h"
-#include "jaegertracing/Tracer.h"
 #include "jaegertracing/baggage/RestrictionsConfig.h"
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/propagation/HeadersConfig.h"
@@ -181,7 +181,7 @@ TEST(Tracer, testTracer)
     span->Log({ { "log-bool", true } });
     opentracing::FinishSpanOptions foptions;
     opentracing::LogRecord lr{};
-    lr.fields = { {"options-log", "yep"} };
+    lr.fields = { { "options-log", "yep" } };
     foptions.log_records.push_back(std::move(lr));
     lr.timestamp = opentracing::SystemClock::now();
     span->FinishWithOptions(foptions);
@@ -337,6 +337,65 @@ TEST(Tracer, testPropagation)
             static_cast<SpanContext*>(result->release()));
         ASSERT_TRUE(static_cast<bool>(extractedCtx));
         ASSERT_EQ(span->context(), *extractedCtx);
+
+        // Test debug header.
+        headerMap.clear();
+        headerMap[kJaegerDebugHeader] = "yes";
+        tracer->Inject(span->context(), headerWriter);
+        result = tracer->Extract(headerReader);
+        ASSERT_TRUE(static_cast<bool>(result));
+        extractedCtx.reset(static_cast<SpanContext*>(result->release()));
+        ASSERT_TRUE(static_cast<bool>(extractedCtx));
+        ASSERT_NE(span->context(), *extractedCtx);
+        SpanContext ctx(
+            span->context().traceID(),
+            span->context().spanID(),
+            span->context().parentID(),
+            span->context().flags() |
+                static_cast<unsigned char>(SpanContext::Flag::kDebug),
+            span->context().baggage(),
+            "yes");
+        ASSERT_EQ(ctx, *extractedCtx);
+
+        // Test bad trace context.
+        headerMap.clear();
+        headerMap[kTraceContextHeaderName] = "12345678";
+        result = tracer->Extract(headerReader);
+        ASSERT_TRUE(static_cast<bool>(result));
+        extractedCtx.reset(static_cast<SpanContext*>(result->release()));
+        ASSERT_EQ(nullptr, extractedCtx.get());
+
+        // Test empty map.
+        headerMap.clear();
+        result = tracer->Extract(headerReader);
+        ASSERT_TRUE(static_cast<bool>(result));
+        extractedCtx.reset(static_cast<SpanContext*>(result->release()));
+        ASSERT_EQ(nullptr, extractedCtx.get());
+
+        // Test alternative baggage format.
+        headerMap.clear();
+        ctx = SpanContext(span->context().traceID(),
+                          span->context().spanID(),
+                          span->context().parentID(),
+                          span->context().flags(),
+                          { { "a", "x" }, { "b", "y" }, { "c", "z" } });
+        tracer->Inject(ctx, headerWriter);
+        for (auto itr = std::begin(headerMap); itr != std::end(headerMap);) {
+            if (itr->first.substr(0, std::strlen(kTraceBaggageHeaderPrefix)) ==
+                kTraceBaggageHeaderPrefix) {
+                itr = headerMap.erase(itr);
+            }
+            else {
+                ++itr;
+            }
+        }
+        headerMap[kJaegerBaggageHeader] = "a=x,b=y,c=z";
+        result = tracer->Extract(headerReader);
+        ASSERT_TRUE(static_cast<bool>(result));
+        extractedCtx.reset(static_cast<SpanContext*>(result->release()));
+        ASSERT_TRUE(static_cast<bool>(extractedCtx));
+        ASSERT_EQ(3, extractedCtx->baggage().size());
+        ASSERT_EQ(ctx, *extractedCtx);
     }
 }
 

@@ -69,7 +69,7 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
                 if (key == _headerKeys.traceContextHeaderName()) {
                     const auto safeValue = decodeValue(value);
                     std::istringstream iss(safeValue);
-                    if (!(iss >> ctx)) {
+                    if (!(iss >> ctx) || ctx == SpanContext()) {
                         return opentracing::make_expected_from_error<void>(
                             opentracing::span_context_corrupted_error);
                     }
@@ -104,10 +104,15 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
             return SpanContext();
         }
 
+        int flags = ctx.flags();
+        if (!debugID.empty()) {
+            flags |= static_cast<unsigned char>(SpanContext::Flag::kDebug) |
+                     static_cast<unsigned char>(SpanContext::Flag::kSampled);
+        }
         return SpanContext(ctx.traceID(),
                            ctx.spanID(),
                            ctx.parentID(),
-                           ctx.flags(),
+                           flags,
                            baggage,
                            debugID);
     }
@@ -146,11 +151,9 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
     static StrMap parseCommaSeparatedMap(const std::string& escapedValue)
     {
         StrMap map;
-        const auto value = net::URI::queryUnescape(escapedValue);
-        for (auto pos = value.find(','), prev = static_cast<size_t>(0);
-             pos != std::string::npos;
-             prev = pos, pos = value.find(',', pos + 1)) {
-            const auto piece = value.substr(prev, pos);
+        std::istringstream iss(net::URI::queryUnescape(escapedValue));
+        std::string piece;
+        while (std::getline(iss, piece, ',')) {
             const auto eqPos = piece.find('=');
             if (eqPos != std::string::npos) {
                 const auto key = piece.substr(0, eqPos);
