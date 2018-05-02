@@ -175,8 +175,8 @@ TEST(Tracer, testTracer)
 
     span->SetOperationName("test-set-operation");
     span->SetTag("tag-key", "tag-value");
-    span->SetBaggageItem("test-baggage-item-key", "test-baggage-item-value");
-    ASSERT_EQ("test-baggage-item-value",
+    span->SetBaggageItem("test-baggage-item-key", "test baggage item value");
+    ASSERT_EQ("test baggage item value",
               span->BaggageItem("test-baggage-item-key"));
     span->Log({ { "log-bool", true } });
     opentracing::FinishSpanOptions foptions;
@@ -277,7 +277,7 @@ TEST(Tracer, testPropagation)
         std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
     const std::unique_ptr<Span> span(static_cast<Span*>(
         tracer->StartSpanWithOptions("test-inject", {}).release()));
-    span->SetBaggageItem("test-baggage-item-key", "test-baggage-item-value");
+    span->SetBaggageItem("test-baggage-item-key", "test baggage item value");
 
     // Binary
     {
@@ -305,7 +305,7 @@ TEST(Tracer, testPropagation)
         std::ostringstream oss;
         oss << span->context();
         ASSERT_EQ(oss.str(), textMap.at(kTraceContextHeaderName));
-        ASSERT_EQ("test-baggage-item-value",
+        ASSERT_EQ("test baggage item value",
                   textMap.at(std::string(kTraceBaggageHeaderPrefix) +
                              "test-baggage-item-key"));
         ReaderMock<opentracing::TextMapReader> textReader(textMap);
@@ -327,7 +327,7 @@ TEST(Tracer, testPropagation)
         std::ostringstream oss;
         oss << span->context();
         ASSERT_EQ(oss.str(), headerMap.at(kTraceContextHeaderName));
-        ASSERT_EQ("test-baggage-item-value",
+        ASSERT_EQ("test baggage item value",
                   headerMap.at(std::string(kTraceBaggageHeaderPrefix) +
                                "test-baggage-item-key"));
         ReaderMock<opentracing::HTTPHeadersReader> headerReader(headerMap);
