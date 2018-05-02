@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+#include "jaegertracing/propagation/Propagator.h"
 #include "jaegertracing/SpanContext.h"
 #include "jaegertracing/TraceID.h"
-#include "jaegertracing/propagation/Propagator.h"
 #include <gtest/gtest.h>
 #include <iosfwd>
 #include <random>
