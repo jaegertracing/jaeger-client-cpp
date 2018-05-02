@@ -36,7 +36,7 @@ UDPClient::UDPClient(const net::IPAddress& serverAddr, int maxPacketSize)
 
     _socket.open(AF_INET, SOCK_DGRAM);
     _socket.connect(_serverAddr);
-    boost::shared_ptr<TProtocolFactory> protocolFactory(
+    std::shared_ptr<TProtocolFactory> protocolFactory(
         new TCompactProtocolFactory());
     auto protocol = protocolFactory->getProtocol(_buffer);
     _client.reset(new agent::thrift::AgentClient(protocol));

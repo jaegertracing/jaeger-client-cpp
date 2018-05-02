@@ -39,7 +39,7 @@ constexpr auto kEmitBatchOverhead = 30;
 template <typename ThriftType>
 int calcSizeOfSerializedThrift(const ThriftType& base, int maxPacketSize)
 {
-    boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> buffer(
+    std::shared_ptr<apache::thrift::transport::TMemoryBuffer> buffer(
         new apache::thrift::transport::TMemoryBuffer(maxPacketSize));
     apache::thrift::protocol::TCompactProtocolFactory factory;
     auto protocol = factory.getProtocol(buffer);
