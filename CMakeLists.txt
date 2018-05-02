@@ -242,11 +242,8 @@ function(add_lib_deps lib)
 endfunction()
 
 option(JAEGERTRACING_PLUGIN "Build dynamic plugin" OFF)
-if(NOT JAEGERTRACING_PLUGIN)
-  set(no_plugin)
-endif()
 cmake_dependent_option(BUILD_SHARED_LIBS "Build shared libraries" ON
-  "no_plugin" OFF)
+  "NOT JAEGERTRACING_PLUGIN" OFF)
 
 if(BUILD_SHARED_LIBS)
   add_library(jaegertracing SHARED ${SRC})
@@ -321,17 +318,19 @@ if(BUILD_TESTING)
       UnitTest testutils GTest::main ${JAEGERTRACING_LIB} ${LIBS})
   add_test(NAME UnitTest COMMAND UnitTest)
 
-  add_executable(DynamicallyLoadTracerTest src/jaegertracing/DynamicallyLoadTracerTest.cpp)
-  target_include_directories(DynamicallyLoadTracerTest PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>)
-  target_link_libraries(
-    DynamicallyLoadTracerTest OpenTracing::opentracing-static)
-  add_test(NAME DynamicallyLoadTracerTest COMMAND DynamicallyLoadTracerTest
-    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}jaegertracing${CMAKE_SHARED_LIBRARY_SUFFIX})
-  if(JAEGERTRACING_COVERAGE)
-      setup_target_for_coverage(NAME UnitTestCoverage
-                                EXECUTABLE UnitTest
-                                DEPENDENCIES UnitTest)
+  if(TARGET jaegertracing)
+    add_executable(DynamicallyLoadTracerTest src/jaegertracing/DynamicallyLoadTracerTest.cpp)
+    target_include_directories(DynamicallyLoadTracerTest PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>)
+    target_link_libraries(
+      DynamicallyLoadTracerTest OpenTracing::opentracing-static)
+    add_test(NAME DynamicallyLoadTracerTest
+             COMMAND DynamicallyLoadTracerTest $<TARGET_FILE:jaegertracing>)
+    if(JAEGERTRACING_COVERAGE)
+        setup_target_for_coverage(NAME UnitTestCoverage
+                                  EXECUTABLE UnitTest
+                                  DEPENDENCIES UnitTest)
+    endif()
   endif()
 endif()
 
