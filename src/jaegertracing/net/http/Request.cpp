@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2017-2018 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 #include "jaegertracing/net/http/Request.h"
 
-#include "jaegertracing/utils/Regex.h"
+#include <regex>
 
 namespace jaegertracing {
 namespace net {
@@ -24,12 +24,12 @@ namespace http {
 
 Request Request::parse(std::istream& in)
 {
-    const regex_namespace::regex requestLinePattern(
+    const std::regex requestLinePattern(
         "([A-Z]+) ([^ ]+) HTTP/([0-9]\\.[0-9])$");
     std::string line;
-    regex_namespace::smatch match;
+    std::smatch match;
     if (!readLineCRLF(in, line) ||
-        !regex_namespace::regex_match(line, match, requestLinePattern) ||
+        !std::regex_match(line, match, requestLinePattern) ||
         match.size() < 4) {
         throw ParseError::make("request line", line);
     }

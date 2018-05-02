@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2017-2018 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ class UDPTransport : public Transport {
     int _maxSpanBytes;
     int _byteBufferSize;
     std::vector<thrift::Span> _spanBuffer;
-    boost::shared_ptr<apache::thrift::protocol::TProtocol> _protocol;
+    std::shared_ptr<apache::thrift::protocol::TProtocol> _protocol;
     thrift::Process _process;
     int _processByteSize;
 };

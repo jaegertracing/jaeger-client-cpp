@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2017-2018 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include "jaegertracing/testutils/MockAgent.h"
 
+#include <regex>
 #include <thread>
 
 #include <thrift/protocol/TCompactProtocol.h>
@@ -28,7 +29,6 @@
 #include "jaegertracing/net/http/Response.h"
 #include "jaegertracing/samplers/RemoteSamplingJSON.h"
 #include "jaegertracing/utils/ErrorUtil.h"
-#include "jaegertracing/utils/Regex.h"
 #include "jaegertracing/utils/UDPClient.h"
 
 namespace jaegertracing {
@@ -90,14 +90,10 @@ void MockAgent::serveUDP(std::promise<void>& started)
         apache::thrift::protocol::TCompactProtocolFactory;
     using TMemoryBuffer = apache::thrift::transport::TMemoryBuffer;
 
-    // Trick for converting `std::shared_ptr` into `boost::shared_ptr`. See
-    // https://stackoverflow.com/a/12315035/1930331.
-    auto ptr = shared_from_this();
-    boost::shared_ptr<agent::thrift::AgentIf> iface(
-        ptr.get(), [ptr](MockAgent*) mutable { ptr.reset(); });
+    auto iface = shared_from_this();
     agent::thrift::AgentProcessor handler(iface);
     TCompactProtocolFactory protocolFactory;
-    boost::shared_ptr<TMemoryBuffer> trans(
+    std::shared_ptr<TMemoryBuffer> trans(
         new TMemoryBuffer(net::kUDPPacketMaxLength));
 
     // Notify main thread that setup is done.
@@ -140,7 +136,7 @@ void MockAgent::serveHTTP(std::promise<void>& started)
     _servingHTTP = true;
     started.set_value();
 
-    const regex_namespace::regex servicePattern("[?&]service=([^?&]+)");
+    const std::regex servicePattern("[?&]service=([^?&]+)");
     while (isServingHTTP()) {
         constexpr auto kBufferSize = 256;
         std::array<char, kBufferSize> buffer;
@@ -168,12 +164,11 @@ void MockAgent::serveHTTP(std::promise<void>& started)
                            _httpAddress.authority() + "/baggageRestrictions")) {
                 resource = Resource::kBaggage;
             }
-            regex_namespace::smatch match;
-            if (!regex_namespace::regex_search(target, match, servicePattern)) {
+            std::smatch match;
+            if (!std::regex_search(target, match, servicePattern)) {
                 throw net::http::ParseError("no 'service' parameter");
             }
-            if (regex_namespace::regex_search(match.suffix().str(),
-                                              servicePattern)) {
+            if (std::regex_search(match.suffix().str(), servicePattern)) {
                 throw net::http::ParseError(
                     "'service' parameter must occur only once");
             }

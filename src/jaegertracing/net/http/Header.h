@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2017-2018 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@
 #include <string>
 
 #include "jaegertracing/net/http/Error.h"
-#include "jaegertracing/utils/Regex.h"
 
 namespace jaegertracing {
 namespace net {
@@ -78,15 +77,14 @@ inline std::istream& readLineCRLF(std::istream& in, std::string& line)
 
 inline void readHeaders(std::istream& in, std::vector<Header>& headers)
 {
-    const regex_namespace::regex headerPattern("([^:]+): (.+)$");
+    const std::regex headerPattern("([^:]+): (.+)$");
     std::string line;
-    regex_namespace::smatch match;
+    std::smatch match;
     while (readLineCRLF(in, line)) {
         if (line.empty()) {
             break;
         }
-        if (!regex_namespace::regex_match(line, match, headerPattern) ||
-            match.size() < 3) {
+        if (!std::regex_match(line, match, headerPattern) || match.size() < 3) {
             throw ParseError::make("header", line);
         }
         headers.emplace_back(Header(match[1], match[2]));

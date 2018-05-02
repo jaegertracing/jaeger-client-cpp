@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2017-2018 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
 
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/net/Socket.h"
-#include "jaegertracing/utils/Regex.h"
 
 namespace jaegertracing {
 namespace net {
@@ -33,13 +32,11 @@ namespace http {
 
 Response Response::parse(std::istream& in)
 {
-    const regex_namespace::regex statusLinePattern(
-        "HTTP/([0-9]\\.[0-9]) ([0-9]+) (.+)$");
+    const std::regex statusLinePattern("HTTP/([0-9]\\.[0-9]) ([0-9]+) (.+)$");
     std::string line;
-    regex_namespace::smatch match;
+    std::smatch match;
     if (!readLineCRLF(in, line) ||
-        !regex_namespace::regex_match(line, match, statusLinePattern) ||
-        match.size() < 4) {
+        !std::regex_match(line, match, statusLinePattern) || match.size() < 4) {
         throw ParseError::make("status line", line);
     }
     Response response;

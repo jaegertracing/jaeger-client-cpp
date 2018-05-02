@@ -75,7 +75,7 @@ class UDPClient : public agent::thrift::AgentIf {
 
   private:
     int _maxPacketSize;
-    boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> _buffer;
+    std::shared_ptr<apache::thrift::transport::TMemoryBuffer> _buffer;
     net::Socket _socket;
     net::IPAddress _serverAddr;
     std::unique_ptr<agent::thrift::AgentClient> _client;

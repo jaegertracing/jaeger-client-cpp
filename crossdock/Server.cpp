@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2017-2018 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,8 @@ void from_json(const nlohmann::json& json, Downstream& downstream)
     downstream.__set_transport(json.at("transport").get<Transport::type>());
     auto itr = json.find("downstream");
     if (itr != std::end(json) && !itr->is_null()) {
-        downstream.__set_downstream(itr->get<Downstream>());
+        downstream.__set_downstream(
+            std::make_shared<Downstream>(itr->get<Downstream>()));
     }
 }
 
@@ -160,7 +161,8 @@ void from_json(const nlohmann::json& json, TraceResponse& response)
     }
     itr = json.find("downstream");
     if (itr != std::end(json) && !itr->is_null()) {
-        response.__set_downstream(itr->get<TraceResponse>());
+        response.__set_downstream(
+            std::make_shared<TraceResponse>(itr->get<TraceResponse>()));
     }
     FIELD_FROM_JSON(response, notImplementedError);
 }
@@ -346,8 +348,8 @@ thrift::TraceResponse prepareResponse(const opentracing::SpanContext& ctx,
     thrift::TraceResponse response;
     response.__set_span(observedSpan);
     if (downstream) {
-        response.__set_downstream(
-            callDownstream(ctx, role, *downstream, tracer, logger));
+        response.__set_downstream(std::make_shared<thrift::TraceResponse>(
+            callDownstream(ctx, role, *downstream, tracer, logger)));
     }
     return response;
 }

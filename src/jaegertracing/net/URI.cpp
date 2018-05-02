@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2017-2018 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
-
-#include "jaegertracing/utils/Regex.h"
+#include <regex>
 
 namespace jaegertracing {
 namespace net {
@@ -68,11 +67,11 @@ URI URI::parse(const std::string& uriStr)
 {
     // See https://tools.ietf.org/html/rfc3986 for explanation.
     URI uri;
-    regex_namespace::regex uriRegex(
+    std::regex uriRegex(
         "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?",
-        regex_namespace::regex::extended);
-    regex_namespace::smatch match;
-    regex_namespace::regex_match(uriStr, match, uriRegex);
+        std::regex::extended);
+    std::smatch match;
+    std::regex_match(uriStr, match, uriRegex);
 
     constexpr auto kSchemeIndex = 2;
     constexpr auto kAuthorityIndex = 4;
