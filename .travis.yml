@@ -80,7 +80,7 @@ before_install:
 script:
   - CMAKE_OPTIONS="${CMAKE_OPTIONS}" ./scripts/upload-coverage.sh
 after_success:
-  - CMAKE_OPTIONS="${CMAKE_OPTIONS}" ./scripts/upload-coverage.sh"
+  - CMAKE_OPTIONS="${CMAKE_OPTIONS}" ./scripts/upload-coverage.sh
 cache:
   directories:
     - "$HOME/.hunter/_Base/Cache"
