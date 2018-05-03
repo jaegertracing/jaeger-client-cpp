@@ -78,9 +78,9 @@ before_install:
     bash cmake-3.10.0-rc5-Linux-x86_64.sh --skip-license &&
     cd ..
 script:
-  - eval "${MATRIX_EVAL}" && ./scripts/build.sh
+  - bash -cx "eval \"${MATRIX_EVAL}\" && ./scripts/upload-coverage.sh"
 after_success:
-  - eval "${MATRIX_EVAL}" && ./scripts/upload-coverage.sh
+  - bash -cx "eval \"${MATRIX_EVAL}\" && ./scripts/upload-coverage.sh"
 cache:
   directories:
     - "$HOME/.hunter/_Base/Cache"
