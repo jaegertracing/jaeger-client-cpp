@@ -1,6 +1,10 @@
 language: cpp
 sudo: true
 dist: trusty
+addons:
+  apt:
+    packages: &1
+      - lcov
 matrix:
   include:
   - os: linux
@@ -9,20 +13,93 @@ matrix:
         sources:
         - ubuntu-toolchain-r-test
         packages:
-        - g++-6
-        - lcov
+        - *1
+        - g++-4.9
     env:
-    - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
-    - COVERAGE=ON
+    - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
   - os: linux
     addons:
       apt:
         sources:
         - ubuntu-toolchain-r-test
         packages:
-        - g++-4.9
+        - *1
+        - g++-5
     env:
-    - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+    - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - *1
+        - g++-6
+    env:
+    - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - *1
+        - g++-7
+    env:
+    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.6
+        packages:
+        - *1
+        - clang-3.6
+    env:
+    - MATRIX_EVAL="CC=clang-3.6 && CXX=clang++-3.6"
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.7
+        packages:
+        - *1
+        - clang-3.7
+    env:
+    - MATRIX_EVAL="CC=clang-3.7 && CXX=clang++-3.7"
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.8
+        packages:
+        - *1
+        - clang-3.8
+    env:
+    - MATRIX_EVAL="CC=clang-3.8 && CXX=clang++-3.8"
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - llvm-toolchain-trusty-4.0
+        packages:
+        - *1
+        - clang-4.0
+    env:
+    - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - llvm-toolchain-trusty-5.0
+        packages:
+        - *1
+        - clang-5.0
+    env:
+    - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
 branches:
   only:
   - master
