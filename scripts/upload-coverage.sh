@@ -18,7 +18,7 @@ set -e
 
 function main() {
     if ! [[ "${CMAKE_OPTIONS}" =~ "-DJAEGERTRACING_COVERAGE=ON" ]]; then
-        exit 0
+       exit 0
     fi
 
     local project_dir
