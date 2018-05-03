@@ -17,9 +17,11 @@
 set -e
 
 function main() {
+    set -x
     if ! [[ "${CMAKE_OPTIONS}" =~ "-DJAEGERTRACING_COVERAGE=ON" ]]; then
        exit 0
     fi
+    unset -x
 
     local project_dir
     project_dir=$(git rev-parse --show-toplevel)

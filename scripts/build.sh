@@ -30,6 +30,7 @@ function main() {
     ./UnitTest
     working "All tests compiled and passed"
 
+    set -x
     if ! [[ "${CMAKE_OPTIONS}" =~ "-DJAEGERTRACING_BUILD_CROSSDOCK=ON" ]]; then
         exit 0
     fi
