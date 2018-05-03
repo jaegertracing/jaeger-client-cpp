@@ -1,6 +1,6 @@
 FROM gcc:7.2
 
-ADD crossdock /
+ADD ./build/crossdock /
 
 ENV AGENT_HOST_PORT=jaeger-agent:5775
 ENV SAMPLING_SERVER_URL=http://test_driver:5778/sampling
