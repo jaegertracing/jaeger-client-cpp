@@ -80,7 +80,7 @@ before_install:
 script:
   - ./scripts/build.sh
 after_success:
-- ./scripts/upload-coverage.sh
+  - ./scripts/upload-coverage.sh
 cache:
   directories:
     - "$HOME/.hunter/_Base/Cache"

@@ -29,6 +29,11 @@ function main() {
     info "Running tests..."
     ./UnitTest
     working "All tests compiled and passed"
+
+    if ! [[ "${CMAKE_OPTIONS}" =~ "-DJAEGERTRACING_BUILD_CROSSDOCK=ON" ]]; then
+        exit 0
+    fi
+    make crossdock-fresh
 }
 
 main
