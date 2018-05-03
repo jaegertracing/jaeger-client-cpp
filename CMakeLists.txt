@@ -250,7 +250,6 @@ if(BUILD_TESTING)
 
   add_executable(UnitTest
       src/jaegertracing/ConfigTest.cpp
-      src/jaegertracing/DynamicLoadTest.cpp
       src/jaegertracing/ReferenceTest.cpp
       src/jaegertracing/SpanContextTest.cpp
       src/jaegertracing/SpanTest.cpp
@@ -284,7 +283,9 @@ if(BUILD_TESTING)
   add_test(NAME UnitTest COMMAND UnitTest)
 
   if(TARGET jaegertracing)
-    add_executable(DynamicallyLoadTracerTest src/jaegertracing/DynamicallyLoadTracerTest.cpp)
+    add_executable(DynamicallyLoadTracerTest
+      src/jaegertracing/DynamicLoadTest.cpp
+      src/jaegertracing/DynamicallyLoadTracerTest.cpp)
     target_include_directories(DynamicallyLoadTracerTest PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>)
     target_link_libraries(

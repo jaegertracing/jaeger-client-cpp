@@ -66,7 +66,7 @@ matrix:
         - *1
         - g++-7
     env:
-    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_OPTIONS='-DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DJAEGERTRACING_BUILD_CROSSDOCK=ON'"
+    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_OPTIONS='-DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF -DJAEGERTRACING_BUILD_CROSSDOCK=ON'"
 branches:
   only:
   - master
