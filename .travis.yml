@@ -61,12 +61,12 @@ matrix:
     addons:
       apt:
         sources:
-        - llvm-toolchain-trusty-6.0
+        - ubuntu-toolchain-r-test
         packages:
         - *1
-        - clang-6.0
+        - g++-7
     env:
-    - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0 && CMAKE_OPTIONS='-DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DJAEGERTRACING_COVERAGE=ON'"
+    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_OPTIONS='-DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DJAEGERTRACING_BUILD_CROSSDOCK=ON'"
 branches:
   only:
   - master
@@ -80,9 +80,7 @@ before_install:
 script:
   - ./scripts/build.sh
 after_success:
-- for f in $(find build -name '*.gcno'); do gcov-6 $f; done
-- bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage
-  reports"
+- [[ "${CMAKE_OPTIONS}" =~ "-DJAEGERTRACING_COVERAGE=ON" ]] && scripts/upload-coverage.sh
 cache:
   directories:
     - "$HOME/.hunter/_Base/Cache"
