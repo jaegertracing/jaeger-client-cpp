@@ -24,12 +24,17 @@ function main() {
 
     mkdir -p build
     cd build
-    coverage_option=${COVERAGE:+"-DJAEGERTRACING_COVERAGE=ON"}
-    cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON "${coverage_option}" ..
+    cmake ${CMAKE_OPTIONS} ..
     make -j3 UnitTest
     info "Running tests..."
     ./UnitTest
     working "All tests compiled and passed"
+
+    set -x
+    if ! [[ "${CMAKE_OPTIONS}" =~ "-DJAEGERTRACING_BUILD_CROSSDOCK=ON" ]]; then
+        exit 0
+    fi
+    make crossdock-fresh
 }
 
 main

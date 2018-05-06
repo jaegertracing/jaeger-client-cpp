@@ -39,7 +39,7 @@ services:
         depends_on:
             - test_driver
         build:
-          context: ..
+          context: $PWD
           dockerfile: crossdock/Dockerfile
         ports:
             - "8080-8082"
