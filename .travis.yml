@@ -57,16 +57,7 @@ matrix:
         - g++-7
     env:
     - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_OPTIONS='-DCMAKE_BUILD_TYPE=Release -DJAEGERTRACING_PLUGIN=ON -DBUILD_TESTING=ON -DHUNTER_CONFIGURATION_TYPES=Release'"
-  - os: linux
-    addons:
-      apt:
-        sources:
-        - ubuntu-toolchain-r-test
-        packages:
-        - *1
-        - g++-7
-    env:
-    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_OPTIONS='-DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF -DJAEGERTRACING_BUILD_CROSSDOCK=ON'"
+
 branches:
   only:
   - master
