@@ -340,12 +340,17 @@ endif()
 
 # Installation (https://github.com/forexample/package-example)
 
+# Introduce variables:
+# * CMAKE_INSTALL_LIBDIR
+# * CMAKE_INSTALL_BINDIR
+# * CMAKE_INSTALL_INCLUDEDIR
+include(GNUInstallDirs)
+
 # Layout. This works for all platforms:
-#   * <prefix>/lib/cmake/<PROJECT-NAME>
-#   * <prefix>/lib/
+#   * <prefix>/lib*/cmake/<PROJECT-NAME>
+#   * <prefix>/lib*/
 #   * <prefix>/include/
-set(config_install_dir "lib/cmake/${PROJECT_NAME}")
-set(include_install_dir "include")
+set(config_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
@@ -376,23 +381,23 @@ configure_package_config_file(
 )
 
 # Targets:
-#   * <prefix>/lib/libjaegertracing.a
-#   * <prefix>/lib/libjaegertracing.so
+#   * <prefix>/lib*/libjaegertracing.a
+#   * <prefix>/lib*/libjaegertracing.so
 #   * header location after install: <prefix>/include/jaegertracing/Tracer.h
 #   * headers can be included by C++ code `#include <jaegertracing/Tracer.h>`
 install(
   TARGETS ${JAEGERTRACING_LIBS}
   EXPORT "${TARGETS_EXPORT_NAME}"
-  LIBRARY DESTINATION "lib"
-  ARCHIVE DESTINATION "lib"
-  RUNTIME DESTINATION "bin"
-  INCLUDES DESTINATION "${include_install_dir}"
+  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+  INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 
 # Headers:
 #   * src/jaegertracing/Tracer.h -> <prefix>/include/jaegertracing/Tracer.h
 install(DIRECTORY "src/jaegertracing"
-        DESTINATION "${include_install_dir}"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
         FILES_MATCHING
         PATTERN "*.h"
         PATTERN "testutils/*.h" EXCLUDE)
@@ -400,18 +405,18 @@ install(DIRECTORY "src/jaegertracing"
 #   * build/src/jaegertracing/Constants.h ->
 #     <prefix>/include/jaegertracing/Constants.h
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/src/jaegertracing/Constants.h"
-        DESTINATION "${include_install_dir}/jaegertracing")
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/jaegertracing")
 
 # Config
-#   * <prefix>/lib/cmake/jaegertracing/jaegertracingConfig.cmake
-#   * <prefix>/lib/cmake/jaegertracing/jaegertracingConfigVersion.cmake
+#   * <prefix>/lib*/cmake/jaegertracing/jaegertracingConfig.cmake
+#   * <prefix>/lib*/cmake/jaegertracing/jaegertracingConfigVersion.cmake
 install(
   FILES "${project_config}" "${version_config}"
   DESTINATION "${config_install_dir}"
 )
 
 # Config
-#   * <prefix>/lib/cmake/jaegertracing/jaegertracingTargets.cmake
+#   * <prefix>/lib*/cmake/jaegertracing/jaegertracingTargets.cmake
 install(
   EXPORT "${TARGETS_EXPORT_NAME}"
   NAMESPACE "${namespace}"
