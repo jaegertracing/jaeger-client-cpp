@@ -10,20 +10,15 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Generated files
 
 This project uses Apache Thrift for wire-format protocol support code
-generation. It currently requires exactly Thrift 0.9.2 or 0.9.3. Patches have
-been applied to the generated code so it cannot be directly re-generated from
-the IDL in the `idl` submodule
-
-(see https://github.com/jaegertracing/jaeger-client-cpp/issues/45)
+generation. It currently requires Thrift 0.11.0.
 
 The code can be re-generated with
 
-    git submodule init
-    git submodule update
-    find idl/thrift/ -type f -name \*.thrift -exec thrift -gen cpp -out src/jaegertracing/thrift-gen {} \;
-
-but at time of writing (Thrift 0.11.0) the resulting code is invalid due to
-https://issues.apache.org/jira/browse/THRIFT-4484.
+```bash
+    $ git submodule update --init
+    $ find idl/thrift/ -type f -name \*.thrift -exec thrift -gen cpp -out src/jaegertracing/thrift-gen {} \;
+    $ git apply scripts/thrift-gen.patch
+```
 
 ## License
 
@@ -35,4 +30,3 @@ https://issues.apache.org/jira/browse/THRIFT-4484.
 [cov]: https://codecov.io/gh/jaegertracing/jaeger-client-cpp
 [ot-img]: https://img.shields.io/badge/OpenTracing--1.0-enabled-blue.svg
 [ot-url]: http://opentracing.io
-
