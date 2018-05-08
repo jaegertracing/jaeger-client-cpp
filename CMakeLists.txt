@@ -289,7 +289,7 @@ if(BUILD_TESTING)
     target_include_directories(DynamicallyLoadTracerTest PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>)
     target_link_libraries(
-      DynamicallyLoadTracerTest OpenTracing::opentracing-static)
+      DynamicallyLoadTracerTest OpenTracing::opentracing-static GTest::main)
     add_test(NAME DynamicallyLoadTracerTest
              COMMAND DynamicallyLoadTracerTest $<TARGET_FILE:jaegertracing>)
     if(JAEGERTRACING_COVERAGE)
