@@ -1,7 +1,7 @@
 Changes by Version
 ==================
 
-0.4.0 (2018-05-03)
+0.4.0 (2018-05-07)
 ------------------
 - Build shared plugin for Linux amd64 using Docker (#82)
 - Fix UDP test compilation error (#88)
