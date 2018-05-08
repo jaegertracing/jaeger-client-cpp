@@ -1,9 +1,13 @@
 Changes by Version
 ==================
 
-0.4.0 (unreleased)
+0.4.0 (2018-05-03)
 ------------------
-- Nothing yet
+- Build shared plugin for Linux amd64 using Docker (#82)
+- Fix UDP test compilation error (#88)
+- Fix usage of propagation headers config (#91)
+- Fix dynamic load build error (#92)
+- Use Thrift 0.11.0 (#94)
 
 
 0.3.0 (2018-04-17)
