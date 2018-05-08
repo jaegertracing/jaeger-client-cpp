@@ -65,7 +65,7 @@ TEST(DynamicLoad, invalidVersion)
     const void* errorCategory = nullptr;
     void* tracerFactory = nullptr;
     const auto rcode = OpenTracingMakeTracerFactory(
-        "1.0.0" /*invalid version*/, &errorCategory, &tracerFactory);
+        "0.0.0" /*invalid version*/, &errorCategory, &tracerFactory);
     ASSERT_EQ(rcode, opentracing::incompatible_library_versions_error.value());
     ASSERT_EQ(
         errorCategory,
