@@ -1,6 +1,11 @@
 Changes by Version
 ==================
 
+0.5.0 (unreleased)
+------------------
+- Nothing yet
+
+
 0.4.0 (2018-05-07)
 ------------------
 - Build shared plugin for Linux amd64 using Docker (#82)
