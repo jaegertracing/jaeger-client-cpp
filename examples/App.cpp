@@ -10,15 +10,15 @@ void setUpTracer(const char* configFilePath)
 {
     auto configYAML = YAML::LoadFile(configFilePath);
     auto config = jaegertracing::Config::parse(configYAML);
-    assert(config.reporter().logSpans());
-    auto tracer = jaegertracing::Tracer::make("example-service", config);
+    auto tracer = jaegertracing::Tracer::make(
+        "example-service", config, jaegertracing::logging::consoleLogger());
     opentracing::Tracer::InitGlobal(
         std::static_pointer_cast<opentracing::Tracer>(tracer));
 }
 
 void tracedSubroutine(const std::unique_ptr<opentracing::Span>& parentSpan)
 {
-    opentracing::Tracer::Global()->StartSpan(
+    auto span = opentracing::Tracer::Global()->StartSpan(
         "tracedSubroutine", { opentracing::ChildOf(&parentSpan->context()) });
 }
 
@@ -36,11 +36,7 @@ int main(int argc, char* argv[])
         std::cerr << "usage: " << argv[0] << " <config-yaml-path>\n";
         return 1;
     }
-    try {
-        setUpTracer(argv[1]);
-        tracedFunction();
-    } catch (const std::exception& ex) {
-        std::cerr << "Error: " << ex.what() << '\n';
-    }
+    setUpTracer(argv[1]);
+    tracedFunction();
     return 0;
 }
