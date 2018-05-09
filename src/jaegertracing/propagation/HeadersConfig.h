@@ -30,7 +30,7 @@ class HeadersConfig {
 
     static HeadersConfig parse(const YAML::Node& configYAML)
     {
-        if (!configYAML.IsMap()) {
+        if (!configYAML.IsDefined() || !configYAML.IsMap()) {
             return HeadersConfig();
         }
 
