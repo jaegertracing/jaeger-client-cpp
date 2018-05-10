@@ -56,7 +56,7 @@ hunter_add_package(opentracing-cpp)
 # OpenTracingConfig.cmake file
 find_package(OpenTracing CONFIG REQUIRED)
 list(APPEND LIBS OpenTracing::opentracing-static)
-list(APPEND package_deps opentracing-cpp)
+list(APPEND package_deps OpenTracing)
 
 hunter_add_package(nlohmann_json)
 find_package(nlohmann_json CONFIG REQUIRED)
