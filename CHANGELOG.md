@@ -1,9 +1,9 @@
 Changes by Version
 ==================
 
-0.5.0 (unreleased)
+0.4.1 (2018-05-10)
 ------------------
-- Nothing yet
+- Fix CMake config for OpenTracing dependency
 
 
 0.4.0 (2018-05-07)
