@@ -327,7 +327,7 @@ TEST(Tracer, testPropagation)
         std::ostringstream oss;
         oss << span->context();
         ASSERT_EQ(oss.str(), headerMap.at(kTraceContextHeaderName));
-        ASSERT_EQ("test baggage item value",
+        ASSERT_EQ("test%20baggage%20item%20value",
                   headerMap.at(std::string(kTraceBaggageHeaderPrefix) +
                                "test-baggage-item-key"));
         ReaderMock<opentracing::HTTPHeadersReader> headerReader(headerMap);

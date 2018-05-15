@@ -148,7 +148,7 @@ class Tracer : public opentracing::Tracer,
             return opentracing::make_expected_from_error<void>(
                 opentracing::invalid_span_context_error);
         }
-        _textPropagator.inject(*jaegerCtx, writer);
+        _httpHeaderPropagator.inject(*jaegerCtx, writer);
         return opentracing::make_expected();
     }
 
