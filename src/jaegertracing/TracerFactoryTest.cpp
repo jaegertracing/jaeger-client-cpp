@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "jaegertracing/Constants.h"
 #include "jaegertracing/TracerFactory.h"
+#include "jaegertracing/Constants.h"
 #include <gtest/gtest.h>
 
 namespace jaegertracing {
@@ -26,10 +26,6 @@ TEST(TracerFactory, testInvalidConfig)
                                              "abc: {",
                                              R"({
       "service_name": {}
-    })",
-                                             R"({
-      "service_name": "t",
-      "badField": 97
     })" };
     TracerFactory tracerFactory;
     for (auto&& invalidConfig : invalidConfigTestCases) {
