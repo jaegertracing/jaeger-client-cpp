@@ -33,7 +33,7 @@ class RestrictionsConfig {
 
     static RestrictionsConfig parse(const YAML::Node& configYAML)
     {
-        if (!configYAML.IsMap()) {
+        if (!configYAML.IsDefined() || !configYAML.IsMap()) {
             return RestrictionsConfig();
         }
 

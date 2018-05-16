@@ -63,6 +63,8 @@ find_package(nlohmann_json CONFIG REQUIRED)
 list(APPEND LIBS nlohmann_json)
 list(APPEND package_deps nlohmann_json)
 
+option(JAEGERTRACING_BUILD_EXAMPLES "Build examples" ON)
+
 option(JAEGERTRACING_COVERAGE "Build with coverage" $ENV{COVERAGE})
 option(JAEGERTRACING_BUILD_CROSSDOCK "Build crossdock" $ENV{CROSSDOCK})
 cmake_dependent_option(
@@ -239,6 +241,11 @@ configure_file(
   src/jaegertracing/Constants.h.in
   src/jaegertracing/Constants.h
   @ONLY)
+
+if(JAEGERTRACING_BUILD_EXAMPLES)
+  add_executable(app examples/App.cpp)
+  target_link_libraries(app PUBLIC ${JAEGERTRACING_LIB})
+endif()
 
 if(BUILD_TESTING)
   add_library(testutils
