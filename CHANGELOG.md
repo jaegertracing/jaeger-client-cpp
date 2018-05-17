@@ -1,9 +1,12 @@
 Changes by Version
 ==================
 
-0.5.0 (unreleased)
+0.4.1 (2018-05-16)
 ------------------
-- Nothing yet
+- Add example application (#101)
+- Improve CMake installation to allow use of lib64 directory (#102)
+- Fix CMake config for OpenTracing dependency (#103)
+- Fix tracer inject for HTTP headers (#107)
 
 
 0.4.0 (2018-05-07)
