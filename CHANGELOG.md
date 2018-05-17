@@ -1,6 +1,11 @@
 Changes by Version
 ==================
 
+0.5.0 (unreleased)
+------------------
+- Nothing yet
+
+
 0.4.1 (2018-05-16)
 ------------------
 - Add example application (#101)
