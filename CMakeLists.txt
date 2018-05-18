@@ -16,7 +16,7 @@ HunterGate(
     SHA1 "95fb7d11f0828746e2983b5f06ff7981a676da3f"
 )
 
-project(jaegertracing VERSION 0.4.1)
+project(jaegertracing VERSION 0.5.0)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID MATCHES "Clang")
