@@ -17,6 +17,8 @@
 #ifndef JAEGERTRACING_TESTUTILS_MOCKAGENT_H
 #define JAEGERTRACING_TESTUTILS_MOCKAGENT_H
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/baggage/RemoteRestrictionManager.h"
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/testutils/SamplingManager.h"

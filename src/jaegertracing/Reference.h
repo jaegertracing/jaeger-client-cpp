@@ -22,6 +22,7 @@
 
 #include <opentracing/propagation.h>
 
+#include "jaegertracing/Compilers.h"
 #include "jaegertracing/SpanContext.h"
 #include "jaegertracing/thrift-gen/jaeger_types.h"
 

@@ -17,6 +17,8 @@
 #ifndef JAEGERTRACING_REPORTERS_REPORTER_H
 #define JAEGERTRACING_REPORTERS_REPORTER_H
 
+#include "jaegertracing/Compilers.h"
+
 namespace jaegertracing {
 
 class Span;

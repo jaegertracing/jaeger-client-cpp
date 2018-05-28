@@ -21,8 +21,11 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <string>
-#include <sys/socket.h>
 #include <thread>
+
+#ifdef _MSC_VER
+#pragma warning(disable : 4267)
+#endif
 
 namespace jaegertracing {
 namespace testutils {

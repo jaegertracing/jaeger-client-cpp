@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2019 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,19 @@
  * limitations under the License.
  */
 
-#ifndef JAEGERTRACING_NET_HTTP_METHOD_H
-#define JAEGERTRACING_NET_HTTP_METHOD_H
+#ifndef JAEGERTRACING_COMPILERS_H
+#define JAEGERTRACING_COMPILERS_H
 
-#include <string>
+#ifdef _MSC_VER
 
-#undef DELETE
+#pragma warning(push)
+#pragma warning(disable : 4251)
+#pragma warning(disable : 4275)
 
-namespace jaegertracing {
-namespace net {
-namespace http {
+// Define NOMINMAX to inhibit definition of Macros min(a,b) and max(a,b) in
+// windows.h
+#define NOMINMAX
 
-enum class Method {
-    OPTIONS,
-    GET,
-    HEAD,
-    POST,
-    PUT,
-    DELETE,
-    TRACE,
-    CONNECT,
-    EXTENSION
-};
+#endif  // _MSC_VER
 
-Method parseMethod(const std::string& methodName);
-
-}  // namespace http
-}  // namespace net
-}  // namespace jaegertracing
-
-#endif  // JAEGERTRACING_NET_HTTP_METHOD_H
+#endif  // JAEGERTRACING_COMPILERS_H

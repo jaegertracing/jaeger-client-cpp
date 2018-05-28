@@ -26,6 +26,8 @@
 
 #include <opentracing/span.h>
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/TraceID.h"
 
 namespace jaegertracing {

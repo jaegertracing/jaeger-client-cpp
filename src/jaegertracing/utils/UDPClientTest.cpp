@@ -22,7 +22,6 @@
 #include <future>
 #include <gtest/gtest.h>
 #include <stdexcept>
-#include <sys/socket.h>
 #include <thread>
 #include <vector>
 

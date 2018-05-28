@@ -17,6 +17,8 @@
 #ifndef JAEGERTRACING_SAMPLERS_PROBABILISTICSAMPLER_H
 #define JAEGERTRACING_SAMPLERS_PROBABILISTICSAMPLER_H
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/Tag.h"
 #include "jaegertracing/TraceID.h"

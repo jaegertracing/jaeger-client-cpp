@@ -39,7 +39,7 @@ constexpr auto kTestOperationName = "op";
 constexpr auto kTestFirstTimeOperationName = "firstTimeOp";
 constexpr auto kTestDefaultSamplingProbability = 0.5;
 constexpr auto kTestMaxID =
-    static_cast<long double>(std::numeric_limits<uint64_t>::max()) / 2.0 + 1;
+    std::numeric_limits<uint64_t>::max() / 2 + 1;
 constexpr auto kTestDefaultMaxOperations = 10;
 
 const Tag testProbablisticExpectedTags[] = {

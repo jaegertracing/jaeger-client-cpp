@@ -21,6 +21,7 @@
 #include <iomanip>
 #include <iostream>
 #include <regex>
+#include <cctype>
 
 namespace jaegertracing {
 namespace net {

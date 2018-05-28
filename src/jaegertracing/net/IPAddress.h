@@ -17,11 +17,6 @@
 #ifndef JAEGERTRACING_NET_IPADDRESS_H
 #define JAEGERTRACING_NET_IPADDRESS_H
 
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include <array>
 #include <cassert>
@@ -32,6 +27,24 @@
 #include <stdexcept>
 #include <system_error>
 #include <vector>
+
+#include "jaegertracing/Compilers.h"
+
+#ifdef WIN32
+#include <winsock2.h>
+#include <iphlpapi.h>
+#include <ws2tcpip.h>
+#include <windows.h> 
+#else
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
+
+
 
 struct ifaddrs;
 
@@ -66,8 +79,6 @@ class IPAddress {
     }
 
     static IPAddress localIP(int family);
-
-    static IPAddress localIP(std::function<bool(const ifaddrs*)> filter);
 
     IPAddress()
         : _addr()
@@ -165,8 +176,7 @@ class IPAddress {
     }
 
   private:
-    static IPAddress
-    versionFromString(const std::string& ip, int port, int family);
+    static IPAddress versionFromString(const std::string& ip, int port, int family);
 
     ::sockaddr_storage _addr;
     ::socklen_t _addrLen;

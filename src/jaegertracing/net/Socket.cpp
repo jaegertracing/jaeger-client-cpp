@@ -15,3 +15,70 @@
  */
 
 #include "jaegertracing/net/Socket.h"
+
+#ifdef WIN32
+
+#include <stdio.h>
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#endif
+
+namespace jaegertracing {
+namespace net {
+
+namespace {
+
+    
+void initSocket()
+{
+#ifdef WIN32
+    /* Use the MAKEWORD(lowbyte, highbyte) macro declared in Windef.h */
+    WORD wVersionRequested = MAKEWORD(2, 2);
+
+    WSADATA wsaData;
+    int err = WSAStartup(wVersionRequested, &wsaData);
+    if (err != 0) {
+        std::ostringstream oss;
+        oss << "Failed to find a usable Winsock DLL. WSAStartup failed with "
+               "error "
+            << err;
+        throw std::system_error(errno, std::system_category(), oss.str());
+    }
+
+    /* Confirm that the WinSock DLL supports 2.2.*/
+    /* Note that if the DLL supports versions greater    */
+    /* than 2.2 in addition to 2.2, it will still return */
+    /* 2.2 in wVersion since that is the version we      */
+    /* requested.                                        */
+
+    if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
+        WSACleanup();
+
+        std::ostringstream oss;
+        oss << "Failed to find a usable Winsock DLL. WSAStartup failed with "
+               "error "
+            << err;
+        throw std::system_error(errno, std::system_category(), oss.str());
+    }
+#endif
+}
+
+void cleanSocket()
+{
+#ifdef WIN32
+    WSACleanup();
+#endif
+}
+
+}
+
+
+Socket::OSResource::OSResource() { initSocket(); }
+
+Socket::OSResource::~OSResource() { cleanSocket(); }
+
+
+}  // namespace net
+}  // namespace jaegertracing

@@ -17,6 +17,7 @@
 #ifndef JAEGERTRACING_SAMPLERS_GUARANTEEDTHROUGHPUTPROBABILISTICSAMPLER_H
 #define JAEGERTRACING_SAMPLERS_GUARANTEEDTHROUGHPUTPROBABILISTICSAMPLER_H
 
+#include "jaegertracing/Compilers.h"
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/Tag.h"
 #include "jaegertracing/samplers/ProbabilisticSampler.h"
@@ -34,7 +35,8 @@ class TraceID;
 namespace jaegertracing {
 namespace samplers {
 
-class GuaranteedThroughputProbabilisticSampler : public Sampler {
+class GuaranteedThroughputProbabilisticSampler : public Sampler
+{
   public:
     GuaranteedThroughputProbabilisticSampler(double lowerBound,
                                              double samplingRate)

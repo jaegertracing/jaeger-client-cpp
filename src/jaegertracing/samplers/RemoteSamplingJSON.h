@@ -17,6 +17,8 @@
 #ifndef JAEGERTRACING_SAMPLERS_REMOTESAMPLINGJSON_H
 #define JAEGERTRACING_SAMPLERS_REMOTESAMPLINGJSON_H
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/thrift-gen/sampling_types.h"
 #include <cstdint>
 #include <iterator>
@@ -31,6 +33,8 @@ namespace jaegertracing {
 namespace sampling_manager {
 namespace thrift {
 
+const std::map<int, const char*>& samplingStrategyType_VALUES_TO_NAMES();
+
 #define JSON_FROM_FIELD(var, field)                                            \
     {                                                                          \
         json[#field] = var.field;                                              \
@@ -44,7 +48,7 @@ namespace thrift {
 inline void to_json(nlohmann::json& json,
                     const SamplingStrategyType::type& type)
 {
-    json = _SamplingStrategyType_VALUES_TO_NAMES.at(static_cast<int>(type));
+    json = samplingStrategyType_VALUES_TO_NAMES().at(static_cast<int>(type));
 }
 
 inline void from_json(const nlohmann::json& json,

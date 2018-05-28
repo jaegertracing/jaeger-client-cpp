@@ -25,6 +25,7 @@
 #include <opentracing/noop.h>
 #include <opentracing/tracer.h>
 
+#include "jaegertracing/Compilers.h"
 #include "jaegertracing/Config.h"
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/Logging.h"
@@ -83,29 +84,7 @@ class Tracer : public opentracing::Tracer,
          const Config& config,
          const std::shared_ptr<logging::Logger>& logger,
          metrics::StatsFactory& statsFactory,
-         int options)
-    {
-        if (serviceName.empty()) {
-            throw std::invalid_argument("no service name provided");
-        }
-
-        if (config.disabled()) {
-            return opentracing::MakeNoopTracer();
-        }
-
-        auto metrics = std::make_shared<metrics::Metrics>(statsFactory);
-        std::shared_ptr<samplers::Sampler> sampler(
-            config.sampler().makeSampler(serviceName, *logger, *metrics));
-        std::shared_ptr<reporters::Reporter> reporter(
-            config.reporter().makeReporter(serviceName, *logger, *metrics));
-        return std::shared_ptr<Tracer>(new Tracer(serviceName,
-                                                  sampler,
-                                                  reporter,
-                                                  logger,
-                                                  metrics,
-                                                  config.headers(),
-                                                  options));
-    }
+         int options);
 
     ~Tracer() { Close(); }
 

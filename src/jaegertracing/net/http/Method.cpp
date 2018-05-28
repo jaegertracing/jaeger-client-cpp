@@ -25,9 +25,16 @@ namespace http {
 
 Method parseMethod(const std::string& methodName)
 {
+#ifdef WIN32
+    static constexpr char* kMethodNames[] = { "OPTIONS", "GET",    "HEAD",
+                                           "POST",    "PUT",    "DELETE",
+                                           "TRACE",   "CONNECT" };
+#else
     static constexpr auto kMethodNames = { "OPTIONS", "GET",    "HEAD",
                                            "POST",    "PUT",    "DELETE",
                                            "TRACE",   "CONNECT" };
+#endif
+
 
     auto itr =
         std::find(std::begin(kMethodNames), std::end(kMethodNames), methodName);

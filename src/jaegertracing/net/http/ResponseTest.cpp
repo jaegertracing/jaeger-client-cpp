@@ -24,13 +24,31 @@
 #include <gtest/gtest.h>
 #include <ostream>
 #include <string>
-#include <sys/socket.h>
 #include <thread>
-#include <unistd.h>
+
+#ifdef _MSC_VER
+#pragma warning(disable : 4267)
+#pragma warning(disable : 4244)
+#endif
 
 namespace jaegertracing {
 namespace net {
 namespace http {
+
+namespace {
+
+#ifdef WIN32
+#define READ_ERROR SOCKET_ERROR
+#else
+#define READ_ERROR -1
+#endif
+
+static size_t read(int socketHandle, char* buffer, size_t size)
+{
+    int returnValue = ::recv(socketHandle, buffer, size, 0);
+    return (returnValue == READ_ERROR) ? 0 : returnValue;
+}
+}
 
 TEST(Response, get)
 {
@@ -58,8 +76,8 @@ TEST(Response, get)
 
     auto clientSocket = socket.accept();
     std::array<char, 256> buffer;
-    const auto numRead =
-        ::read(clientSocket.handle(), &buffer[0], buffer.size());
+
+    const auto numRead = read(clientSocket.handle(), &buffer[0], buffer.size());
 
     std::ostringstream oss;
     oss << "GET / HTTP/1.1\r\n"
@@ -74,7 +92,7 @@ TEST(Response, get)
     std::string response("HTTP/1.1 200 OK\r\n\r\n");
     response.append(buffer.size() * 2, '0');
     const auto numWritten =
-        ::write(clientSocket.handle(), response.c_str(), response.size());
+        ::send(clientSocket.handle(), response.c_str(), response.size(), 0);
     ASSERT_EQ(response.size(), numWritten);
 
     clientThread.join();

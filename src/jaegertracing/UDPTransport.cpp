@@ -27,6 +27,10 @@
 #include <thrift/protocol/TCompactProtocol.h>
 #include <thrift/transport/TBufferTransports.h>
 
+#ifdef _MSC_VER
+#pragma warning(disable : 4267) // Conversion from unsigned to signed. It should not be a problem here.
+#endif
+
 namespace jaegertracing {
 namespace net {
 class IPAddress;

@@ -20,7 +20,17 @@
 #include <errno.h>
 #include <string>
 #include <system_error>
+
+#ifdef WIN32
+#include <Winsock2.h>
+#else
 #include <unistd.h>
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4267)
+#endif
 
 namespace jaegertracing {
 namespace platform {
@@ -40,5 +50,9 @@ inline std::string hostname()
 
 }  // namespace platform
 }  // namespace jaegertracing
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif  // JAEGERTRACING_PLATFORM_HOSTNAME_H
