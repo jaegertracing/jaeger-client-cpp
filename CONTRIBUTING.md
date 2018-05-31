@@ -38,6 +38,7 @@ by the Linux Kernel community and is a simple statement that you, as a
 contributor, have the legal right to make the contribution. See the [DCO](DCO)
 file for details.
 
+```
 /*
  * Copyright (c) 2018, The Jaeger Authors
  *
