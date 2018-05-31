@@ -1,13 +1,46 @@
 [![Build Status][ci-img]][ci] [![Coverage Status][cov-img]][cov] [![OpenTracing 1.0 Enabled][ot-img]][ot-url]
 
 # jaeger-client-cpp
-C++ OpenTracing binding for Jaeger
+C++ OpenTracing binding for [Jaeger](https://www.jaegertracing.io/)
 
 ## Contributing
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Generated files
+## Building
+
+jaeger-client-cpp is built using CMake. It will automatically download
+needed dependencies using [Hunter](https://docs.hunter.sh/en/latest/).
+
+To build:
+
+```bash
+    mkdir build
+    cd build
+    cmake ..
+    make
+```
+
+After building, the [example](./examples/App.cpp) program can be run
+with:
+
+```bash
+    ./app ../examples/config.yml
+```
+
+To run tests:
+
+```bash
+    make test
+```
+
+To install the library:
+
+```bash
+    make install
+```
+
+### Generated files
 
 This project uses Apache Thrift for wire-format protocol support code
 generation. It currently requires Thrift 0.11.0.
