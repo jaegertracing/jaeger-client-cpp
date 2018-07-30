@@ -12,8 +12,8 @@ set(HUNTER_CONFIGURATION_TYPES "Release;Debug" CACHE STRING
 include(CMakeDependentOption)
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.20.70.tar.gz"
-    SHA1 "95fb7d11f0828746e2983b5f06ff7981a676da3f"
+    URL "https://github.com/ruslo/hunter/archive/v0.23.5.tar.gz"
+    SHA1 "2c5c6fc1cf609d0856695d60f147594daf4e6b3e"
 )
 
 project(jaegertracing VERSION 0.5.0)
