@@ -36,7 +36,8 @@ int JaegerTracingMakeTracerFactoryFct(const char* opentracing_version,
         static_cast<const void*>(&opentracing::dynamic_load_error_category());
     return opentracing::dynamic_load_not_supported_error.value();
 #endif
-    if (std::strcmp(opentracing_version, OPENTRACING_VERSION) != 0) {
+    if (std::strcmp(opentracing_version, OPENTRACING_VERSION) != 0 ||
+        std::strcmp(opentracing_abi_version, OPENTRACING_ABI_VERSION) != 0) {
         *error_category = static_cast<const void*>(
             &opentracing::dynamic_load_error_category());
         return opentracing::incompatible_library_versions_error.value();
