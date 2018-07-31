@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef JAEGERTRACING_TRACER_FACTORY_H
-#define JAEGERTRACING_TRACER_FACTORY_H
+#ifndef JAEGERTRACING_DYNAMIC_LOAD_H
+#define JAEGERTRACING_DYNAMIC_LOAD_H
 
-#include <opentracing/tracer_factory.h>
+int JaegerTracingMakeTracerFactoryFct(const char* opentracing_version,
+                                      const char* opentracing_abi_version,
+                                      const void** error_category,
+                                      void* error_message,
+                                      void** tracer_factory);
 
-namespace jaegertracing {
-
-class TracerFactory : public opentracing::TracerFactory {
-  public:
-    opentracing::expected<std::shared_ptr<opentracing::Tracer>>
-    MakeTracer(const char* configuration, std::string& errorMessage) const
-        noexcept override;
-};
-
-}  // namespace jaegertracing
-
-#endif  // JAEGERTRACING_TRACER_FACTORY_H
+#endif  // JAEGERTRACING_DYNAMIC_LOAD_H

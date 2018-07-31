@@ -286,9 +286,6 @@ if(BUILD_TESTING)
       src/jaegertracing/utils/ErrorUtilTest.cpp
       src/jaegertracing/utils/RateLimiterTest.cpp
       src/jaegertracing/utils/UDPClientTest.cpp)
-  target_compile_definitions(UnitTest PUBLIC
-      GTEST_HAS_TR1_TUPLE=0
-      GTEST_USE_OWN_TR1_TUPLE=0)
   target_link_libraries(
       UnitTest PRIVATE testutils GTest::main)
   add_test(NAME UnitTest COMMAND UnitTest)

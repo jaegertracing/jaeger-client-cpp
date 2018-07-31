@@ -16,9 +16,11 @@
 #include <iostream>
 #include <string>
 
-#include "jaegertracing/Constants.h"
 #include <gtest/gtest.h>
 #include <opentracing/dynamic_load.h>
+
+#include "jaegertracing/Constants.h"
+#include "jaegertracing/DynamicLoad.h"
 
 namespace jaegertracing {
 namespace {
@@ -64,8 +66,9 @@ TEST(DynamicLoad, invalidVersion)
 {
     const void* errorCategory = nullptr;
     void* tracerFactory = nullptr;
-    const auto rcode = OpenTracingMakeTracerFactory(
-        "0.0.0" /*invalid version*/, &errorCategory, &tracerFactory);
+    std::string errorMessage;
+    const auto rcode = JaegerTracingMakeTracerFactoryFct(
+        "0.0.0" /*invalid version*/, "0.0.0", &errorCategory, &errorMessage, &tracerFactory);
     ASSERT_EQ(rcode, opentracing::incompatible_library_versions_error.value());
     ASSERT_EQ(
         errorCategory,
@@ -77,8 +80,9 @@ TEST(DynamicLoad, validVersion)
 {
     const void* errorCategory = nullptr;
     void* tracerFactory = nullptr;
-    const auto rcode = OpenTracingMakeTracerFactory(
-        OPENTRACING_VERSION, &errorCategory, &tracerFactory);
+    std::string errorMessage;
+    const auto rcode = JaegerTracingMakeTracerFactoryFct(
+        OPENTRACING_VERSION, OPENTRACING_ABI_VERSION, &errorCategory, &errorMessage, &tracerFactory);
     ASSERT_EQ(rcode, 0);
     ASSERT_EQ(errorCategory, nullptr);
     ASSERT_NE(tracerFactory, nullptr);
