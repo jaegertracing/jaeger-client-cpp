@@ -19,37 +19,35 @@
 
 #include <opentracing/dynamic_load.h>
 
-#include "jaegertracing/DynamicLoad.h"
 #include "jaegertracing/Tracer.h"
 #include "jaegertracing/TracerFactory.h"
 
-int JaegerTracingMakeTracerFactoryFct(const char* opentracing_version,
-                                           const char* opentracing_abi_version,
-                                           const void** error_category,
-                                           void* error_message,
-                                           void** tracer_factory)
+static int makeTracerFactory(const char* opentracingVersion,
+                             const char* opentracingABIVersion,
+                             const void** errorCategory,
+                             void* errorMessage,
+                             void** tracerFactory)
 {
-    assert(error_category != nullptr);
-    assert(tracer_factory != nullptr);
+    assert(errorCategory != nullptr);
+    assert(tracerFactory != nullptr);
 #ifndef JAEGERTRACING_WITH_YAML_CPP
     *errorCategory =
-        static_cast<const void*>(&opentracing::dynamic_load_error_category());
+        static_cast<const void*>(&opentracing::dynamic_load_errorCategory());
     return opentracing::dynamic_load_not_supported_error.value();
 #endif
-    if (std::strcmp(opentracing_version, OPENTRACING_VERSION) != 0 ||
-        std::strcmp(opentracing_abi_version, OPENTRACING_ABI_VERSION) != 0) {
-        *error_category = static_cast<const void*>(
+    if (std::strcmp(opentracingABIVersion, OPENTRACING_ABI_VERSION) != 0) {
+        *errorCategory = static_cast<const void*>(
             &opentracing::dynamic_load_error_category());
         return opentracing::incompatible_library_versions_error.value();
     }
 
-    *tracer_factory = new (std::nothrow) jaegertracing::TracerFactory{};
-    if (*tracer_factory == nullptr) {
-        *error_category = static_cast<const void*>(&std::generic_category());
+    *tracerFactory = new (std::nothrow) jaegertracing::TracerFactory{};
+    if (*tracerFactory == nullptr) {
+        *errorCategory = static_cast<const void*>(&std::generic_category());
         return static_cast<int>(std::errc::not_enough_memory);
     }
 
     return 0;
 }
 
-OPENTRACING_DECLARE_IMPL_FACTORY(JaegerTracingMakeTracerFactoryFct)
+OPENTRACING_DECLARE_IMPL_FACTORY(makeTracerFactory)

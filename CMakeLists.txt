@@ -255,12 +255,8 @@ if(BUILD_TESTING)
       src/jaegertracing/testutils/TracerUtil.cpp)
   target_link_libraries(testutils PUBLIC ${JAEGERTRACING_LIB})
 
-  if(BUILD_SHARED_LIBS)
-    set(dynamic_load_test_src src/jaegertracing/DynamicLoadTest.cpp)
-  endif()
   add_executable(UnitTest
       src/jaegertracing/ConfigTest.cpp
-      ${dynamic_load_test_src}
       src/jaegertracing/ReferenceTest.cpp
       src/jaegertracing/SpanContextTest.cpp
       src/jaegertracing/SpanTest.cpp
