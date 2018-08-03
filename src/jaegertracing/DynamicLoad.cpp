@@ -32,7 +32,7 @@ static int makeTracerFactory(const char* opentracingVersion,
     assert(tracerFactory != nullptr);
 #ifndef JAEGERTRACING_WITH_YAML_CPP
     *errorCategory =
-        static_cast<const void*>(&opentracing::dynamic_load_errorCategory());
+        static_cast<const void*>(&opentracing::dynamic_load_error_category());
     return opentracing::dynamic_load_not_supported_error.value();
 #endif
     if (std::strcmp(opentracingABIVersion, OPENTRACING_ABI_VERSION) != 0) {
