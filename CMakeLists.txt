@@ -12,8 +12,8 @@ set(HUNTER_CONFIGURATION_TYPES "Release;Debug" CACHE STRING
 include(CMakeDependentOption)
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.20.70.tar.gz"
-    SHA1 "95fb7d11f0828746e2983b5f06ff7981a676da3f"
+    URL "https://github.com/ruslo/hunter/archive/v0.23.5.tar.gz"
+    SHA1 "2c5c6fc1cf609d0856695d60f147594daf4e6b3e"
 )
 
 project(jaegertracing VERSION 0.5.0)
@@ -255,12 +255,8 @@ if(BUILD_TESTING)
       src/jaegertracing/testutils/TracerUtil.cpp)
   target_link_libraries(testutils PUBLIC ${JAEGERTRACING_LIB})
 
-  if(BUILD_SHARED_LIBS)
-    set(dynamic_load_test_src src/jaegertracing/DynamicLoadTest.cpp)
-  endif()
   add_executable(UnitTest
       src/jaegertracing/ConfigTest.cpp
-      ${dynamic_load_test_src}
       src/jaegertracing/ReferenceTest.cpp
       src/jaegertracing/SpanContextTest.cpp
       src/jaegertracing/SpanTest.cpp
@@ -286,9 +282,6 @@ if(BUILD_TESTING)
       src/jaegertracing/utils/ErrorUtilTest.cpp
       src/jaegertracing/utils/RateLimiterTest.cpp
       src/jaegertracing/utils/UDPClientTest.cpp)
-  target_compile_definitions(UnitTest PUBLIC
-      GTEST_HAS_TR1_TUPLE=0
-      GTEST_USE_OWN_TR1_TUPLE=0)
   target_link_libraries(
       UnitTest PRIVATE testutils GTest::main)
   add_test(NAME UnitTest COMMAND UnitTest)

@@ -19,12 +19,14 @@
 
 #include <opentracing/dynamic_load.h>
 
-#include "TracerFactory.h"
 #include "jaegertracing/Tracer.h"
+#include "jaegertracing/TracerFactory.h"
 
-int OpenTracingMakeTracerFactory(const char* opentracingVersion,
-                                 const void** errorCategory,
-                                 void** tracerFactory)
+static int makeTracerFactory(const char* opentracingVersion,
+                             const char* opentracingABIVersion,
+                             const void** errorCategory,
+                             void* errorMessage,
+                             void** tracerFactory)
 {
     assert(errorCategory != nullptr);
     assert(tracerFactory != nullptr);
@@ -33,7 +35,7 @@ int OpenTracingMakeTracerFactory(const char* opentracingVersion,
         static_cast<const void*>(&opentracing::dynamic_load_error_category());
     return opentracing::dynamic_load_not_supported_error.value();
 #endif
-    if (std::strcmp(opentracingVersion, OPENTRACING_VERSION) != 0) {
+    if (std::strcmp(opentracingABIVersion, OPENTRACING_ABI_VERSION) != 0) {
         *errorCategory = static_cast<const void*>(
             &opentracing::dynamic_load_error_category());
         return opentracing::incompatible_library_versions_error.value();
@@ -47,3 +49,5 @@ int OpenTracingMakeTracerFactory(const char* opentracingVersion,
 
     return 0;
 }
+
+OPENTRACING_DECLARE_IMPL_FACTORY(makeTracerFactory)

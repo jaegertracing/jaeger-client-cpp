@@ -27,6 +27,7 @@ class TracerFactory : public opentracing::TracerFactory {
     MakeTracer(const char* configuration, std::string& errorMessage) const
         noexcept override;
 };
+
 }  // namespace jaegertracing
 
 #endif  // JAEGERTRACING_TRACER_FACTORY_H
