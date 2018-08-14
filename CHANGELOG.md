@@ -1,9 +1,10 @@
 Changes by Version
 ==================
 
-0.5.0 (unreleased)
+0.4.2 (2018-08-14)
 ------------------
-- Nothing yet
+- Fix `tracer.Inject(..., HTTPHeadersWriter&)` (#107)
+- Upgrade dynamic loading API (#120)
 
 
 0.4.1 (2018-05-16)
