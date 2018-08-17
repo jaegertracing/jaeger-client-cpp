@@ -1,6 +1,11 @@
 Changes by Version
 ==================
 
+0.5.0 (unreleased)
+------------------
+- Nothing yet
+
+
 0.4.2 (2018-08-14)
 ------------------
 - Fix `tracer.Inject(..., HTTPHeadersWriter&)` (#107)
