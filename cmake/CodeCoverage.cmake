@@ -82,13 +82,14 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang")
     if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS 3)
         message(FATAL_ERROR "Clang version must be 3.0.0 or greater! Aborting...")
     endif()
-    set(COVERAGE_COMPILER_FLAGS "-Qunused-arguments")
+    list(APPEND COVERAGE_COMPILER_FLAGS -Qunused-arguments)
 elseif(NOT CMAKE_COMPILER_IS_GNUCXX)
     message(FATAL_ERROR "Compiler is not GNU gcc! Aborting...")
 endif()
 
-set(COVERAGE_COMPILER_FLAGS "${COVERAGE_COMPILER_FLAGS} -g -O0 --coverage -fprofile-arcs -ftest-coverage"
-    CACHE INTERNAL "")
+list(APPEND COVERAGE_COMPILER_FLAGS
+     -g -O0 --coverage -fprofile-arcs -ftest-coverage)
+set(COVERAGE_COMPILER_FLAGS ${COVERAGE_COMPILER_FLAGS} CACHE INTERNAL "")
 
 set(CMAKE_CXX_FLAGS_COVERAGE
     ${COVERAGE_COMPILER_FLAGS}
@@ -174,8 +175,6 @@ function(setup_target_for_coverage)
     )
 endfunction() # setup_target_for_coverage
 
-function(append_coverage_compiler_flags)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COVERAGE_COMPILER_FLAGS}" PARENT_SCOPE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COVERAGE_COMPILER_FLAGS}" PARENT_SCOPE)
-    message(STATUS "Appending code coverage compiler flags: ${COVERAGE_COMPILER_FLAGS}")
+function(append_coverage_compiler_flags flags_var)
+    set(${flags_var} ${${flags_var}} ${COVERAGE_COMPILER_FLAGS} PARENT_SCOPE)
 endfunction() # append_coverage_compiler_flags

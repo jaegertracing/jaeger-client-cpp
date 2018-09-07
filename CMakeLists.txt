@@ -18,13 +18,18 @@ HunterGate(
 
 project(jaegertracing VERSION 0.5.0)
 
+option(JAEGERTRACING_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pedantic")
+  set(cxx_flags -Wall -pedantic)
+  if(JAEGERTRACING_WARNINGS_AS_ERRORS)
+    list(APPEND cxx_flags -Werror)
+  endif()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
+  list(APPEND cxx_flags -Wno-unused-private-field)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -91,7 +96,8 @@ if(BUILD_TESTING)
 
   if(JAEGERTRACING_COVERAGE)
       include(CodeCoverage)
-      append_coverage_compiler_flags()
+      append_coverage_compiler_flags(cxx_flags)
+      append_coverage_compiler_flags(link_flags)
       set(COVERAGE_EXCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/src/jaegertracing/thrift-gen/*"
                             "*Test.cpp")
   endif()
@@ -200,7 +206,8 @@ function(add_lib_deps lib)
   target_include_directories(${lib} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>)
-  target_link_libraries(${lib} PUBLIC ${LIBS})
+  target_link_libraries(${lib} PUBLIC ${link_flags} ${LIBS})
+  target_compile_options(${lib} PUBLIC ${cxx_flags})
 endfunction()
 
 option(JAEGERTRACING_PLUGIN "Build dynamic plugin" OFF)
