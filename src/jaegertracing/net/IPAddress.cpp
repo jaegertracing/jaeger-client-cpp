@@ -15,6 +15,7 @@
  */
 
 #include "jaegertracing/net/IPAddress.h"
+#include "jaegertracing/platform/Hostname.h"
 
 #include <ifaddrs.h>
 #include <sys/types.h>
@@ -36,6 +37,12 @@ struct IfAddrDeleter : public std::function<void(ifaddrs*)> {
 
 IPAddress IPAddress::localIP(int family)
 {
+    try {
+        return versionFromString(platform::hostname(), 0, family);
+    } catch (const std::exception& e) {
+        // Fall back to returning the first matching interface
+    }
+
     return localIP([family](const ifaddrs* ifAddr) {
         return ifAddr->ifa_addr != nullptr &&
                ifAddr->ifa_addr->sa_family == family;
