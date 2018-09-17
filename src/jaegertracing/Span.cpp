@@ -97,7 +97,7 @@ void Span::FinishWithOptions(
         }
         _duration = finishTimeSteady - _startTimeSteady;
         if (_duration <= SteadyClock::duration()) {
-            // Enfoce minimum duration of 1 tick (1ns on Linux),
+            // Enforce minimum duration of 1 tick (1ns on Linux),
             // so isFinished() returns true
             _duration = SteadyClock::duration(1);
         }
