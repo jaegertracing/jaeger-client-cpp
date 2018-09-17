@@ -39,7 +39,7 @@ IPAddress IPAddress::localIP(int family)
 {
     try {
         return versionFromString(platform::hostname(), 0, family);
-    } catch (const std::exception& e) {
+    } catch (...) {
         // Fall back to returning the first matching interface
     }
 
