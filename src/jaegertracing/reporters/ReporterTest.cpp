@@ -74,13 +74,10 @@ TEST(Reporter, testRemoteReporter)
     constexpr auto kNumReports = 100;
     for (auto i = 0; i < kNumReports; ++i) {
         reporter.report(span);
-        if ((i + 1) % kFixedQueueSize > 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
-            std::lock_guard<std::mutex> lock(mutex);
-            ASSERT_EQ(i + 1, spans.size());
-        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     reporter.close();
+    ASSERT_EQ(spans.size(), kNumReports);
 }
 
 TEST(Reporter, testNullReporter)
