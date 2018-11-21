@@ -19,6 +19,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -162,6 +163,13 @@ class SpanContext : public opentracing::SpanContext {
         const override
     {
         forEachBaggageItem(f);
+    }
+
+    std::unique_ptr<opentracing::SpanContext> Clone() const noexcept
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        return std::unique_ptr<opentracing::SpanContext>(
+            new SpanContext(*this));
     }
 
     friend bool operator==(const SpanContext& lhs, const SpanContext& rhs)
