@@ -147,11 +147,12 @@ class IPAddress {
         const auto* addrStr = ::inet_ntop(
             af,
             af == AF_INET
-                ? static_cast<const void*>(
-                      &reinterpret_cast<const ::sockaddr_in&>(_addr).sin_addr)
-                : static_cast<const void*>(
-                      &reinterpret_cast<const ::sockaddr_in6&>(_addr)
-                           .sin6_addr),
+                ? const_cast<void*>(
+                    static_cast<const void*>(
+                        &reinterpret_cast<const ::sockaddr_in&>(_addr).sin_addr))
+                : const_cast<void*>(
+                    static_cast<const void*>(
+                        &reinterpret_cast<const ::sockaddr_in6&>(_addr).sin6_addr)),
             &buffer[0],
             buffer.size());
         return addrStr ? addrStr : "";
