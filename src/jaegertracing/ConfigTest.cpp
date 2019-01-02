@@ -73,6 +73,18 @@ TEST(Config, testDefaultSamplingProbability)
               Config().sampler().param());
 }
 
+TEST(Config, testZeroSamplingParam)
+{
+    {
+        constexpr auto kConfigYAML = R"cfg(
+sampler:
+    param: 0
+)cfg";
+        const auto config = Config::parse(YAML::Load(kConfigYAML));
+        ASSERT_EQ(0, config.sampler().param());
+    }
+}
+
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
 }  // namespace jaegertracing

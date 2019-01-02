@@ -61,7 +61,7 @@ class Config {
         const auto type =
             utils::yaml::findOrDefault<std::string>(configYAML, "type", "");
         const auto param =
-            utils::yaml::findOrDefault<double>(configYAML, "param", 0);
+            utils::yaml::findOrDefault<double>(configYAML, "param", -1);
         const auto samplingServerURL = utils::yaml::findOrDefault<std::string>(
             configYAML, "samplingServerURL", "");
         const auto maxOperations =
@@ -86,7 +86,7 @@ class Config {
         const Clock::duration& samplingRefreshInterval =
             defaultSamplingRefreshInterval())
         : _type(type.empty() ? kSamplerTypeRemote : type)
-        , _param(param == 0 ? kDefaultSamplingProbability : param)
+        , _param(param == -1 ? kDefaultSamplingProbability : param)
         , _samplingServerURL(samplingServerURL.empty()
                                  ? kDefaultSamplingServerURL
                                  : samplingServerURL)
