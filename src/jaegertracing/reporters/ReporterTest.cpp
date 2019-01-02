@@ -74,6 +74,7 @@ TEST(Reporter, testRemoteReporter)
     constexpr auto kNumReports = 100;
     for (auto i = 0; i < kNumReports; ++i) {
         reporter.report(span);
+        // TODO(isaachier): Find a way to make this test more rigorous.
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     reporter.close();
