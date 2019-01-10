@@ -84,8 +84,8 @@ list(APPEND package_deps OpenTracing)
 
 hunter_add_package(nlohmann_json)
 find_package(nlohmann_json CONFIG REQUIRED)
-list(APPEND LIBS  nlohmann_json::nlohmann_json)
-list(APPEND package_deps  nlohmann_json::nlohmann_json)
+list(APPEND LIBS nlohmann_json::nlohmann_json)
+list(APPEND package_deps nlohmann_json)
 
 option(JAEGERTRACING_BUILD_EXAMPLES "Build examples" ON)
 
