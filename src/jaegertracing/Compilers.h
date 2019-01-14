@@ -25,7 +25,9 @@
 
 // Define NOMINMAX to inhibit definition of Macros min(a,b) and max(a,b) in
 // windows.h
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 
 #endif  // _MSC_VER
 
