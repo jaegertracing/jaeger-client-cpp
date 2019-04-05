@@ -53,6 +53,28 @@ The code can be re-generated with
     $ git apply scripts/thrift-gen.patch
 ```
 
+### Updating Agent Host and Port
+
+The default agent host and port is `127.0.0.1:6831`, you can use a different host/port by updating your reporter configuration.
+
+YAML configuration:
+
+```yml
+repoter:
+  localAgentHostPort: localhost:6831
+```
+
+NOTE: It is not recommended to use a remote host for UDP connections.
+
+### Updating Sampling Server URL
+
+The default sampling collector URL is `http://127.0.0.1:5778`, you can use a different URL by updating the sampler configuration.
+
+```yml
+sampler:
+  samplingServerURL: http://jaeger-collector.local:5778
+```
+
 ## License
 
 [Apache 2.0 License](./LICENSE).
