@@ -73,6 +73,12 @@ TEST(Config, testDefaultSamplingProbability)
               Config().sampler().param());
 }
 
+TEST(Config, testDefaultSamplingServerURL)
+{
+    ASSERT_EQ(samplers::Config::kDefaultSamplingServerURL,
+              Config().sampler().samplingServerURL());
+}
+
 TEST(Config, testZeroSamplingParam)
 {
     {

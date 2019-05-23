@@ -68,7 +68,7 @@ NOTE: It is not recommended to use a remote host for UDP connections.
 
 ### Updating Sampling Server URL
 
-The default sampling collector URL is `http://127.0.0.1:5778`, you can use a different URL by updating the sampler configuration.
+The default sampling collector URL is `http://127.0.0.1:5778/sampling`, you can use a different URL by updating the sampler configuration.
 
 ```yml
 sampler:
