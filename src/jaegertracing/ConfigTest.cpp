@@ -75,7 +75,7 @@ TEST(Config, testDefaultSamplingProbability)
 
 TEST(Config, testDefaultSamplingServerURL)
 {
-    ASSERT_EQ(samplers::Config::kDefaultSamplingServerURL,
+    ASSERT_EQ("http://127.0.0.1:5778/sampling",
               Config().sampler().samplingServerURL());
 }
 
