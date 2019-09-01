@@ -10,14 +10,13 @@ platform:
 
 configuration:
   - Debug
-  - Release
 
 before_build:
   - cmake -H. -Bbuild -A%PLATFORM% -DBUILD_TESTING=ON
 
 build:
   project: build\jaegertracing.sln
-  parallel: false
+  parallel: true
   verbosity: normal
 
 test_script:
