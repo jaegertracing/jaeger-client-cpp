@@ -220,6 +220,7 @@ TEST(Tracer, testTracer)
                                    options)
             .release()));
     /*
+    TODO: https://github.com/jaegertracing/jaeger-client-cpp/issues/167
     const auto calculatedSystemTime =
         static_cast<Tracer::SystemClock::time_point>(
             opentracing::convert_time_point<Tracer::SystemClock>(
@@ -238,7 +239,9 @@ TEST(Tracer, testTracer)
         static_cast<Tracer::SteadyClock::time_point>(
             opentracing::convert_time_point<Tracer::SteadyClock>(
                 span->startTimeSystem()));
-    /*ASSERT_GE(std::chrono::milliseconds(10),
+    /*
+    TODO: https://github.com/jaegertracing/jaeger-client-cpp/issues/167
+    ASSERT_GE(std::chrono::milliseconds(10),
               absTimeDiff<Tracer::SteadyClock>(span->startTimeSteady(),
                                                calculatedSteadyTime));
 
@@ -247,10 +250,14 @@ TEST(Tracer, testTracer)
     span.reset(static_cast<Span*>(
         tracer->StartSpanWithOptions("test-span-with-both-timestamps", options)
             .release()));
+    // TODO: https://github.com/jaegertracing/jaeger-client-cpp/issues/167
+    
     // ASSERT_EQ(options.start_system_timestamp, span->startTimeSystem());
     // ASSERT_EQ(options.start_steady_timestamp, span->startTimeSteady());
 
     span.reset();
+
+    // TODO: https://github.com/jaegertracing/jaeger-client-cpp/issues/127
 
     // There is a problem here. After replacing the global tracer, the spans
     // produced hold the last references to the tracer. After they are
