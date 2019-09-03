@@ -19,7 +19,6 @@
 
 #include "jaegertracing/Compilers.h"
 #include "jaegertracing/Tag.h"
-#include "jaegertracing/thrift-gen/jaeger_types.h"
 #include <algorithm>
 #include <chrono>
 #include <iterator>
@@ -29,6 +28,9 @@
 #include <opentracing/span.h>
 
 namespace jaegertracing {
+namespace thrift {
+class Log;
+}
 
 class LogRecord {
   public:
@@ -48,9 +50,9 @@ class LogRecord {
     {
     }
 
-    LogRecord(const opentracing::LogRecord & other)
-        : _timestamp(other.timestamp),
-          _fields(other.fields.begin(), other.fields.end())
+    LogRecord(const opentracing::LogRecord& other)
+        : _timestamp(other.timestamp)
+        , _fields(other.fields.begin(), other.fields.end())
     {
     }
 
@@ -58,24 +60,7 @@ class LogRecord {
 
     const std::vector<Tag>& fields() const { return _fields; }
 
-    thrift::Log thrift() const
-    {
-        thrift::Log log;
-        log.__set_timestamp(
-            std::chrono::duration_cast<std::chrono::microseconds>(
-                _timestamp.time_since_epoch())
-                .count());
-
-        std::vector<thrift::Tag> fields;
-        fields.reserve(_fields.size());
-        std::transform(std::begin(_fields),
-                       std::end(_fields),
-                       std::back_inserter(fields),
-                       [](const Tag& tag) { return tag.thrift(); });
-        log.__set_fields(fields);
-
-        return log;
-    }
+    void thrift(thrift::Log& log) const;
 
   private:
     Clock::time_point _timestamp;

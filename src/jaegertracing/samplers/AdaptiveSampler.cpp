@@ -16,6 +16,7 @@
 
 #include "jaegertracing/samplers/AdaptiveSampler.h"
 #include "jaegertracing/samplers/GuaranteedThroughputProbabilisticSampler.h"
+#include "jaegertracing/thrift-gen/sampling_types.h"
 #include <cassert>
 #include <iterator>
 #include <memory>

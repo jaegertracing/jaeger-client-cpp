@@ -15,3 +15,25 @@
  */
 
 #include "jaegertracing/LogRecord.h"
+#include "jaegertracing/thrift-gen/jaeger_types.h"
+
+namespace jaegertracing {
+void LogRecord::thrift(thrift::Log& log) const
+{
+    log.__set_timestamp(std::chrono::duration_cast<std::chrono::microseconds>(
+                            _timestamp.time_since_epoch())
+                            .count());
+
+    std::vector<thrift::Tag> fields;
+    fields.reserve(_fields.size());
+    std::transform(std::begin(_fields),
+                   std::end(_fields),
+                   std::back_inserter(fields),
+                   [](const Tag& tag) {
+                       thrift::Tag thriftTag;
+                       tag.thrift(thriftTag);
+                       return thriftTag;
+                   });
+    log.__set_fields(fields);
+}
+}  // namespace jaegertracing

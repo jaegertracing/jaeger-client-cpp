@@ -20,8 +20,8 @@
 
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/Tag.h"
-#include "jaegertracing/samplers/Config.h"
 #include "jaegertracing/samplers/AdaptiveSampler.h"
+#include "jaegertracing/samplers/Config.h"
 #include "jaegertracing/samplers/ConstSampler.h"
 #include "jaegertracing/samplers/GuaranteedThroughputProbabilisticSampler.h"
 #include "jaegertracing/samplers/ProbabilisticSampler.h"
@@ -31,6 +31,7 @@
 #include "jaegertracing/samplers/SamplingStatus.h"
 #include "jaegertracing/testutils/MockAgent.h"
 #include "jaegertracing/testutils/TUDPTransport.h"
+#include "jaegertracing/thrift-gen/jaeger_types.h"
 
 namespace jaegertracing {
 namespace samplers {
@@ -39,8 +40,7 @@ namespace {
 constexpr auto kTestOperationName = "op";
 constexpr auto kTestFirstTimeOperationName = "firstTimeOp";
 constexpr auto kTestDefaultSamplingProbability = 0.5;
-constexpr auto kTestMaxID =
-    std::numeric_limits<uint64_t>::max() / 2 + 1;
+constexpr auto kTestMaxID = std::numeric_limits<uint64_t>::max() / 2 + 1;
 constexpr auto kTestDefaultMaxOperations = 10;
 
 const Tag testProbablisticExpectedTags[] = {
@@ -54,7 +54,11 @@ const Tag testLowerBoundExpectedTags[] = { { "sampler.type", "lowerbound" },
     {                                                                          \
         ASSERT_EQ(sizeof(tagArr) / sizeof(Tag), (tagVec).size());              \
         for (auto i = static_cast<size_t>(0); i < (tagVec).size(); ++i) {      \
-            ASSERT_EQ((tagArr)[i].thrift(), (tagVec)[i].thrift());             \
+            jaegertracing::thrift::Tag thriftTagArr;                           \
+            jaegertracing::thrift::Tag thriftTagVec;                           \
+            (tagArr)[i].thrift(thriftTagArr);                                  \
+            (tagVec)[i].thrift(thriftTagVec);                                  \
+            ASSERT_EQ(thriftTagArr, thriftTagVec);                             \
         }                                                                      \
     }
 
