@@ -17,7 +17,13 @@
 #ifndef JAEGERTRACING_TESTUTILS_TUDPTRANSPORT_H
 #define JAEGERTRACING_TESTUTILS_TUDPTRANSPORT_H
 
+#include "jaegertracing/Compilers.h"
+
+#ifdef WIN32
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
+#endif
 
 #include <thrift/transport/TVirtualTransport.h>
 
@@ -62,23 +68,34 @@ class TUDPTransport
         auto clientAddrLen = static_cast<::socklen_t>(sizeof(clientAddr));
         const auto numRead =
             ::recvfrom(_socket.handle(),
+#ifdef WIN32
+                       reinterpret_cast<char*>(buf),  // this cast is safe
+#else
                        buf,
+#endif
                        len,
                        0,
                        reinterpret_cast<::sockaddr*>(&clientAddr),
                        &clientAddrLen);
         _clientAddr = net::IPAddress(clientAddr, clientAddrLen);
-        return numRead;
+        // the return value conrreponds to the size of the data read from the
+        // socket. upon error, recvfrom return -1. In this case, we return 0 to
+        // say that noothing was read.
+        return std::max<long>(0, numRead);
     }
 
     void write(const uint8_t* buf, uint32_t len)
     {
         ::sendto(_socket.handle(),
-                 buf,
-                 len,
-                 0,
-                 reinterpret_cast<const ::sockaddr*>(&_clientAddr.addr()),
-                 _clientAddr.addrLen());
+#ifdef WIN32
+            reinterpret_cast<const char*>(buf),  // this cast is safe
+#else
+            buf,
+#endif
+            len,
+            0,
+            reinterpret_cast<const ::sockaddr*>(&_clientAddr.addr()),
+            _clientAddr.addrLen());
     }
 
   private:

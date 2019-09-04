@@ -17,6 +17,7 @@
 #ifndef JAEGERTRACING_UDPTRANSPORT_H
 #define JAEGERTRACING_UDPTRANSPORT_H
 
+#include "jaegertracing/Compilers.h"
 #include "jaegertracing/Span.h"
 #include "jaegertracing/Transport.h"
 #include "jaegertracing/thrift-gen/jaeger_types.h"

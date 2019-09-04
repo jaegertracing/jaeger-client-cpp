@@ -23,6 +23,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "jaegertracing/Compilers.h"
+
 namespace jaegertracing {
 namespace net {
 

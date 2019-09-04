@@ -21,6 +21,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/samplers/GuaranteedThroughputProbabilisticSampler.h"
 #include "jaegertracing/samplers/ProbabilisticSampler.h"

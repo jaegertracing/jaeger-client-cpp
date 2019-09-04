@@ -1,4 +1,4 @@
-[![Build Status][ci-img]][ci] [![Coverage Status][cov-img]][cov] [![OpenTracing 1.0 Enabled][ot-img]][ot-url]
+[![Build Status][ci-img]][ci] [![Coverage Status][cov-img]][cov] [![Appveyor Build][appveyor]][appveyor] [![OpenTracing 1.0 Enabled][ot-img]][ot-url]
 
 # jaeger-client-cpp
 C++ OpenTracing binding for [Jaeger](https://www.jaegertracing.io/)
@@ -81,6 +81,7 @@ sampler:
 
 [ci-img]: https://travis-ci.org/jaegertracing/jaeger-client-cpp.svg?branch=master
 [ci]: https://travis-ci.org/jaegertracing/jaeger-client-cpp
+[appveyor]: https://ci.appveyor.com/api/projects/status/bu992qd3y9bpwe7u?svg=true
 [cov-img]: https://codecov.io/gh/jaegertracing/jaeger-client-cpp/branch/master/graph/badge.svg
 [cov]: https://codecov.io/gh/jaegertracing/jaeger-client-cpp
 [ot-img]: https://img.shields.io/badge/OpenTracing--1.0-enabled-blue.svg

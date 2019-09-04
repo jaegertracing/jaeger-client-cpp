@@ -19,6 +19,8 @@
 
 #include <vector>
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/Tag.h"
 
 namespace jaegertracing {

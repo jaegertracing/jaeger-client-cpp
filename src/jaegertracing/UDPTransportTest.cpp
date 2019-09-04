@@ -100,7 +100,7 @@ TEST(UDPTransport, testExceptions)
         MockUDPClient::ExceptionType::kString
     };
     for (auto type : exceptionTypes) {
-        MockUDPTransport sender(net::IPAddress(), 0, type);
+        MockUDPTransport sender(net::IPAddress::v4("localhost", 0), 0, type);
         sender.append(span);
         ASSERT_THROW(sender.flush(), Transport::Exception);
     }

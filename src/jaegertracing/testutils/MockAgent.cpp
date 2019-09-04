@@ -31,9 +31,26 @@
 #include "jaegertracing/utils/ErrorUtil.h"
 #include "jaegertracing/utils/UDPClient.h"
 
+#ifdef _MSC_VER
+#pragma warning(disable : 4267)
+#pragma warning(disable : 4244)
+#endif
+
 namespace jaegertracing {
 namespace testutils {
 namespace {
+
+#ifdef WIN32
+#define READ_ERROR SOCKET_ERROR
+#else
+#define READ_ERROR -1
+#endif
+
+static size_t read(int socketHandle, char* buffer, size_t size)
+{
+    int returnValue = ::recv(socketHandle, buffer, size, 0);
+    return (returnValue == READ_ERROR) ? 0 : returnValue;
+}
 
 bool startsWith(const std::string& str, const std::string& prefix)
 {
@@ -105,9 +122,11 @@ void MockAgent::serveUDP(std::promise<void>& started)
         try {
             const auto numRead =
                 _transport.read(&buffer[0], net::kUDPPacketMaxLength);
-            trans->write(&buffer[0], numRead);
-            auto protocol = protocolFactory.getProtocol(trans);
-            handler.process(protocol, protocol, nullptr);
+            if (numRead > 0) {
+                trans->write(&buffer[0], numRead);
+                auto protocol = protocolFactory.getProtocol(trans);
+                handler.process(protocol, protocol, nullptr);
+            }
         } catch (...) {
             auto logger = logging::consoleLogger();
             utils::ErrorUtil::logError(
@@ -142,13 +161,15 @@ void MockAgent::serveHTTP(std::promise<void>& started)
         std::array<char, kBufferSize> buffer;
         std::string requestStr;
         auto clientSocket = socket.accept();
-        auto numRead = ::read(clientSocket.handle(), &buffer[0], buffer.size());
+        auto numRead = read(
+            clientSocket.handle(), &buffer[0], buffer.size());
         while (numRead > 0) {
             requestStr.append(&buffer[0], numRead);
             if (numRead < static_cast<int>(buffer.size())) {
                 break;
             }
-            numRead = ::read(clientSocket.handle(), &buffer[0], buffer.size());
+            numRead = read(
+                clientSocket.handle(), &buffer[0], buffer.size());
         }
 
         try {
@@ -207,22 +228,22 @@ void MockAgent::serveHTTP(std::promise<void>& started)
                    "Content-Type: application/json\r\n\r\n"
                 << responseJSON;
             const auto responseStr = oss.str();
-            const auto numWritten = ::write(
-                clientSocket.handle(), responseStr.c_str(), responseStr.size());
+            const auto numWritten = ::send(
+                clientSocket.handle(), responseStr.c_str(), responseStr.size(), 0);
             (void)numWritten;
         } catch (const net::http::ParseError& ex) {
             std::ostringstream oss;
             oss << "HTTP/1.1 400 Bad Request\r\n\r\n" << ex.what();
             const auto response = oss.str();
-            const auto numWritten = ::write(
-                clientSocket.handle(), response.c_str(), response.size());
+            const auto numWritten = ::send(
+                clientSocket.handle(), response.c_str(), response.size(), 0);
             (void)numWritten;
         } catch (const std::exception& ex) {
             std::ostringstream oss;
             oss << "HTTP/1.1 500 Internal Server Error\r\n\r\n" << ex.what();
             const auto response = oss.str();
-            const auto numWritten = ::write(
-                clientSocket.handle(), response.c_str(), response.size());
+            const auto numWritten = ::send(
+                clientSocket.handle(), response.c_str(), response.size(), 0);
             (void)numWritten;
         }
     }

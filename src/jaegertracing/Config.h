@@ -17,6 +17,7 @@
 #ifndef JAEGERTRACING_CONFIG_H
 #define JAEGERTRACING_CONFIG_H
 
+#include "jaegertracing/Compilers.h"
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/baggage/RestrictionsConfig.h"
 #include "jaegertracing/propagation/HeadersConfig.h"

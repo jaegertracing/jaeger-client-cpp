@@ -22,6 +22,8 @@
 #include <mutex>
 #include <thread>
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/Logging.h"
 #include "jaegertracing/metrics/Metrics.h"

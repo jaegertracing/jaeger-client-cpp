@@ -23,6 +23,8 @@
 #include <mutex>
 #include <thread>
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/Logging.h"
 #include "jaegertracing/Span.h"
 #include "jaegertracing/Transport.h"

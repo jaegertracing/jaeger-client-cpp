@@ -17,6 +17,8 @@
 #ifndef JAEGERTRACING_TESTUTILS_SAMPLINGMANAGER_H
 #define JAEGERTRACING_TESTUTILS_SAMPLINGMANAGER_H
 
+#include "jaegertracing/Compilers.h" 
+
 #include "jaegertracing/thrift-gen/SamplingManager.h"
 #include "jaegertracing/thrift-gen/sampling_types.h"
 #include <iterator>
