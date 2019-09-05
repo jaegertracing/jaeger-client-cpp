@@ -20,6 +20,7 @@
 
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/Tag.h"
+#include "jaegertracing/samplers/Config.h"
 #include "jaegertracing/samplers/AdaptiveSampler.h"
 #include "jaegertracing/samplers/ConstSampler.h"
 #include "jaegertracing/samplers/GuaranteedThroughputProbabilisticSampler.h"
@@ -147,6 +148,26 @@ TEST(Sampler, testProbabilisticSamplerPerformance)
     }
     const auto rate = static_cast<double>(count) / kNumSamples;
     std::cout << "Sampled: " << count << " rate=" << rate << '\n';
+}
+
+TEST(Sampler, testProbabilisticSamplerInvalidRate)
+{
+    Config samplerConfig1(kSamplerTypeProbabilistic,
+                          1.1,
+                          "",
+                          0,
+                          samplers::Config::Clock::duration());
+    Config samplerConfig2(kSamplerTypeProbabilistic,
+                          -0.1,
+                          "",
+                          0,
+                          samplers::Config::Clock::duration());
+    auto logger = logging::nullLogger();
+    auto metrics = metrics::Metrics::makeNullMetrics();
+    ASSERT_THROW(samplerConfig1.makeSampler("test-service", *logger, *metrics),
+                 std::invalid_argument);
+    ASSERT_THROW(samplerConfig2.makeSampler("test-service", *logger, *metrics),
+                 std::invalid_argument);
 }
 
 TEST(Sampler, testRateLimitingSampler)
