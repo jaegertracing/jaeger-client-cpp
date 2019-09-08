@@ -1,9 +1,18 @@
 Changes by Version
 ==================
 
-0.5.0 (unreleased)
+0.5.0 (2019-09-07)
 ------------------
-- Nothing yet
+- Improve C++ flag handling in CMake (#128)
+- localIP: try resolving local hostname first (#130)
+- Fix deadlock if steady_clock::now() returns the same value twice (#132)
+- Implement SpanContext::Clone (#138)
+- Change sampler param sentinel value from YAML parser (#145)
+- Fix RemoteReporter test race condition (#135)
+- Add details on how to set agent & collector endpoint (#153)
+- Clarify agent/sampler address overrides in README
+- Upgrade to OpenTracing 1.5.0; Support build on Windows (#115)
+- Throw exception on invalid sampling rate (#168)
 
 
 0.4.2 (2018-08-14)
