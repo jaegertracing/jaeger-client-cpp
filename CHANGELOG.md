@@ -1,6 +1,12 @@
 Changes by Version
 ==================
 
+0.5.1 (unreleased)
+------------------
+
+- Nothing yet.
+
+
 0.5.0 (2019-09-07)
 ------------------
 - Improve C++ flag handling in CMake (#128)
