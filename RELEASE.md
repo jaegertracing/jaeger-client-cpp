@@ -7,4 +7,4 @@
     * Copy CHANGELOG.md into the release notes
 3. Create a PR "Back to development" against master branch
     * Add `<next_version> (unreleased)` to CHANGELOG.md
-    * Update project version in CMakeLists.txt to the `<next version>`
+    * Update project version in CMakeLists.txt to the `<next version>-rc0`
