@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-#include "jaegertracing/utils/UDPClient.h"
+#include "jaegertracing/utils/UDPSender.h"
 #include <thrift/protocol/TCompactProtocol.h>
 #include <thrift/protocol/TProtocol.h>
 
 namespace jaegertracing {
 namespace utils {
 
-UDPClient::UDPClient(const net::IPAddress& serverAddr, int maxPacketSize)
-    : _maxPacketSize(maxPacketSize == 0 ? net::kUDPPacketMaxLength
+UDPSender::UDPSender(const net::IPAddress& serverAddr, int maxPacketSize)
+    : Sender(maxPacketSize == 0 ? kUDPPacketMaxLength
                                         : maxPacketSize)
     , _buffer(new apache::thrift::transport::TMemoryBuffer(_maxPacketSize))
-    , _socket()
     , _serverAddr(serverAddr)
     , _client()
 {

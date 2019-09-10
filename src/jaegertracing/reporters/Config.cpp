@@ -15,7 +15,7 @@
  */
 
 #include "jaegertracing/reporters/Config.h"
-#include "jaegertracing/UDPTransport.h"
+#include "jaegertracing/ThriftTransport.h"
 #include "jaegertracing/reporters/CompositeReporter.h"
 #include "jaegertracing/reporters/LoggingReporter.h"
 #include "jaegertracing/reporters/RemoteReporter.h"
@@ -25,13 +25,17 @@ namespace reporters {
 
 constexpr int Config::kDefaultQueueSize;
 constexpr const char* Config::kDefaultLocalAgentHostPort;
+constexpr const char* Config::kDefaultEndpoint;
 
 std::unique_ptr<Reporter> Config::makeReporter(const std::string& serviceName,
                                                logging::Logger& logger,
                                                metrics::Metrics& metrics) const
 {
-    std::unique_ptr<UDPTransport> sender(
-        new UDPTransport(net::IPAddress::v4(_localAgentHostPort), 0));
+
+    std::unique_ptr<ThriftTransport> sender(
+        !_endpoint.empty()
+            ? new ThriftTransport(net::URI::parse(_endpoint), 0)
+            : new ThriftTransport(net::IPAddress::v4(_localAgentHostPort), 0));
     std::unique_ptr<RemoteReporter> remoteReporter(new RemoteReporter(
         _bufferFlushInterval, _queueSize, std::move(sender), logger, metrics));
     if (_logSpans) {

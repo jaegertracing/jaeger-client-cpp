@@ -57,6 +57,26 @@ std::shared_ptr<ResourceHandle> installGlobalTracer()
     return std::move(handle);
 }
 
+std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint)
+{
+    std::ostringstream samplingServerURLStream;
+    Config config(
+        false,
+        samplers::Config("const",
+                         1,
+                         samplingServerURLStream.str(),
+                         0,
+                         samplers::Config::Clock::duration()),
+        reporters::Config(0,
+                          std::chrono::milliseconds(100),
+                          false, "", endpoint),
+        propagation::HeadersConfig(),
+        baggage::RestrictionsConfig());
+
+    auto tracer = Tracer::make("test-service", config, logging::nullLogger());
+    return tracer;
+}
+
 }  // namespace TracerUtil
 }  // namespace testutils
 }  // namespace jaegertracing

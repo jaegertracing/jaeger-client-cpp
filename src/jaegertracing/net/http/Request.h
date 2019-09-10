@@ -18,6 +18,7 @@
 #define JAEGERTRACING_NET_HTTP_REQUEST_H
 
 #include "jaegertracing/net/URI.h"
+#include "jaegertracing/net/Socket.h"
 #include "jaegertracing/net/http/Error.h"
 #include "jaegertracing/net/http/Header.h"
 #include "jaegertracing/net/http/Method.h"
@@ -29,6 +30,8 @@ namespace http {
 class Request {
   public:
     static Request parse(std::istream& in);
+
+    static Request read(Socket& in);
 
     Request()
         : _method()

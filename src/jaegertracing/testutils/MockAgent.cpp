@@ -29,7 +29,7 @@
 #include "jaegertracing/net/http/Response.h"
 #include "jaegertracing/samplers/RemoteSamplingJSON.h"
 #include "jaegertracing/utils/ErrorUtil.h"
-#include "jaegertracing/utils/UDPClient.h"
+#include "jaegertracing/utils/UDPSender.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable : 4267)
@@ -111,17 +111,17 @@ void MockAgent::serveUDP(std::promise<void>& started)
     agent::thrift::AgentProcessor handler(iface);
     TCompactProtocolFactory protocolFactory;
     std::shared_ptr<TMemoryBuffer> trans(
-        new TMemoryBuffer(net::kUDPPacketMaxLength));
+        new TMemoryBuffer(utils::UDPSender::kUDPPacketMaxLength));
 
     // Notify main thread that setup is done.
     _servingUDP = true;
     started.set_value();
 
-    std::array<uint8_t, net::kUDPPacketMaxLength> buffer;
+    std::array<uint8_t, utils::UDPSender::kUDPPacketMaxLength> buffer;
     while (isServingUDP()) {
         try {
             const auto numRead =
-                _transport.read(&buffer[0], net::kUDPPacketMaxLength);
+                _transport.read(&buffer[0], utils::UDPSender::kUDPPacketMaxLength);
             if (numRead > 0) {
                 trans->write(&buffer[0], numRead);
                 auto protocol = protocolFactory.getProtocol(trans);
