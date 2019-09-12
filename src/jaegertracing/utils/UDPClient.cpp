@@ -15,7 +15,6 @@
  */
 
 #include "jaegertracing/utils/UDPClient.h"
-#include <sys/socket.h>
 #include <thrift/protocol/TCompactProtocol.h>
 #include <thrift/protocol/TProtocol.h>
 

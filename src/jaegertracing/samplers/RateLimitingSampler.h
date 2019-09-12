@@ -17,6 +17,8 @@
 #ifndef JAEGERTRACING_SAMPLERS_RATELIMITINGSAMPLER_H
 #define JAEGERTRACING_SAMPLERS_RATELIMITINGSAMPLER_H
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/Tag.h"
 #include "jaegertracing/samplers/Sampler.h"

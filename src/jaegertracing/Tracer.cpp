@@ -214,4 +214,32 @@ Tracer::analyzeReferences(const std::vector<OpenTracingRef>& references) const
     return result;
 }
 
+std::shared_ptr<opentracing::Tracer>
+Tracer::make(const std::string& serviceName,
+                   const Config& config,
+     const std::shared_ptr<logging::Logger>& logger,
+     metrics::StatsFactory& statsFactory, int options)
+{
+    if (serviceName.empty()) {
+        throw std::invalid_argument("no service name provided");
+    }
+
+    if (config.disabled()) {
+        return opentracing::MakeNoopTracer();
+    }
+
+    auto metrics = std::make_shared<metrics::Metrics>(statsFactory);
+    std::shared_ptr<samplers::Sampler> sampler(
+        config.sampler().makeSampler(serviceName, *logger, *metrics));
+    std::shared_ptr<reporters::Reporter> reporter(
+        config.reporter().makeReporter(serviceName, *logger, *metrics));
+    return std::shared_ptr<Tracer>(new Tracer(serviceName,
+                                              sampler,
+                                              reporter,
+                                              logger,
+                                              metrics,
+                                              config.headers(),
+                                              options));
+}
+
 }  // namespace jaegertracing

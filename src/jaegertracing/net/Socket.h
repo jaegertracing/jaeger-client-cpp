@@ -21,17 +21,39 @@
 #include "jaegertracing/net/URI.h"
 #include <errno.h>
 #include <memory>
-#include <netdb.h>
-#include <netinet/in.h>
 #include <ostream>
 #include <stdexcept>
 #include <string>
-#include <sys/socket.h>
 #include <system_error>
+
+#ifdef WIN32
+#include <iphlpapi.h>
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+typedef SOCKET HandleType;
+
+#else
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
+
+typedef int HandleType;
+
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4267)
+#endif
 
 namespace jaegertracing {
 namespace net {
+
+
 
 class Socket {
   public:
@@ -62,12 +84,15 @@ class Socket {
         return *this;
     }
 
-    ~Socket() { close(); }
+    ~Socket()
+    {
+        close();
+    }
 
     void open(int family, int type)
     {
         const auto handle = ::socket(family, type, 0);
-        if (handle < 0) {
+        if (isHandleInvalid(handle)) {
             std::ostringstream oss;
             oss << "Failed to open socket"
                    ", family="
@@ -153,7 +178,8 @@ class Socket {
         ::socklen_t addrLen = sizeof(addrStorage);
         const auto clientHandle = ::accept(
             _handle, reinterpret_cast<::sockaddr*>(&addrStorage), &addrLen);
-        if (clientHandle < 0) {
+
+        if (isHandleInvalid(clientHandle)) {
             throw std::system_error(
                 errno, std::system_category(), "Failed to accept on socket");
         }
@@ -169,22 +195,53 @@ class Socket {
     void close() noexcept
     {
         if (_handle >= 0) {
+#ifdef WIN32
+            ::closesocket(_handle);
+#else
             ::close(_handle);
+#endif
             _handle = -1;
         }
     }
 
-    int handle() { return _handle; }
-
+    HandleType handle() { return _handle; }
   private:
-    int _handle;
+    class OSResource {
+      public:
+        OSResource();
+        ~OSResource();
+
+        OSResource(const OSResource&) = delete;
+        OSResource& operator=(const OSResource&) = delete;
+        OSResource& operator=(const OSResource&&) = delete;
+    };
+
+    OSResource _osResource;
+    HandleType _handle;
     int _family;
     int _type;
+
+    static bool isHandleInvalid(HandleType h)
+    {
+#ifdef WIN32
+        return (h == SOCKET_ERROR);
+#else
+        return (h < 0);
+#endif
+    }
+
+    friend class IPAddress;
+    friend std::unique_ptr<::addrinfo, AddrInfoDeleter>
+    resolveAddress(const std::string& host, int port, int family, int type);
 };
 
 static constexpr auto kUDPPacketMaxLength = 65000;
 
 }  // namespace net
 }  // namespace jaegertracing
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif  // JAEGERTRACING_NET_SOCKET_H

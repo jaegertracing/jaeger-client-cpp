@@ -24,6 +24,8 @@
 #include <thread>
 #include <unordered_map>
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/Logging.h"
 #include "jaegertracing/baggage/Restriction.h"
 #include "jaegertracing/baggage/RestrictionManager.h"

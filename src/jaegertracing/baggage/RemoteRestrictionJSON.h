@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "jaegertracing/Compilers.h"
 #include "jaegertracing/thrift-gen/BaggageRestrictionManager.h"
 #include "jaegertracing/thrift-gen/baggage_types.h"
 

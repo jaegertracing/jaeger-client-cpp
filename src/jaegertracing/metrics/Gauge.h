@@ -17,6 +17,8 @@
 #ifndef JAEGERTRACING_METRICS_GAUGE_H
 #define JAEGERTRACING_METRICS_GAUGE_H
 
+#include "jaegertracing/Compilers.h"
+
 #include <stdint.h>
 
 namespace jaegertracing {

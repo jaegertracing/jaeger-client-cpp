@@ -31,6 +31,31 @@
 
 #elif defined(__linux__)
 #include <endian.h>
+#elif defined WIN32
+#include <winsock2.h>
+
+#if BYTE_ORDER == LITTLE_ENDIAN
+
+#define htobe16(x) htons(x)
+#define be16toh(x) ntohs(x)
+
+#define htobe32(x) htonl(x)
+#define be32toh(x) ntohl(x)
+
+#define htobe64(x) htonll(x)
+#define be64toh(x) ntohll(x)
+#elif BYTE_ORDER == BIG_ENDIAN
+#define htobe16(x) (x)
+#define be16toh(x) (x)
+
+#define htobe32(x) (x)
+#define be32toh(x) (x)
+
+#define htobe64(x) (x)
+#define be64toh(x) (x)
+#else
+#error byte order not supported
+#endif
 #else
 #error "unsupported platform"
 #endif

@@ -17,6 +17,8 @@
 #ifndef JAEGERTRACING_SAMPLERS_SAMPLER_H
 #define JAEGERTRACING_SAMPLERS_SAMPLER_H
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/TraceID.h"
 #include "jaegertracing/samplers/SamplingStatus.h"
 

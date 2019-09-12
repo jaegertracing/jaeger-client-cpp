@@ -16,7 +16,18 @@
 
 #include "jaegertracing/net/http/Response.h"
 
+#ifdef WIN32
+#include <winsock2.h>
+#include <iphlpapi.h>
+#include <ws2tcpip.h>
+#include <windows.h> 
+#elif UNIX
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
+#endif
 
 #include <iostream>
 #include <regex>
@@ -25,6 +36,10 @@
 
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/net/Socket.h"
+
+#ifdef _MSC_VER
+#pragma warning(disable : 4267)
+#endif
 
 namespace jaegertracing {
 namespace net {
@@ -65,8 +80,11 @@ Response get(const URI& uri)
                      "User-Agent: jaegertracing/"
                   << kJaegerClientVersion << "\r\n\r\n";
     const auto request = requestStream.str();
-    const auto numWritten =
-        ::write(socket.handle(), request.c_str(), request.size());
+#ifdef WIN32
+    const auto numWritten = ::send(socket.handle(), request.c_str(), request.size(), 0);
+#else
+    const auto numWritten = ::write(socket.handle(), request.c_str(), request.size());
+#endif
     if (numWritten != static_cast<int>(request.size())) {
         std::ostringstream oss;
         oss << "Failed to write entire HTTP request"
@@ -76,14 +94,22 @@ Response get(const URI& uri)
 
     constexpr auto kBufferSize = 256;
     std::array<char, kBufferSize> buffer;
+#ifdef WIN32
+    auto numRead = ::recv(socket.handle(), &buffer[0], buffer.size(), 0);
+#else
     auto numRead = ::read(socket.handle(), &buffer[0], buffer.size());
+#endif
     std::string response;
     while (numRead > 0) {
         response.append(&buffer[0], numRead);
         if (numRead < static_cast<int>(buffer.size())) {
             break;
         }
+#ifdef WIN32
+        numRead = ::recv(socket.handle(), &buffer[0], buffer.size(), 0);
+#else
         numRead = ::read(socket.handle(), &buffer[0], buffer.size());
+#endif
     }
     std::istringstream responseStream(response);
     return Response::parse(responseStream);

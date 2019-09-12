@@ -16,44 +16,90 @@
 
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/platform/Hostname.h"
+#include "jaegertracing/net/Socket.h"
 
-#include <ifaddrs.h>
 #include <sys/types.h>
+
+#ifndef WIN32
+#include <ifaddrs.h>
+#endif
 
 namespace jaegertracing {
 namespace net {
+
 namespace {
 
-struct IfAddrDeleter : public std::function<void(ifaddrs*)> {
-    void operator()(ifaddrs* ifAddr) const
+template <typename T>
+struct CDeleter : public std::function<void(T*)> {
+    void operator()(T* ifAddr) const
     {
+#ifdef WIN32
+        free(ifAddr);
+#else
         if (ifAddr) {
             ::freeifaddrs(ifAddr);
         }
+#endif
     }
 };
 
 }  // anonymous namespace
 
-IPAddress IPAddress::localIP(int family)
+#ifdef WIN32
+
+IPAddress _localIP(int family)
 {
-    try {
-        return versionFromString(platform::hostname(), 0, family);
-    } catch (...) {
-        // Fall back to returning the first matching interface
+    DWORD size = 15032;
+    DWORD rv = GetAdaptersAddresses(
+        AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, NULL, NULL, &size);
+    if (rv != ERROR_BUFFER_OVERFLOW) {
+        // GetAdaptersAddresses() failed...
+        return IPAddress();
+    }
+    std::unique_ptr<IP_ADAPTER_ADDRESSES, CDeleter<IP_ADAPTER_ADDRESSES>>
+        adapter_addresses((IP_ADAPTER_ADDRESSES*)malloc(size));
+
+    rv = GetAdaptersAddresses(
+        AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, NULL, &*adapter_addresses, &size);
+    if (rv != ERROR_SUCCESS) {
+        // GetAdaptersAddresses() failed...
+        return IPAddress();
     }
 
-    return localIP([family](const ifaddrs* ifAddr) {
-        return ifAddr->ifa_addr != nullptr &&
-               ifAddr->ifa_addr->sa_family == family;
-    });
+    for (PIP_ADAPTER_ADDRESSES aa = &*adapter_addresses; aa != NULL;
+         aa = aa->Next) {
+        for (PIP_ADAPTER_UNICAST_ADDRESS ua = aa->FirstUnicastAddress;
+             ua != NULL;
+             ua = ua->Next) {
+            if (family == ua->Address.lpSockaddr->sa_family) {
+                char buf[BUFSIZ] = { 0 };
+                getnameinfo(ua->Address.lpSockaddr,
+                            ua->Address.iSockaddrLength,
+                            buf,
+                            sizeof(buf),
+                            NULL,
+                            0,
+                            NI_NUMERICHOST);
+
+                return IPAddress(*(ua->Address.lpSockaddr),
+                                 (family == AF_INET) ? sizeof(::sockaddr_in)
+                                                     : sizeof(::sockaddr_in6));
+            }
+        }
+    }
+
+    return IPAddress();
 }
 
-IPAddress IPAddress::localIP(std::function<bool(const ifaddrs*)> filter)
+#else
+
+namespace {
+
+IPAddress _localIP(std::function<bool(const ifaddrs*)> filter)
 {
     auto* ifAddrRawPtr = static_cast<ifaddrs*>(nullptr);
     getifaddrs(&ifAddrRawPtr);
-    std::unique_ptr<ifaddrs, IfAddrDeleter> ifAddr(ifAddrRawPtr);
+    std::unique_ptr<ifaddrs, CDeleter<ifaddrs>> ifAddr(ifAddrRawPtr);
     for (auto* itr = ifAddr.get(); itr; itr = itr->ifa_next) {
         if (filter(itr)) {
             const auto family = ifAddr->ifa_addr->sa_family;
@@ -63,6 +109,29 @@ IPAddress IPAddress::localIP(std::function<bool(const ifaddrs*)> filter)
         }
     }
     return IPAddress();
+}
+
+IPAddress _localIP(int family)
+{
+    return _localIP([family](const ifaddrs* ifAddr) {
+        return ifAddr->ifa_addr != nullptr &&
+               ifAddr->ifa_addr->sa_family == family;
+    });
+}
+
+
+} // anonymous namespace
+
+#endif
+
+IPAddress IPAddress::localIP(int family)
+{
+    try {
+        return versionFromString(platform::hostname(), 0, family);
+    } catch (...) {
+        // Fall back to returning the first matching interface
+    }
+    return _localIP(family);
 }
 
 IPAddress
@@ -87,6 +156,7 @@ IPAddress::versionFromString(const std::string& ip, int port, int family)
     }
 
     const auto returnCode = inet_pton(family, ip.c_str(), addrBuffer);
+
     if (returnCode == 0) {
         auto result = resolveAddress(ip, port, family);
         assert(result);
@@ -100,6 +170,12 @@ IPAddress::versionFromString(const std::string& ip, int port, int family)
 std::unique_ptr<::addrinfo, AddrInfoDeleter>
 resolveAddress(const std::string& host, int port, int family, int type)
 {
+// On windows, getaddrinfo does not return an error for empty host
+#ifdef WIN32
+    if (host.empty()) {
+        throw std::runtime_error("Error resolving address: ");
+    }
+#endif
     ::addrinfo hints;
     std::memset(&hints, 0, sizeof(hints));
     hints.ai_family = family;
@@ -110,10 +186,13 @@ resolveAddress(const std::string& host, int port, int family, int type)
         service = std::to_string(port);
     }
 
+    Socket::OSResource osResouce;
+
     auto* servInfoPtr = static_cast<::addrinfo*>(nullptr);
     const auto returnCode =
         getaddrinfo(host.c_str(), service.c_str(), &hints, &servInfoPtr);
     std::unique_ptr<::addrinfo, AddrInfoDeleter> servInfo(servInfoPtr);
+
     if (returnCode != 0) {
         std::ostringstream oss;
         oss << "Error resolving address: " << gai_strerror(returnCode);

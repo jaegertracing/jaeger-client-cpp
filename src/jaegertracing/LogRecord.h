@@ -17,6 +17,7 @@
 #ifndef JAEGERTRACING_LOGRECORD_H
 #define JAEGERTRACING_LOGRECORD_H
 
+#include "jaegertracing/Compilers.h"
 #include "jaegertracing/Tag.h"
 #include "jaegertracing/thrift-gen/jaeger_types.h"
 #include <algorithm>

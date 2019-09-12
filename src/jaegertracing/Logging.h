@@ -20,6 +20,8 @@
 #include <memory>
 #include <string>
 
+#include "jaegertracing/Compilers.h"
+
 namespace jaegertracing {
 namespace logging {
 

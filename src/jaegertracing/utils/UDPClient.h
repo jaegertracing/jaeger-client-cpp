@@ -22,6 +22,8 @@
 #include <stdexcept>
 #include <system_error>
 
+#include "jaegertracing/Compilers.h"
+
 #include <thrift/protocol/TCompactProtocol.h>
 #include <thrift/transport/TBufferTransports.h>
 
@@ -59,7 +61,7 @@ class UDPClient : public agent::thrift::AgentIf {
                 << batch.spans.size();
             throw std::logic_error(oss.str());
         }
-        const auto numWritten = ::write(_socket.handle(), data, size);
+        const auto numWritten = ::send(_socket.handle(), reinterpret_cast<char*>(data), sizeof(uint8_t) * size, 0);
         if (static_cast<unsigned>(numWritten) != size) {
             std::ostringstream oss;
             oss << "Failed to write message"

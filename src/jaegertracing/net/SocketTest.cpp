@@ -19,7 +19,6 @@
 #include "jaegertracing/net/URI.h"
 #include <gtest/gtest.h>
 #include <stdexcept>
-#include <sys/socket.h>
 #include <system_error>
 
 namespace jaegertracing {
@@ -31,12 +30,15 @@ TEST(Socket, testFailOpen)
     ASSERT_THROW(socket.open(-5, -10), std::system_error);
 }
 
+// On Windows, the bind does not throw
+ #ifndef WIN32
 TEST(Socket, testFailBind)
 {
     Socket socket;
     socket.open(AF_INET, SOCK_STREAM);
     ASSERT_THROW(socket.bind(IPAddress::v4("127.0.0.1", 1)), std::system_error);
 }
+#endif
 
 TEST(Socket, testFailConnect)
 {

@@ -17,6 +17,8 @@
 #ifndef JAEGERTRACING_TAG_H
 #define JAEGERTRACING_TAG_H
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/thrift-gen/jaeger_types.h"
 #include <algorithm>
 #include <cstdint>

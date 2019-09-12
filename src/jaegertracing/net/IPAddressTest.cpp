@@ -17,7 +17,6 @@
 #include "jaegertracing/net/IPAddress.h"
 #include <gtest/gtest.h>
 #include <stdexcept>
-#include <sys/socket.h>
 
 namespace jaegertracing {
 namespace net {
@@ -42,7 +41,12 @@ TEST(IPAddress, testIPv6)
 TEST(IPAddress, testResolveAddress)
 {
     ASSERT_NO_THROW(resolveAddress("localhost", 80, AF_INET, SOCK_STREAM));
+#ifdef WIN32
+    ASSERT_THROW(resolveAddress("123456", 80, AF_INET, SOCK_STREAM),
+                 std::runtime_error);
+#else
     ASSERT_NO_THROW(resolveAddress("123456", 80, AF_INET, SOCK_STREAM));
+#endif
     ASSERT_THROW(resolveAddress("localhost", 80, -1), std::runtime_error);
 }
 

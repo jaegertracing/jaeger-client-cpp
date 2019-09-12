@@ -20,6 +20,7 @@
 #include <cassert>
 #include <iomanip>
 #include <iostream>
+#include <cctype>
 
 namespace jaegertracing {
 namespace utils {

@@ -122,6 +122,7 @@ class Config {
                 oss << "Invalid parameter for probabilistic sampler: " << _param
                     << ", expecting value between 0 and 1";
                 logger.error(oss.str());
+                throw std::invalid_argument("Probabilistic sampling rate should be in the interval [0, 1].");
                 return std::unique_ptr<Sampler>();
             }
         }

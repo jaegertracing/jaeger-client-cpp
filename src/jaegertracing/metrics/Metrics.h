@@ -20,6 +20,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "jaegertracing/Compilers.h"
+
 #include "jaegertracing/metrics/Counter.h"
 #include "jaegertracing/metrics/Gauge.h"
 #include "jaegertracing/metrics/StatsFactory.h"

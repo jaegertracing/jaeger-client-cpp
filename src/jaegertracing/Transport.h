@@ -20,6 +20,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "jaegertracing/Compilers.h"
+
 namespace jaegertracing {
 
 class Span;
