@@ -42,7 +42,7 @@ class Config {
 
     static constexpr auto kDefaultSamplingProbability =
         static_cast<double>(0.001);
-    static constexpr auto kDefaultSamplingServerURL = "http://127.0.0.1:5778";
+    static constexpr auto kDefaultSamplingServerURL = "http://127.0.0.1:5778/sampling";
     static constexpr auto kDefaultMaxOperations = 2000;
 
     static Clock::duration defaultSamplingRefreshInterval()

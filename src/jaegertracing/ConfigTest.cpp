@@ -73,6 +73,12 @@ TEST(Config, testDefaultSamplingProbability)
               Config().sampler().param());
 }
 
+TEST(Config, testDefaultSamplingServerURL)
+{
+    ASSERT_EQ("http://127.0.0.1:5778/sampling",
+              Config().sampler().samplingServerURL());
+}
+
 TEST(Config, testZeroSamplingParam)
 {
     {
