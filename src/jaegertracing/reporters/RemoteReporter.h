@@ -27,7 +27,7 @@
 
 #include "jaegertracing/Logging.h"
 #include "jaegertracing/Span.h"
-#include "jaegertracing/Transport.h"
+#include "jaegertracing/Sender.h"
 #include "jaegertracing/metrics/Metrics.h"
 #include "jaegertracing/reporters/Reporter.h"
 
@@ -40,7 +40,7 @@ class RemoteReporter : public Reporter {
 
     RemoteReporter(const Clock::duration& bufferFlushInterval,
                    int fixedQueueSize,
-                   std::unique_ptr<Transport>&& sender,
+                   std::unique_ptr<Sender>&& sender,
                    logging::Logger& logger,
                    metrics::Metrics& metrics);
 
@@ -64,7 +64,7 @@ class RemoteReporter : public Reporter {
 
     Clock::duration _bufferFlushInterval;
     int _fixedQueueSize;
-    std::unique_ptr<Transport> _sender;
+    std::unique_ptr<Sender> _sender;
     logging::Logger& _logger;
     metrics::Metrics& _metrics;
     std::deque<Span> _queue;

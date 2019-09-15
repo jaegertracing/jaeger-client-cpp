@@ -26,7 +26,7 @@ namespace reporters {
 
 RemoteReporter::RemoteReporter(const Clock::duration& bufferFlushInterval,
                                int fixedQueueSize,
-                               std::unique_ptr<Transport>&& sender,
+                               std::unique_ptr<Sender>&& sender,
                                logging::Logger& logger,
                                metrics::Metrics& metrics)
     : _bufferFlushInterval(bufferFlushInterval)
@@ -115,7 +115,7 @@ void RemoteReporter::sendSpan(const Span& span) noexcept
             _metrics.reporterSuccess().inc(flushed);
             _metrics.reporterQueueLength().update(_queueLength);
         }
-    } catch (const Transport::Exception& ex) {
+    } catch (const Sender::Exception& ex) {
         _metrics.reporterFailure().inc(ex.numFailed());
         std::ostringstream oss;
         oss << "error reporting span " << span.operationName() << ": "
@@ -131,7 +131,7 @@ void RemoteReporter::flush() noexcept
         if (flushed > 0) {
             _metrics.reporterSuccess().inc(flushed);
         }
-    } catch (const Transport::Exception& ex) {
+    } catch (const Sender::Exception& ex) {
         _metrics.reporterFailure().inc(ex.numFailed());
         _logger.error(ex.what());
     }

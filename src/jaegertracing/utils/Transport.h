@@ -23,14 +23,14 @@
 namespace jaegertracing {
 namespace utils {
 
-class Sender {
+class Transport {
   public:
-    Sender(int maxPacketSize)
+    Transport(int maxPacketSize)
         : _maxPacketSize(maxPacketSize)
     {
     }
 
-    virtual ~Sender() { close(); }
+    virtual ~Transport() { close(); }
 
     virtual void emitBatch(const thrift::Batch& batch) = 0;
 
@@ -38,7 +38,8 @@ class Sender {
 
     void close() { _socket.close(); }
 
-    virtual std::unique_ptr< apache::thrift::protocol::TProtocolFactory > protocolFactory() const = 0;
+    virtual std::unique_ptr<apache::thrift::protocol::TProtocolFactory>
+    protocolFactory() const = 0;
 
   protected:
     int _maxPacketSize;

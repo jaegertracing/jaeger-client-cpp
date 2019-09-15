@@ -35,7 +35,7 @@ namespace jaegertracing {
 
 namespace utils {
 
-TEST(HttpSender, testBigMessage)
+TEST(HttpTransporter, testSpanReporting)
 {
     net::IPAddress serverAddr;
     std::promise<void> started;
@@ -73,13 +73,13 @@ TEST(HttpSender, testBigMessage)
             target = request.target();
             method = request.method();
 
-            for (auto tata : request.headers()) {
-                if (tata.key() == "Content-Type") {
-                    contentType = tata.value();
+            for (auto header : request.headers()) {
+                if (header.key() == "Content-Type") {
+                    contentType = header.value();
                 }
 
-                if (tata.key() == "Accept") {
-                    acceptType = tata.value();
+                if (header.key() == "Accept") {
+                    acceptType = header.value();
                 }
             }
 
@@ -87,8 +87,7 @@ TEST(HttpSender, testBigMessage)
                 "HTTP/1.1 202 Accepted\r\nDate: Tue, 10 Sep 2019 09:03:26 "
                 "GMT\r\nContent-Length: 0\r\n\r\n");
 
-            const auto numWritten =
-                ::send(clientSocket.handle(), answer.c_str(), answer.size(), 0);
+            ::send(clientSocket.handle(), answer.c_str(), answer.size(), 0);
         });
 
     started.get_future().wait();

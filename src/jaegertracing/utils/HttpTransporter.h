@@ -24,7 +24,7 @@
 
 #include "jaegertracing/Compilers.h"
 
-#include "jaegertracing/utils/Sender.h"
+#include "jaegertracing/utils/Transport.h"
 
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/net/Socket.h"
@@ -37,11 +37,11 @@
 namespace jaegertracing {
 namespace utils {
 
-class HttpSender : public Sender {
+class HttpTransporter : public Transport {
   public:
-    HttpSender(const net::URI& endpoint, int maxPacketSize);
+    HttpTransporter(const net::URI& endpoint, int maxPacketSize);
 
-    ~HttpSender() { close(); }
+    ~HttpTransporter() { close(); }
 
     void emitBatch(const thrift::Batch& batch) override
     {
@@ -58,14 +58,6 @@ class HttpSender : public Sender {
         uint8_t* data = nullptr;
         uint32_t size = 0;
         _buffer->getBuffer(&data, &size);
-        if (static_cast<int>(size) > _maxPacketSize) {
-          std::ostringstream oss;
-          oss << "Data does not fit within one HTTP message"
-                 ", size "
-              << size << ", max " << _maxPacketSize << ", spans "
-              << batch.spans.size();
-          throw std::logic_error(oss.str());
-        }
 
         // Sends the HTTP message
         const auto numWritten = ::send(_socket.handle(), reinterpret_cast<char*>(data), sizeof(uint8_t) * size, 0);
@@ -99,7 +91,7 @@ class HttpSender : public Sender {
     std::shared_ptr<::apache::thrift::transport::THttpClient> _httpClient;
     std::shared_ptr<apache::thrift::protocol::TProtocol> _protocol;
 
-    static constexpr auto kHttpPacketMaxLength = 1048576;
+    static constexpr auto kHttpPacketMaxLength = 1024 * 1024; // 1MB
 };
 
 }  // namespace utils

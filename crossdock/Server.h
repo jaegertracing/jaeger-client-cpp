@@ -48,6 +48,7 @@ class Server {
     Server(const net::IPAddress& clientIP,
            const net::IPAddress& serverIP,
            const std::string& agentHostPort,
+           const std::string& collectorEndpoint,
            const std::string& samplingServerURL);
 
     ~Server();

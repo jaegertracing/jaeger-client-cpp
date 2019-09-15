@@ -135,7 +135,7 @@ set(SRC
     src/jaegertracing/Tracer.cpp
     src/jaegertracing/TracerFactory.cpp
     src/jaegertracing/Transport.cpp
-    src/jaegertracing/ThriftTransport.cpp
+    src/jaegertracing/ThriftSender.cpp
     src/jaegertracing/baggage/BaggageSetter.cpp
     src/jaegertracing/baggage/RemoteRestrictionJSON.cpp
     src/jaegertracing/baggage/RemoteRestrictionManager.cpp
@@ -211,8 +211,8 @@ set(SRC
     src/jaegertracing/utils/ErrorUtil.cpp
     src/jaegertracing/utils/HexParsing.cpp
     src/jaegertracing/utils/RateLimiter.cpp
-    src/jaegertracing/utils/UDPSender.cpp
-    src/jaegertracing/utils/HttpSender.cpp
+    src/jaegertracing/utils/UDPTransporter.cpp
+    src/jaegertracing/utils/HttpTransporter.cpp
     src/jaegertracing/utils/YAML.cpp
     src/jaegertracing/ThriftMethods.cpp)
 
@@ -319,7 +319,7 @@ if(BUILD_TESTING)
       src/jaegertracing/TraceIDTest.cpp
       src/jaegertracing/TracerFactoryTest.cpp
       src/jaegertracing/TracerTest.cpp
-      src/jaegertracing/ThriftTransportTest.cpp
+      src/jaegertracing/ThriftSenderTest.cpp
       src/jaegertracing/baggage/BaggageTest.cpp
       src/jaegertracing/metrics/MetricsTest.cpp
       src/jaegertracing/metrics/NullStatsFactoryTest.cpp
@@ -338,7 +338,7 @@ if(BUILD_TESTING)
       src/jaegertracing/utils/ErrorUtilTest.cpp
       src/jaegertracing/utils/RateLimiterTest.cpp
       src/jaegertracing/utils/UDPSenderTest.cpp
-      src/jaegertracing/utils/HttpSenderTest.cpp)
+      src/jaegertracing/utils/HttpTransporterTest.cpp)
   target_link_libraries(
       UnitTest PRIVATE testutils GTest::main ${JAEGERTRACING_LIB})
   add_test(NAME UnitTest COMMAND UnitTest)

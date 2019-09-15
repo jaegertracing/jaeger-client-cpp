@@ -17,21 +17,21 @@
 #include <gtest/gtest.h>
 
 #include "jaegertracing/Tracer.h"
-#include "jaegertracing/ThriftTransport.h"
+#include "jaegertracing/ThriftSender.h"
 #include "jaegertracing/testutils/TracerUtil.h"
 #include "jaegertracing/utils/ErrorUtil.h"
 
 namespace jaegertracing {
 namespace {
 
-class MockUDPSender : public utils::UDPSender {
+class MockUDPSender : public utils::UDPTransporter {
   public:
     enum class ExceptionType { kSystemError, kException, kString };
 
     MockUDPSender(const net::IPAddress& serverAddr,
                   int maxPacketSize,
                   ExceptionType type)
-        : UDPSender(serverAddr, maxPacketSize)
+        : UDPTransporter(serverAddr, maxPacketSize)
         , _type(type)
     {
     }
@@ -54,27 +54,28 @@ class MockUDPSender : public utils::UDPSender {
     ExceptionType _type;
 };
 
-class MockThriftTransport : public ThriftTransport {
+class MockThriftSender : public ThriftSender {
   public:
-  MockThriftTransport(const net::IPAddress& ip,
+    MockThriftSender(const net::IPAddress& ip,
                      int maxPacketSize,
                      MockUDPSender::ExceptionType type)
-        : ThriftTransport(ip, maxPacketSize)
+        : ThriftSender(std::unique_ptr<utils::Transport>(new MockUDPSender(ip, maxPacketSize, type)))
     {
-        setClient(std::unique_ptr<utils::UDPSender>(
-            new MockUDPSender(ip, maxPacketSize, type)));
     }
 };
 
 }  // anonymous namespace
 
-TEST(ThriftTransport, testManyMessages)
+TEST(ThriftSender, testManyMessages)
 {
     const auto handle = testutils::TracerUtil::installGlobalTracer();
     const auto tracer =
         std::static_pointer_cast<const Tracer>(opentracing::Tracer::Global());
 
-    ThriftTransport sender(handle->_mockAgent->spanServerAddress(), 0);
+    std::unique_ptr<utils::Transport> transporter(
+        new utils::UDPTransporter(handle->_mockAgent->spanServerAddress(), 0));
+    ThriftSender sender(
+        std::forward<std::unique_ptr<utils::Transport>>(transporter));
     constexpr auto kNumMessages = 2000;
     const auto logger = logging::consoleLogger();
     for (auto i = 0; i < kNumMessages; ++i) {
@@ -84,7 +85,7 @@ TEST(ThriftTransport, testManyMessages)
     }
 }
 
-TEST(ThriftTransport, testExceptions)
+TEST(ThriftSender, testExceptions)
 {
     const auto handle = testutils::TracerUtil::installGlobalTracer();
     const auto tracer =
@@ -99,9 +100,9 @@ TEST(ThriftTransport, testExceptions)
         MockUDPSender::ExceptionType::kString
     };
     for (auto type : exceptionTypes) {
-        MockThriftTransport transport(net::IPAddress::v4("localhost", 0), 0, type);
-        transport.append(span);
-        ASSERT_THROW(transport.flush(), Transport::Exception);
+      MockThriftSender mockSender(net::IPAddress::v4("localhost", 0), 0, type);
+      mockSender.append(span);
+        ASSERT_THROW(mockSender.flush(), Sender::Exception);
     }
 }
 

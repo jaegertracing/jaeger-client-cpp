@@ -27,7 +27,7 @@
 #include <thrift/protocol/TCompactProtocol.h>
 #include <thrift/transport/TBufferTransports.h>
 
-#include "jaegertracing/utils/Sender.h"
+#include "jaegertracing/utils/Transport.h"
 
 #include "jaegertracing/net/IPAddress.h"
 #include "jaegertracing/thrift-gen/Agent.h"
@@ -35,11 +35,11 @@
 namespace jaegertracing {
 namespace utils {
 
-class UDPSender : public Sender {
+class UDPTransporter : public Transport {
   public:
-  static constexpr auto kUDPPacketMaxLength = 65000;
+    static constexpr auto kUDPPacketMaxLength = 65000;
 
-    UDPSender(const net::IPAddress& serverAddr, int maxPacketSize);
+    UDPTransporter(const net::IPAddress& serverAddr, int maxPacketSize);
 
     void emitZipkinBatch(
         const std::vector<twitter::zipkin::thrift::Span>& spans)

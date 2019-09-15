@@ -14,36 +14,33 @@
  * limitations under the License.
  */
 
-#ifndef JAEGERTRACING_THRIFTTRANSPORT_H
-#define JAEGERTRACING_THRIFTTRANSPORT_H
+#ifndef JAEGERTRACING_THRIFTSENDER_H
+#define JAEGERTRACING_THRIFTSENDER_H
 
 #include "jaegertracing/Compilers.h"
 #include "jaegertracing/Span.h"
-#include "jaegertracing/Transport.h"
+#include "jaegertracing/Sender.h"
 #include "jaegertracing/thrift-gen/jaeger_types.h"
-#include "jaegertracing/utils/UDPSender.h"
-#include "jaegertracing/utils/HttpSender.h"
+#include "jaegertracing/utils/Transport.h"
 
 namespace jaegertracing {
 
-class ThriftTransport : public Transport {
+class ThriftSender : public Sender {
   public:
-    ThriftTransport(const net::IPAddress& ip, int maxPacketSize);
+    ThriftSender(std::unique_ptr<utils::Transport>&& transporter);
 
-    ThriftTransport(const net::URI& endpoint, int maxPacketSize);
-
-    ~ThriftTransport() { close(); }
+    ~ThriftSender() { close(); }
 
     int append(const Span& span) override;
 
     int flush() override;
 
-    void close() override { _sender->close(); }
+    void close() override { _transporter->close(); }
 
   protected:
-    void setClient(std::unique_ptr<utils::UDPSender>&& client)
+    void setClient(std::unique_ptr<utils::Transport>&& client)
     {
-      _sender = std::move(client);
+      _transporter = std::move(client);
     }
 
   private:
@@ -53,7 +50,7 @@ class ThriftTransport : public Transport {
         _byteBufferSize = _processByteSize;
     }
 
-    std::unique_ptr<utils::Sender> _sender;
+    std::unique_ptr<utils::Transport> _transporter;
     int _maxSpanBytes;
     int _byteBufferSize;
     std::vector<thrift::Span> _spanBuffer;
@@ -64,4 +61,4 @@ class ThriftTransport : public Transport {
 
 }  // namespace jaegertracing
 
-#endif  //JAEGERTRACING_THRIFTTRANSPORT_H
+#endif  //JAEGERTRACING_THRIFTSENDER_H

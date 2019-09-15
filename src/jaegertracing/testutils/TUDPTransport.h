@@ -27,7 +27,7 @@
 
 #include <thrift/transport/TVirtualTransport.h>
 
-#include "jaegertracing/utils/UDPSender.h"
+#include "jaegertracing/utils/UDPTransporter.h"
 
 namespace jaegertracing {
 namespace testutils {

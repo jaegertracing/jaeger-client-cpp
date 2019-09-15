@@ -15,7 +15,7 @@
  */
 
 #include "jaegertracing/reporters/Config.h"
-#include "jaegertracing/ThriftTransport.h"
+#include "jaegertracing/ThriftSender.h"
 #include "jaegertracing/reporters/CompositeReporter.h"
 #include "jaegertracing/reporters/LoggingReporter.h"
 #include "jaegertracing/reporters/RemoteReporter.h"
@@ -32,10 +32,15 @@ std::unique_ptr<Reporter> Config::makeReporter(const std::string& serviceName,
                                                metrics::Metrics& metrics) const
 {
 
-    std::unique_ptr<ThriftTransport> sender(
-        !_endpoint.empty()
-            ? new ThriftTransport(net::URI::parse(_endpoint), 0)
-            : new ThriftTransport(net::IPAddress::v4(_localAgentHostPort), 0));
+    std::unique_ptr<utils::Transport> transporter =
+        _endpoint.empty()
+            ? (std::unique_ptr<utils::Transport>(new utils::UDPTransporter(
+                  net::IPAddress::v4(_localAgentHostPort), 0)))
+            : (std::unique_ptr<utils::Transport>(
+                  new utils::HttpTransporter(net::URI::parse(_endpoint), 0)));
+
+    std::unique_ptr<ThriftSender> sender(new ThriftSender(
+        std::forward<std::unique_ptr<utils::Transport>>(transporter)));
     std::unique_ptr<RemoteReporter> remoteReporter(new RemoteReporter(
         _bufferFlushInterval, _queueSize, std::move(sender), logger, metrics));
     if (_logSpans) {

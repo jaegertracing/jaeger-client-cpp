@@ -72,11 +72,10 @@ In case the client should connect directly to the collector instead of going thr
 
 ```yml
 repoter:
-  endpoint: http://collectorhost:collectorport/api/traces
+  endpoint: http://${collectorhost}:${collectorport}/api/traces
 ```
-where collectorhost and collectorport are placeholders respectively for your Collector host and port.
 
-Note that if both localAgentHostPort and endpoint are specified, the endpoint will be used.
+Note that if both `localAgentHostPort` and `endpoint` are specified, the `endpoint` will be used.
 
 ### Updating Sampling Server URL
 

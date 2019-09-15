@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "jaegertracing/ThriftTransport.h"
+#include "jaegertracing/ThriftSender.h"
 
 #include "jaegertracing/Span.h"
 #include "jaegertracing/Tag.h"
@@ -54,28 +54,16 @@ int calcSizeOfSerializedThrift(apache::thrift::protocol::TProtocolFactory& facto
 
 }  // anonymous namespace
 
-ThriftTransport::ThriftTransport(const net::IPAddress& ip,
-                                 int maxPacketSize)
-    : _sender(new utils::UDPSender(ip, maxPacketSize))
+ThriftSender::ThriftSender(std::unique_ptr<utils::Transport>&& transporter)
+    : _transporter(std::move(transporter))
     , _maxSpanBytes(0)
     , _byteBufferSize(0)
     , _processByteSize(0)
-    , _protocolFactory(_sender->protocolFactory())
+    , _protocolFactory(_transporter->protocolFactory())
 {
 }
 
-ThriftTransport::ThriftTransport(const net::URI& endpoint,
-                                 int maxPacketSize)
-    : _sender(new utils::HttpSender(endpoint, maxPacketSize))
-    , _maxSpanBytes(0)
-    , _byteBufferSize(0)
-    , _processByteSize(0)
-    , _protocolFactory(_sender->protocolFactory())
-{
-}
-
-
-int ThriftTransport::append(const Span& span)
+int ThriftSender::append(const Span& span)
 {
     if (_process.serviceName.empty()) {
         const auto& tracer = static_cast<const Tracer&>(span.tracer());
@@ -95,17 +83,17 @@ int ThriftTransport::append(const Span& span)
         _process.__set_tags(thriftTags);
 
         _processByteSize =
-            calcSizeOfSerializedThrift(*_protocolFactory, _process, _sender->maxPacketSize());
+            calcSizeOfSerializedThrift(*_protocolFactory, _process, _transporter->maxPacketSize());
         _maxSpanBytes =
-            _sender->maxPacketSize() - _processByteSize - kEmitBatchOverhead;
+            _transporter->maxPacketSize() - _processByteSize - kEmitBatchOverhead;
     }
     thrift::Span jaegerSpan;
     span.thrift(jaegerSpan);
     const auto spanSize =
-        calcSizeOfSerializedThrift(*_protocolFactory, jaegerSpan, _sender->maxPacketSize());
+        calcSizeOfSerializedThrift(*_protocolFactory, jaegerSpan, _transporter->maxPacketSize());
     if (spanSize > _maxSpanBytes) {
         std::ostringstream oss;
-        throw Transport::Exception("Span is too large", 1);
+        throw Sender::Exception("Span is too large", 1);
     }
 
     _byteBufferSize += spanSize;
@@ -124,7 +112,7 @@ int ThriftTransport::append(const Span& span)
     return flushed;
 }
 
-int ThriftTransport::flush()
+int ThriftSender::flush()
 {
     if (_spanBuffer.empty()) {
         return 0;
@@ -135,19 +123,19 @@ int ThriftTransport::flush()
     batch.__set_spans(_spanBuffer);
 
     try {
-        _sender->emitBatch(batch);
+      _transporter->emitBatch(batch);
     } catch (const std::system_error& ex) {
         std::ostringstream oss;
         oss << "Could not send span " << ex.what()
             << ", code=" << ex.code().value();
-        throw Transport::Exception(oss.str(), _spanBuffer.size());
+        throw Sender::Exception(oss.str(), _spanBuffer.size());
     } catch (const std::exception& ex) {
         std::ostringstream oss;
         oss << "Could not send span " << ex.what();
-        throw Transport::Exception(oss.str(), _spanBuffer.size());
+        throw Sender::Exception(oss.str(), _spanBuffer.size());
     } catch (...) {
-        throw Transport::Exception("Could not send span, unknown error",
-                                   _spanBuffer.size());
+        throw Sender::Exception("Could not send span, unknown error",
+                                _spanBuffer.size());
     }
 
     resetBuffers();
