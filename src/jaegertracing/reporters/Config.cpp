@@ -31,13 +31,12 @@ std::unique_ptr<Reporter> Config::makeReporter(const std::string& serviceName,
                                                logging::Logger& logger,
                                                metrics::Metrics& metrics) const
 {
-
     std::unique_ptr<utils::Transport> transporter =
         _endpoint.empty()
             ? (std::unique_ptr<utils::Transport>(new utils::UDPTransporter(
                   net::IPAddress::v4(_localAgentHostPort), 0)))
             : (std::unique_ptr<utils::Transport>(
-                  new utils::HttpTransporter(net::URI::parse(_endpoint), 0)));
+                  new utils::HTTPTransporter(net::URI::parse(_endpoint), 0)));
 
     std::unique_ptr<ThriftSender> sender(new ThriftSender(
         std::forward<std::unique_ptr<utils::Transport>>(transporter)));

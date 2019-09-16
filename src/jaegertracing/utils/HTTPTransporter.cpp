@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include "jaegertracing/utils/HttpTransporter.h"
+#include "jaegertracing/utils/HTTPTransporter.h"
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/protocol/TProtocol.h>
 
 namespace jaegertracing {
 namespace utils {
 
-HttpTransporter::HttpTransporter(const net::URI& endpoint, int maxPacketSize)
+HTTPTransporter::HTTPTransporter(const net::URI& endpoint, int maxPacketSize)
     : Transport(maxPacketSize == 0 ? kHttpPacketMaxLength : maxPacketSize)
     , _buffer(new apache::thrift::transport::TMemoryBuffer(_maxPacketSize))
     , _serverAddr(net::IPAddress::v4(endpoint._host, endpoint._port))

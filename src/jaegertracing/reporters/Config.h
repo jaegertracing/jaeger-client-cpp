@@ -26,7 +26,7 @@
 #include "jaegertracing/metrics/Metrics.h"
 #include "jaegertracing/reporters/Reporter.h"
 #include "jaegertracing/utils/YAML.h"
-#include "jaegertracing/utils/HttpTransporter.h"
+#include "jaegertracing/utils/HTTPTransporter.h"
 #include "jaegertracing/utils/UDPTransporter.h"
 
 namespace jaegertracing {

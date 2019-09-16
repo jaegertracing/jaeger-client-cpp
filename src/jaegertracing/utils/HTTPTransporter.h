@@ -37,11 +37,11 @@
 namespace jaegertracing {
 namespace utils {
 
-class HttpTransporter : public Transport {
+class HTTPTransporter : public Transport {
   public:
-    HttpTransporter(const net::URI& endpoint, int maxPacketSize);
+    HTTPTransporter(const net::URI& endpoint, int maxPacketSize);
 
-    ~HttpTransporter() { close(); }
+    ~HTTPTransporter() { close(); }
 
     void emitBatch(const thrift::Batch& batch) override
     {

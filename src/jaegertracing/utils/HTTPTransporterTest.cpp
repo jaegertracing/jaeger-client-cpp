@@ -35,7 +35,7 @@ namespace jaegertracing {
 
 namespace utils {
 
-TEST(HttpTransporter, testSpanReporting)
+TEST(HTTPTransporter, testSpanReporting)
 {
     net::IPAddress serverAddr;
     std::promise<void> started;
