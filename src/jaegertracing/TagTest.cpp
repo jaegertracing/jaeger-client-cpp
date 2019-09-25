@@ -15,6 +15,7 @@
  */
 
 #include "jaegertracing/Tag.h"
+#include "jaegertracing/thrift-gen/jaeger_types.h"
 #include <gtest/gtest.h>
 #include <string>
 
@@ -31,7 +32,8 @@ TEST(Tag, testThriftConversion)
                          { "testCStr", "test" } };
 
     for (auto&& tag : tags) {
-        ASSERT_NO_THROW(tag.thrift());
+        thrift::Tag thriftTag;
+        ASSERT_NO_THROW(tag.thrift(thriftTag));
     }
 }
 

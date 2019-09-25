@@ -29,9 +29,17 @@
 #include "jaegertracing/metrics/Metrics.h"
 #include "jaegertracing/samplers/ProbabilisticSampler.h"
 #include "jaegertracing/samplers/Sampler.h"
-#include "jaegertracing/thrift-gen/SamplingManager.h"
 
 namespace jaegertracing {
+
+namespace sampling_manager {
+namespace thrift {
+class PerOperationSamplingStrategies;
+class SamplingStrategyResponse;
+class SamplingManagerIf;
+}  // namespace thrift
+}  // namespace sampling_manager
+
 namespace samplers {
 
 class RemotelyControlledSampler : public Sampler {

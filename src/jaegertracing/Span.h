@@ -27,11 +27,14 @@
 #include "jaegertracing/Reference.h"
 #include "jaegertracing/SpanContext.h"
 #include "jaegertracing/Tag.h"
-#include "jaegertracing/thrift-gen/jaeger_types.h"
 
 namespace jaegertracing {
 
 class Tracer;
+
+namespace thrift {
+class Span;
+}
 
 class Span : public opentracing::Span {
   public:
@@ -104,51 +107,7 @@ class Span : public opentracing::Span {
 
     friend void swap(Span& lhs, Span& rhs) { lhs.swap(rhs); }
 
-    thrift::Span thrift() const
-    {
-        std::lock_guard<std::mutex> lock(_mutex);
-        thrift::Span span;
-        span.__set_traceIdHigh(_context.traceID().high());
-        span.__set_traceIdLow(_context.traceID().low());
-        span.__set_spanId(_context.spanID());
-        span.__set_parentSpanId(_context.parentID());
-        span.__set_operationName(_operationName);
-
-        std::vector<thrift::SpanRef> refs;
-        refs.reserve(_references.size());
-        std::transform(std::begin(_references),
-                       std::end(_references),
-                       std::back_inserter(refs),
-                       [](const Reference& ref) { return ref.thrift(); });
-        span.__set_references(refs);
-
-        span.__set_flags(_context.flags());
-        span.__set_startTime(
-            std::chrono::duration_cast<std::chrono::microseconds>(
-                _startTimeSystem.time_since_epoch())
-                .count());
-        span.__set_duration(
-            std::chrono::duration_cast<std::chrono::microseconds>(_duration)
-                .count());
-
-        std::vector<thrift::Tag> tags;
-        tags.reserve(_tags.size());
-        std::transform(std::begin(_tags),
-                       std::end(_tags),
-                       std::back_inserter(tags),
-                       [](const Tag& tag) { return tag.thrift(); });
-        span.__set_tags(tags);
-
-        std::vector<thrift::Log> logs;
-        logs.reserve(_logs.size());
-        std::transform(std::begin(_logs),
-                       std::end(_logs),
-                       std::back_inserter(logs),
-                       [](const LogRecord& log) { return log.thrift(); });
-        span.__set_logs(logs);
-
-        return span;
-    }
+    void thrift(thrift::Span& span) const;
 
     template <typename Stream>
     void print(Stream& out) const

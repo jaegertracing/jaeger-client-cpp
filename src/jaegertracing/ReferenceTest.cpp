@@ -16,6 +16,7 @@
 
 #include "jaegertracing/Reference.h"
 #include "jaegertracing/SpanContext.h"
+#include "jaegertracing/thrift-gen/jaeger_types.h"
 #include <gtest/gtest.h>
 #include <stdexcept>
 
@@ -25,11 +26,14 @@ TEST(Reference, testThriftConversion)
 {
     const SpanContext context;
     const Reference childRef(context, Reference::Type::ChildOfRef);
-    ASSERT_NO_THROW(childRef.thrift());
+    thrift::SpanRef thriftChildRef;
+    ASSERT_NO_THROW(childRef.thrift(thriftChildRef));
     const Reference followsFromRef(context, Reference::Type::FollowsFromRef);
-    ASSERT_NO_THROW(followsFromRef.thrift());
+    thrift::SpanRef thriftFollowsFromRef;
+    ASSERT_NO_THROW(followsFromRef.thrift(thriftFollowsFromRef));
     const Reference invalidRef(context, static_cast<Reference::Type>(-1));
-    ASSERT_THROW(invalidRef.thrift(), std::invalid_argument);
+    thrift::SpanRef thriftInvalidRef;
+    ASSERT_THROW(invalidRef.thrift(thriftInvalidRef), std::invalid_argument);
 }
 
 }  // namespace jaegertracing

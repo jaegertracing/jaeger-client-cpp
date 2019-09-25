@@ -15,6 +15,7 @@
  */
 
 #include "jaegertracing/Span.h"
+#include "jaegertracing/thrift-gen/jaeger_types.h"
 #include <gtest/gtest.h>
 #include <string>
 
@@ -25,7 +26,8 @@ TEST(Span, testThriftConversion)
     const Span span;
     ASSERT_TRUE(span.serviceName().empty());
     ASSERT_TRUE(span.operationName().empty());
-    ASSERT_NO_THROW(span.thrift());
+    thrift::Span thriftSpan;
+    ASSERT_NO_THROW(span.thrift(thriftSpan));
 }
 
 }  // namespace jaegertracing

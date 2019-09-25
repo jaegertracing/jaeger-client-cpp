@@ -28,7 +28,8 @@
 #include <thrift/transport/TBufferTransports.h>
 
 #ifdef _MSC_VER
-#pragma warning(disable : 4267) // Conversion from unsigned to signed. It should not be a problem here.
+#pragma warning(disable : 4267)  // Conversion from unsigned to signed. It
+                                 // should not be a problem here.
 #endif
 
 namespace jaegertracing {
@@ -76,7 +77,11 @@ int UDPTransport::append(const Span& span)
         std::transform(std::begin(tracerTags),
                        std::end(tracerTags),
                        std::back_inserter(thriftTags),
-                       [](const Tag& tag) { return tag.thrift(); });
+                       [](const Tag& tag) {
+                           thrift::Tag thriftTag;
+                           tag.thrift(thriftTag);
+                           return thriftTag;
+                       });
         _process.__set_tags(thriftTags);
 
         _processByteSize =
@@ -84,7 +89,8 @@ int UDPTransport::append(const Span& span)
         _maxSpanBytes =
             _client->maxPacketSize() - _processByteSize - kEmitBatchOverhead;
     }
-    const auto jaegerSpan = span.thrift();
+    thrift::Span jaegerSpan;
+    span.thrift(jaegerSpan);
     const auto spanSize =
         calcSizeOfSerializedThrift(jaegerSpan, _client->maxPacketSize());
     if (spanSize > _maxSpanBytes) {

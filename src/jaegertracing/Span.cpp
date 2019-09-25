@@ -17,6 +17,7 @@
 #include "jaegertracing/Span.h"
 #include "jaegertracing/Tracer.h"
 #include "jaegertracing/baggage/BaggageSetter.h"
+#include "jaegertracing/thrift-gen/jaeger_types.h"
 #include <cassert>
 #include <cstdint>
 #include <istream>
@@ -161,6 +162,60 @@ void Span::setSamplingPriority(const opentracing::Value& value)
                            newFlags,
                            _context.baggage(),
                            _context.debugID());
+}
+
+void Span::thrift(thrift::Span& span) const
+{
+    std::lock_guard<std::mutex> lock(_mutex);
+    span.__set_traceIdHigh(_context.traceID().high());
+    span.__set_traceIdLow(_context.traceID().low());
+    span.__set_spanId(_context.spanID());
+    span.__set_parentSpanId(_context.parentID());
+    span.__set_operationName(_operationName);
+
+    std::vector<thrift::SpanRef> refs;
+    refs.reserve(_references.size());
+    std::transform(std::begin(_references),
+                   std::end(_references),
+                   std::back_inserter(refs),
+                   [](const Reference& ref) {
+                       thrift::SpanRef thriftRef;
+                       ref.thrift(thriftRef);
+                       return thriftRef;
+                   });
+    span.__set_references(refs);
+
+    span.__set_flags(_context.flags());
+    span.__set_startTime(std::chrono::duration_cast<std::chrono::microseconds>(
+                             _startTimeSystem.time_since_epoch())
+                             .count());
+    span.__set_duration(
+        std::chrono::duration_cast<std::chrono::microseconds>(_duration)
+            .count());
+
+    std::vector<thrift::Tag> tags;
+    tags.reserve(_tags.size());
+    std::transform(std::begin(_tags),
+                   std::end(_tags),
+                   std::back_inserter(tags),
+                   [](const Tag& tag) {
+                       thrift::Tag thriftTag;
+                       tag.thrift(thriftTag);
+                       return thriftTag;
+                   });
+    span.__set_tags(tags);
+
+    std::vector<thrift::Log> logs;
+    logs.reserve(_logs.size());
+    std::transform(std::begin(_logs),
+                   std::end(_logs),
+                   std::back_inserter(logs),
+                   [](const LogRecord& log) {
+                       thrift::Log thriftLog;
+                       log.thrift(thriftLog);
+                       return thriftLog;
+                   });
+    span.__set_logs(logs);
 }
 
 }  // namespace jaegertracing
