@@ -483,8 +483,10 @@ class Server::EndToEndHandler {
     using TracerPtr = std::shared_ptr<opentracing::Tracer>;
 
     EndToEndHandler(const std::string& agentHostPort,
+                    const std::string& collectorEndpoint,
                     const std::string& samplingServerURL)
         : _agentHostPort(agentHostPort)
+        , _collectorEndpoint(collectorEndpoint)
         , _samplingServerURL(samplingServerURL)
     {
     }
@@ -515,7 +517,8 @@ class Server::EndToEndHandler {
                       reporters::Config(reporters::Config::kDefaultQueueSize,
                                         std::chrono::seconds(1),
                                         false,
-                                        _agentHostPort));
+                                        _agentHostPort,
+                                        _collectorEndpoint));
     }
 
     TracerPtr init(const std::string& samplerType)
@@ -527,6 +530,7 @@ class Server::EndToEndHandler {
     }
 
     std::string _agentHostPort;
+    std::string _collectorEndpoint;
     std::string _samplingServerURL;
     std::unordered_map<std::string, TracerPtr> _tracers;
     std::mutex _mutex;
@@ -535,6 +539,7 @@ class Server::EndToEndHandler {
 Server::Server(const net::IPAddress& clientIP,
                const net::IPAddress& serverIP,
                const std::string& agentHostPort,
+               const std::string& collectorEndpoint,
                const std::string& samplingServerURL)
     : _logger(logging::consoleLogger())
     , _tracer(Tracer::make(kDefaultTracerServiceName, Config(), _logger))
@@ -550,7 +555,7 @@ Server::Server(const net::IPAddress& clientIP,
                              [this](const net::http::Request& request) {
                                  return handleRequest(request);
                              }))
-    , _handler(new EndToEndHandler(agentHostPort, samplingServerURL))
+    , _handler(new EndToEndHandler(agentHostPort, collectorEndpoint, samplingServerURL))
 {
 }
 
@@ -764,12 +769,23 @@ std::string Server::generateTraces(const net::http::Request& requestHTTP)
 
 int main()
 {
+    const auto rawSenderType = std::getenv("SENDER");
+    const std::string senderType(rawSenderType ? rawSenderType : "");
+
+    if (senderType.empty()) {
+      std::cerr << "env SENDER is not specified!\n";
+      return 1;
+    }
+
     const auto rawAgentHostPort = std::getenv("AGENT_HOST_PORT");
     const std::string agentHostPort(rawAgentHostPort ? rawAgentHostPort : "");
-    if (agentHostPort.empty()) {
-        std::cerr << "env AGENT_HOST_PORT is not specified!\n";
-        return 1;
+
+    if (agentHostPort.empty() && senderType == "udp") {
+      std::cerr << "env AGENT_HOST_PORT is not specified!\n";
+      return 1;
     }
+
+    const std::string collectorEndpoint(senderType == "http" ? "http://jaeger-collector:14268/api/traces" : "");
 
     const auto rawSamplingServerURL = std::getenv("SAMPLING_SERVER_URL");
     const std::string samplingServerURL(
@@ -783,6 +799,7 @@ int main()
         jaegertracing::net::IPAddress::v4("0.0.0.0:8080"),
         jaegertracing::net::IPAddress::v4("0.0.0.0:8081"),
         agentHostPort,
+        collectorEndpoint,
         samplingServerURL);
     server.serve();
 

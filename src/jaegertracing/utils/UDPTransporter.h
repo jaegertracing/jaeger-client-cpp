@@ -27,21 +27,22 @@
 #include <thrift/protocol/TCompactProtocol.h>
 #include <thrift/transport/TBufferTransports.h>
 
+#include "jaegertracing/utils/Transport.h"
+
 #include "jaegertracing/net/IPAddress.h"
-#include "jaegertracing/net/Socket.h"
 #include "jaegertracing/thrift-gen/Agent.h"
 
 namespace jaegertracing {
 namespace utils {
 
-class UDPClient : public agent::thrift::AgentIf {
+class UDPTransporter : public Transport {
   public:
-    UDPClient(const net::IPAddress& serverAddr, int maxPacketSize);
+    static constexpr auto kUDPPacketMaxLength = 65000;
 
-    ~UDPClient() { close(); }
+    UDPTransporter(const net::IPAddress& serverAddr, int maxPacketSize);
 
     void emitZipkinBatch(
-        const std::vector<twitter::zipkin::thrift::Span>& spans) override
+        const std::vector<twitter::zipkin::thrift::Span>& spans)
     {
         throw std::logic_error("emitZipkinBatch not implemented");
     }
@@ -71,14 +72,12 @@ class UDPClient : public agent::thrift::AgentIf {
         }
     }
 
-    int maxPacketSize() const { return _maxPacketSize; }
-
-    void close() { _socket.close(); }
+  std::unique_ptr< apache::thrift::protocol::TProtocolFactory > protocolFactory() const override {
+    return std::unique_ptr<apache::thrift::protocol::TProtocolFactory>(new apache::thrift::protocol::TCompactProtocolFactory());
+  }
 
   private:
-    int _maxPacketSize;
     std::shared_ptr<apache::thrift::transport::TMemoryBuffer> _buffer;
-    net::Socket _socket;
     net::IPAddress _serverAddr;
     std::unique_ptr<agent::thrift::AgentClient> _client;
 };

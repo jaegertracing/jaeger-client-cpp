@@ -42,3 +42,7 @@
 
 # Log files
 *.log
+
+# CLion folders
+cmake-build-debug
+.idea

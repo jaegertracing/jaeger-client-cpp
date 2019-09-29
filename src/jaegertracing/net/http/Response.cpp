@@ -15,21 +15,8 @@
  */
 
 #include "jaegertracing/net/http/Response.h"
+#include "jaegertracing/net/http/SocketReader.h"
 
-#ifdef WIN32
-#include <winsock2.h>
-#include <iphlpapi.h>
-#include <ws2tcpip.h>
-#include <windows.h> 
-#elif UNIX
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
-#endif
-
-#include <iostream>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -68,6 +55,13 @@ Response Response::parse(std::istream& in)
     return response;
 }
 
+Response read(Socket & socket)
+{
+  std::string response = SocketReader::read(socket);
+  std::istringstream responseStream(response);
+  return Response::parse(responseStream);
+}
+
 Response get(const URI& uri)
 {
     Socket socket;
@@ -92,27 +86,7 @@ Response get(const URI& uri)
         throw std::system_error(errno, std::system_category(), oss.str());
     }
 
-    constexpr auto kBufferSize = 256;
-    std::array<char, kBufferSize> buffer;
-#ifdef WIN32
-    auto numRead = ::recv(socket.handle(), &buffer[0], buffer.size(), 0);
-#else
-    auto numRead = ::read(socket.handle(), &buffer[0], buffer.size());
-#endif
-    std::string response;
-    while (numRead > 0) {
-        response.append(&buffer[0], numRead);
-        if (numRead < static_cast<int>(buffer.size())) {
-            break;
-        }
-#ifdef WIN32
-        numRead = ::recv(socket.handle(), &buffer[0], buffer.size(), 0);
-#else
-        numRead = ::read(socket.handle(), &buffer[0], buffer.size());
-#endif
-    }
-    std::istringstream responseStream(response);
-    return Response::parse(responseStream);
+  return read(socket);
 }
 
 }  // namespace http

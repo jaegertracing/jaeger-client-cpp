@@ -66,6 +66,17 @@ repoter:
 
 NOTE: It is not recommended to use a remote host for UDP connections.
 
+### Connecting directly to the Collector
+
+In case the client should connect directly to the collector instead of going through an agent, it's necessary update the reporter configuration
+
+```yml
+repoter:
+  endpoint: http://${collectorhost}:${collectorport}/api/traces
+```
+
+Note that if both `localAgentHostPort` and `endpoint` are specified, the `endpoint` will be used.
+
 ### Updating Sampling Server URL
 
 The default sampling collector URL is `http://127.0.0.1:5778/sampling`. Similar to UDP address above, you can use a different URL by updating the sampler configuration.

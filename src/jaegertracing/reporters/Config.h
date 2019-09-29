@@ -20,11 +20,14 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "jaegertracing/Logging.h"
 #include "jaegertracing/metrics/Metrics.h"
 #include "jaegertracing/reporters/Reporter.h"
 #include "jaegertracing/utils/YAML.h"
+#include "jaegertracing/utils/HTTPTransporter.h"
+#include "jaegertracing/utils/UDPTransporter.h"
 
 namespace jaegertracing {
 namespace reporters {
@@ -35,6 +38,7 @@ class Config {
 
     static constexpr auto kDefaultQueueSize = 100;
     static constexpr auto kDefaultLocalAgentHostPort = "127.0.0.1:6831";
+    static constexpr auto kDefaultEndpoint = "";
 
     static Clock::duration defaultBufferFlushInterval()
     {
@@ -58,8 +62,10 @@ class Config {
             utils::yaml::findOrDefault<bool>(configYAML, "logSpans", false);
         const auto localAgentHostPort = utils::yaml::findOrDefault<std::string>(
             configYAML, "localAgentHostPort", "");
+        const auto endpoint = utils::yaml::findOrDefault<std::string>(
+            configYAML, "endpoint", "");
         return Config(
-            queueSize, bufferFlushInterval, logSpans, localAgentHostPort);
+            queueSize, bufferFlushInterval, logSpans, localAgentHostPort, endpoint);
     }
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
@@ -69,7 +75,7 @@ class Config {
         const Clock::duration& bufferFlushInterval =
             defaultBufferFlushInterval(),
         bool logSpans = false,
-        const std::string& localAgentHostPort = kDefaultLocalAgentHostPort)
+        const std::string& localAgentHostPort = kDefaultLocalAgentHostPort, const std::string& endpoint = kDefaultEndpoint)
         : _queueSize(queueSize > 0 ? queueSize : kDefaultQueueSize)
         , _bufferFlushInterval(bufferFlushInterval.count() > 0
                                    ? bufferFlushInterval
@@ -78,6 +84,7 @@ class Config {
         , _localAgentHostPort(localAgentHostPort.empty()
                                   ? kDefaultLocalAgentHostPort
                                   : localAgentHostPort)
+        , _endpoint(endpoint)
     {
     }
 
@@ -99,11 +106,17 @@ class Config {
         return _localAgentHostPort;
     }
 
+    const std::string& endpoint() const
+    {
+      return _endpoint;
+    }
+
   private:
     int _queueSize;
     Clock::duration _bufferFlushInterval;
     bool _logSpans;
     std::string _localAgentHostPort;
+    std::string _endpoint;
 };
 
 }  // namespace reporters
