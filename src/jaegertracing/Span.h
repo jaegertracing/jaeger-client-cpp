@@ -190,24 +190,27 @@ class Span : public opentracing::Span {
                                                      : itr->second;
     }
 
+    void Log(opentracing::SystemTime timestamp,
+             std::initializer_list<
+                 std::pair<opentracing::string_view, opentracing::Value>>
+                 fieldPairs) noexcept override
+    {
+        doLog(timestamp, fieldPairs);
+    }
+
+    void Log(opentracing::SystemTime timestamp,
+             const std::vector<
+                 std::pair<opentracing::string_view, opentracing::Value>>&
+                 fieldPairs) noexcept override
+    {
+        doLog(timestamp, fieldPairs);
+    }
+
     void Log(std::initializer_list<
              std::pair<opentracing::string_view, opentracing::Value>>
                  fieldPairs) noexcept override
     {
-        std::lock_guard<std::mutex> lock(_mutex);
-        if (!_context.isSampled()) {
-            return;
-        }
-
-        std::vector<Tag> fields;
-        fields.reserve(fieldPairs.size());
-        std::transform(
-            std::begin(fieldPairs),
-            std::end(fieldPairs),
-            std::back_inserter(fields),
-            [](const std::pair<opentracing::string_view, opentracing::Value>&
-                   pair) { return Tag(pair.first, pair.second); });
-        logFieldsNoLocking(std::begin(fields), std::end(fields));
+        doLog(SystemClock::now(), fieldPairs);
     }
 
     const SpanContext& context() const noexcept override
@@ -228,10 +231,29 @@ class Span : public opentracing::Span {
     bool isFinished() const { return _duration != SteadyClock::duration(); }
 
     template <typename FieldIterator>
-    void logFieldsNoLocking(FieldIterator first, FieldIterator last) noexcept
+    void logFieldsNoLocking(const std::chrono::system_clock::time_point& timestamp, FieldIterator first, FieldIterator last) noexcept
     {
-        LogRecord log(SystemClock::now(), first, last);
+        LogRecord log(timestamp, first, last);
         _logs.push_back(log);
+    }
+
+    template <typename Container>
+    void doLog(opentracing::SystemTime timestamp, Container fieldPairs) noexcept
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        if (!_context.isSampled()) {
+            return;
+        }
+
+        std::vector<Tag> fields;
+        fields.reserve(fieldPairs.size());
+        std::transform(
+            std::begin(fieldPairs),
+            std::end(fieldPairs),
+            std::back_inserter(fields),
+            [](const std::pair<opentracing::string_view, opentracing::Value>&
+                   pair) { return Tag(pair.first, pair.second); });
+        logFieldsNoLocking(timestamp, std::begin(fields), std::end(fields));
     }
 
     void setSamplingPriority(const opentracing::Value& value);

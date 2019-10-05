@@ -15,8 +15,9 @@ include(HunterGate)
 option(HUNTER_BUILD_SHARED_LIBS "Build Shared Library" ON)
 
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.23.201.tar.gz"
-    SHA1 "29f10683f10c7b35e1f599d71542af0c2daa6a01"
+    URL "https://github.com/cpp-pm/hunter/archive/v0.23.249.tar.gz"
+    SHA1 "d45d77d8bba9da13e9290a180e0477e90accd89b"
+    LOCAL # load `${CMAKE_CURRENT_LIST_DIR}/cmake/Hunter/config.cmake`
 )
 
 project(jaegertracing VERSION 0.5.0)
@@ -341,7 +342,7 @@ if(BUILD_TESTING)
       src/jaegertracing/utils/UDPSenderTest.cpp
       src/jaegertracing/utils/HTTPTransporterTest.cpp)
   target_link_libraries(
-      UnitTest PRIVATE testutils GTest::main ${JAEGERTRACING_LIB})
+      UnitTest PRIVATE testutils PUBLIC GTest::main ${JAEGERTRACING_LIB})
   add_test(NAME UnitTest COMMAND UnitTest)
 
   update_path_for_test(UnitTest)
