@@ -210,6 +210,7 @@ set(SRC
     src/jaegertracing/thrift-gen/zipkincore_types.cpp
     src/jaegertracing/utils/ErrorUtil.cpp
     src/jaegertracing/utils/HexParsing.cpp
+    src/jaegertracing/utils/EnvVariable.cpp
     src/jaegertracing/utils/RateLimiter.cpp
     src/jaegertracing/utils/UDPTransporter.cpp
     src/jaegertracing/utils/HTTPTransporter.cpp

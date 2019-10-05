@@ -15,3 +15,53 @@
  */
 
 #include "jaegertracing/Config.h"
+#include "jaegertracing/samplers/Config.h"
+#include "jaegertracing/utils/EnvVariable.h"
+
+namespace jaegertracing {
+
+constexpr const char* Config::kJAEGER_SERVICE_NAME_ENV_PROP;
+constexpr const char* Config::kJAEGER_TAGS_ENV_PROP;
+constexpr const char* Config::kJAEGER_JAEGER_DISABLED_ENV_PROP;
+
+void Config::fromEnv()
+{
+    const auto disabled =
+        utils::EnvVariable::getBoolVariable(kJAEGER_JAEGER_DISABLED_ENV_PROP);
+    if (disabled.first) {
+        _disabled = disabled.second;
+    }
+
+    const auto serviceName =
+        utils::EnvVariable::getStringVariable(kJAEGER_SERVICE_NAME_ENV_PROP);
+    if (!serviceName.empty()) {
+        _serviceName = serviceName;
+    }
+
+    const auto tags =
+        utils::EnvVariable::getStringVariable(kJAEGER_TAGS_ENV_PROP);
+    if (!tags.empty()) {
+        std::string tag;
+        std::istringstream tagsStream(tags);
+        while (std::getline(tagsStream, tag, ',')) {
+
+            std::istringstream tagStream(tag);
+
+            std::string tagKey;
+            std::string tagValue;
+            if (std::getline(tagStream, tagKey, '=')) {
+                std::getline(tagStream, tagValue, '=');
+                if (std::getline(tagStream, tagValue, '=')) {
+                    // error, should be logged somewhere
+                }
+                else {
+                    _tags.emplace_back(tagKey, tagValue);
+                }
+            }
+        }
+    }
+    _reporter.fromEnv();
+    _sampler.fromEnv();
+}
+
+}  // namespace jaegertracing

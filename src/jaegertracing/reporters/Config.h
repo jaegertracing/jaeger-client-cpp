@@ -40,6 +40,16 @@ class Config {
     static constexpr auto kDefaultLocalAgentHostPort = "127.0.0.1:6831";
     static constexpr auto kDefaultEndpoint = "";
 
+    static constexpr auto kJAEGER_AGENT_HOST_ENV_PROP = "JAEGER_AGENT_HOST";
+    static constexpr auto kJAEGER_AGENT_PORT_ENV_PROP = "JAEGER_AGENT_PORT";
+    static constexpr auto kJAEGER_ENDPOINT_ENV_PROP = "JAEGER_ENDPOINT";
+
+    static constexpr auto kJAEGER_REPORTER_LOG_SPANS_ENV_PROP = "JAEGER_REPORTER_LOG_SPANS";
+    static constexpr auto kJAEGER_REPORTER_FLUSH_INTERVAL_ENV_PROP = "JAEGER_REPORTER_FLUSH_INTERVAL";
+    static constexpr auto kJAEGER_REPORTER_MAX_QUEUE_SIZE_ENV_PROP = "JAEGER_REPORTER_MAX_QUEUE_SIZE";
+
+
+
     static Clock::duration defaultBufferFlushInterval()
     {
         return std::chrono::seconds(10);
@@ -110,6 +120,8 @@ class Config {
     {
       return _endpoint;
     }
+
+    void fromEnv();
 
   private:
     int _queueSize;

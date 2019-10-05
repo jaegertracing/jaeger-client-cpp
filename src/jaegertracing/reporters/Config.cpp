@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+
 #include "jaegertracing/reporters/Config.h"
 #include "jaegertracing/ThriftSender.h"
 #include "jaegertracing/reporters/CompositeReporter.h"
 #include "jaegertracing/reporters/LoggingReporter.h"
 #include "jaegertracing/reporters/RemoteReporter.h"
+#include "jaegertracing/utils/EnvVariable.h"
 
 namespace jaegertracing {
 namespace reporters {
@@ -26,6 +29,13 @@ namespace reporters {
 constexpr int Config::kDefaultQueueSize;
 constexpr const char* Config::kDefaultLocalAgentHostPort;
 constexpr const char* Config::kDefaultEndpoint;
+constexpr const char* Config::kJAEGER_AGENT_HOST_ENV_PROP;
+constexpr const char* Config::kJAEGER_AGENT_PORT_ENV_PROP;
+constexpr const char* Config::kJAEGER_ENDPOINT_ENV_PROP;
+
+constexpr const char* Config::kJAEGER_REPORTER_LOG_SPANS_ENV_PROP;
+constexpr const char* Config::kJAEGER_REPORTER_FLUSH_INTERVAL_ENV_PROP;
+constexpr const char* Config::kJAEGER_REPORTER_MAX_QUEUE_SIZE_ENV_PROP;
 
 std::unique_ptr<Reporter> Config::makeReporter(const std::string& serviceName,
                                                logging::Logger& logger,
@@ -49,6 +59,59 @@ std::unique_ptr<Reporter> Config::makeReporter(const std::string& serviceName,
               std::make_shared<LoggingReporter>(logger) }));
     }
     return std::unique_ptr<Reporter>(std::move(remoteReporter));
+}
+
+void Config::fromEnv()
+{
+    const auto agentHost =
+        utils::EnvVariable::getStringVariable(kJAEGER_AGENT_HOST_ENV_PROP);
+    if (!agentHost.empty()) {
+        auto agentHostPort = net::IPAddress::parse(_localAgentHostPort);
+        std::ostringstream oss;
+        oss << agentHost << ":" << agentHostPort.second;
+        _localAgentHostPort = oss.str();
+    }
+    const auto agentPort =
+        utils::EnvVariable::getStringVariable(kJAEGER_AGENT_PORT_ENV_PROP);
+    if (!agentPort.empty()) {
+        std::istringstream iss(agentPort);
+        int port = 0;
+        if (iss >> port) {
+            auto agentHostPort = net::IPAddress::parse(_localAgentHostPort);
+            std::ostringstream oss;
+            oss << agentHostPort.first << ":" << port;
+            _localAgentHostPort = oss.str();
+        }
+    }
+
+    const auto endpoint =
+        utils::EnvVariable::getStringVariable(kJAEGER_ENDPOINT_ENV_PROP);
+    if (!endpoint.empty()) {
+        _endpoint = endpoint;
+    }
+
+    const auto logSpan = utils::EnvVariable::getBoolVariable(
+        kJAEGER_REPORTER_LOG_SPANS_ENV_PROP);
+    if (logSpan.first) {
+        _logSpans = logSpan.second;
+    }
+
+    const auto flushInterval = utils::EnvVariable::getIntVariable(
+        kJAEGER_REPORTER_FLUSH_INTERVAL_ENV_PROP);
+    if (!flushInterval.first) {
+        if (flushInterval.second > 0) {
+            _bufferFlushInterval =
+                std::chrono::milliseconds(flushInterval.second);
+        }
+    }
+
+    const auto maxQueueSize = utils::EnvVariable::getIntVariable(
+        kJAEGER_REPORTER_MAX_QUEUE_SIZE_ENV_PROP);
+    if (!maxQueueSize.first) {
+        if (maxQueueSize.second > 0) {
+            _queueSize = maxQueueSize.second;
+        }
+    }
 }
 
 }  // namespace reporters
