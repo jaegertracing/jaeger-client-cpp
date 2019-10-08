@@ -25,7 +25,6 @@ constexpr const char* Config::kDefaultSamplingServerURL;
 
 constexpr const char* Config::kJAEGER_SAMPLER_TYPE_ENV_PROP;
 constexpr const char* Config::kJAEGER_SAMPLER_PARAM_ENV_PROP;
-constexpr const char* Config::kJAEGER_SAMPLER_MANAGER_HOST_PORT_ENV_PROP;
 
 void Config::fromEnv()
 {
@@ -41,11 +40,6 @@ void Config::fromEnv()
         if (iss >> paramVal) {
             _param = paramVal;
         }
-    }
-
-    const auto samplerUrl = utils::EnvVariable::getStringVariable(kJAEGER_SAMPLER_MANAGER_HOST_PORT_ENV_PROP);
-    if (!samplerUrl.empty()) {
-        _samplingServerURL = "http://" + samplerUrl + "/sampling";
     }
 }
 

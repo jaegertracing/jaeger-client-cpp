@@ -126,19 +126,6 @@ TEST(Config, testFromEnv)
                   "test-service",
                   tags);
 
-    ASSERT_EQ(std::string("http://host36:56568"), config.reporter().endpoint());
-    ASSERT_EQ(std::string("host35:77"), config.reporter().localAgentHostPort());
-
-    ASSERT_EQ(10, config.reporter().queueSize());
-    ASSERT_EQ(std::chrono::milliseconds(100),
-              config.reporter().bufferFlushInterval());
-    ASSERT_EQ(false, config.reporter().logSpans());
-
-    ASSERT_EQ(.7, config.sampler().param());
-    ASSERT_EQ(std::string("probabilistic"), config.sampler().type());
-    ASSERT_EQ(std::string("http://host34:57/sampling"),
-              config.sampler().samplingServerURL());
-
     config.fromEnv();
 
     ASSERT_EQ(std::string("http://host36:56568"), config.reporter().endpoint());
@@ -151,8 +138,6 @@ TEST(Config, testFromEnv)
 
     ASSERT_EQ(.7, config.sampler().param());
     ASSERT_EQ(std::string("probabilistic"), config.sampler().type());
-    ASSERT_EQ(std::string("http://host34:57/sampling"),
-              config.sampler().samplingServerURL());
 
     setEnv("JAEGER_AGENT_HOST", "host33");
     setEnv("JAEGER_AGENT_PORT", "45");
@@ -164,7 +149,6 @@ TEST(Config, testFromEnv)
 
     setEnv("JAEGER_SAMPLER_PARAM", "33");
     setEnv("JAEGER_SAMPLER_TYPE", "const");
-    setEnv("JAEGER_SAMPLER_MANAGER_HOST_PORT", "host34:56");
 
     setEnv("JAEGER_SERVICE_NAME", "AService");
     setEnv("JAEGER_TAGS", "hostname=foobar,my.app.version=4.5.6");
@@ -181,8 +165,6 @@ TEST(Config, testFromEnv)
 
     ASSERT_EQ(33., config.sampler().param());
     ASSERT_EQ(std::string("const"), config.sampler().type());
-    ASSERT_EQ(std::string("http://host34:56/sampling"),
-              config.sampler().samplingServerURL());
 
     ASSERT_EQ(std::string("AService"), config.serviceName());
 
@@ -195,7 +177,7 @@ TEST(Config, testFromEnv)
 
     ASSERT_EQ(false, config.disabled());
 
-    setEnv("JAEGER_DISABLED", "TRue");
+    setEnv("JAEGER_DISABLED", "TRue");  // case-insensitive
     setEnv("JAEGER_AGENT_PORT", "445");
 
     config.fromEnv();
