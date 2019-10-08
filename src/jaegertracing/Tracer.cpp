@@ -239,6 +239,7 @@ Tracer::make(const std::string& serviceName,
                                               logger,
                                               metrics,
                                               config.headers(),
+                                              config.tags(),
                                               options));
 }
 

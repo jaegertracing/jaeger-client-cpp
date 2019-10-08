@@ -416,4 +416,36 @@ TEST(Tracer, testPropagation)
     tracer->Close();
 }
 
+TEST(Tracer, testTracerTags)
+{
+    std::vector<Tag> tags;
+    tags.emplace_back("hostname", std::string("foobar"));
+    tags.emplace_back("my.app.version", std::string("1.2.3"));
+
+    Config config(
+        false,
+        samplers::Config(
+            "const", 1, "", 0, samplers::Config::Clock::duration()),
+        reporters::Config(0, std::chrono::milliseconds(100), false, "", ""),
+        propagation::HeadersConfig(),
+        baggage::RestrictionsConfig(),
+        "test-service",
+        tags);
+
+    auto tracer = Tracer::make(config);
+    const auto jaegerTracer = std::static_pointer_cast<Tracer>(tracer);
+
+    ASSERT_TRUE(std::find(jaegerTracer->tags().begin(),
+                          jaegerTracer->tags().end(),
+                          Tag("hostname", std::string("foobar"))) !=
+        jaegerTracer->tags().end());
+
+    ASSERT_TRUE(std::find(jaegerTracer->tags().begin(),
+                          jaegerTracer->tags().end(),
+                          Tag("my.app.version", std::string("1.2.3"))) !=
+        jaegerTracer->tags().end());
+
+    ASSERT_EQ(std::string("test-service"), jaegerTracer->serviceName());
+}
+
 }  // namespace jaegertracing

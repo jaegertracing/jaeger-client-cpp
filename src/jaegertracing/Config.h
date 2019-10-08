@@ -19,6 +19,7 @@
 
 #include "jaegertracing/Compilers.h"
 #include "jaegertracing/Constants.h"
+#include "jaegertracing/Tag.h"
 #include "jaegertracing/baggage/RestrictionsConfig.h"
 #include "jaegertracing/propagation/HeadersConfig.h"
 #include "jaegertracing/reporters/Config.h"
@@ -29,6 +30,11 @@ namespace jaegertracing {
 
 class Config {
   public:
+
+    static constexpr auto kJAEGER_SERVICE_NAME_ENV_PROP = "JAEGER_SERVICE_NAME";
+    static constexpr auto kJAEGER_TAGS_ENV_PROP = "JAEGER_TAGS";
+    static constexpr auto kJAEGER_JAEGER_DISABLED_ENV_PROP = "JAEGER_DISABLED";
+
 #ifdef JAEGERTRACING_WITH_YAML_CPP
 
     static Config parse(const YAML::Node& configYAML)
@@ -36,6 +42,9 @@ class Config {
         if (!configYAML.IsDefined() || !configYAML.IsMap()) {
             return Config();
         }
+
+        const auto serviceName =
+            utils::yaml::findOrDefault<std::string>(configYAML, "service_name", "");
 
         const auto disabled =
             utils::yaml::findOrDefault<bool>(configYAML, "disabled", false);
@@ -49,7 +58,7 @@ class Config {
         const auto baggageRestrictions =
             baggage::RestrictionsConfig::parse(baggageRestrictionsNode);
         return Config(
-            disabled, sampler, reporter, headers, baggageRestrictions);
+            disabled, sampler, reporter, headers, baggageRestrictions, serviceName);
     }
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
@@ -60,8 +69,12 @@ class Config {
                     const propagation::HeadersConfig& headers =
                         propagation::HeadersConfig(),
                     const baggage::RestrictionsConfig& baggageRestrictions =
-                        baggage::RestrictionsConfig())
+                        baggage::RestrictionsConfig(),
+                    const std::string& serviceName = "",
+                    const std::vector<Tag>&  tags = std::vector<Tag>())
         : _disabled(disabled)
+        , _serviceName(serviceName)
+        , _tags(tags)
         , _sampler(sampler)
         , _reporter(reporter)
         , _headers(headers)
@@ -82,8 +95,16 @@ class Config {
         return _baggageRestrictions;
     }
 
+    const std::string& serviceName() const { return _serviceName; }
+
+    const std::vector<Tag>& tags() const { return _tags; }
+
+    void fromEnv();
+
   private:
     bool _disabled;
+    std::string _serviceName;
+    std::vector< Tag > _tags;
     samplers::Config _sampler;
     reporters::Config _reporter;
     propagation::HeadersConfig _headers;

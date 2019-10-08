@@ -53,7 +53,7 @@ namespace net {
 
 class IPAddress {
   public:
-    static IPAddress v4(const std::string& hostPort)
+    static std::pair<std::string, int> parse(const std::string& hostPort)
     {
         const auto colonPos = hostPort.find(':');
         const auto ip = hostPort.substr(0, colonPos);
@@ -65,7 +65,13 @@ class IPAddress {
                 port = 0;
             }
         }
-        return v4(ip, port);
+        return std::make_pair(ip, port);
+    }
+
+    static IPAddress v4(const std::string& hostPort)
+    {
+        auto result = parse(hostPort);
+        return v4(result.first, result.second);
     }
 
     static IPAddress v4(const std::string& ip, int port)

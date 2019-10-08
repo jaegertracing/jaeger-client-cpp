@@ -53,6 +53,13 @@ class Tracer : public opentracing::Tracer,
 
     static constexpr auto kGen128BitOption = 1;
 
+    static std::shared_ptr<opentracing::Tracer> make(const Config& config)
+    {
+        return make(config.serviceName(),
+                    config,
+                    std::shared_ptr<logging::Logger>(logging::nullLogger()));
+    }
+
     static std::shared_ptr<opentracing::Tracer>
     make(const std::string& serviceName, const Config& config)
     {
@@ -69,7 +76,6 @@ class Tracer : public opentracing::Tracer,
         metrics::NullStatsFactory factory;
         return make(serviceName, config, logger, factory);
     }
-
     static std::shared_ptr<opentracing::Tracer>
     make(const std::string& serviceName,
          const Config& config,
@@ -78,7 +84,6 @@ class Tracer : public opentracing::Tracer,
     {
         return make(serviceName, config, logger, statsFactory, 0);
     }
-
     static std::shared_ptr<opentracing::Tracer>
     make(const std::string& serviceName,
          const Config& config,
@@ -202,6 +207,7 @@ class Tracer : public opentracing::Tracer,
            const std::shared_ptr<logging::Logger>& logger,
            const std::shared_ptr<metrics::Metrics>& metrics,
            const propagation::HeadersConfig& headersConfig,
+           const std::vector<Tag>& tags,
            int options)
         : _serviceName(serviceName)
         , _hostIPv4(net::IPAddress::localIP(AF_INET))
@@ -232,6 +238,8 @@ class Tracer : public opentracing::Tracer,
         else {
             _tags.push_back(Tag(kTracerIPTagKey, _hostIPv4.host()));
         }
+
+        std::copy(tags.cbegin(), tags.cend(), std::back_inserter(_tags));
 
         std::random_device device;
         _randomNumberGenerator.seed(device());
