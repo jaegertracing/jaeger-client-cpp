@@ -76,14 +76,6 @@ class Tracer : public opentracing::Tracer,
         metrics::NullStatsFactory factory;
         return make(serviceName, config, logger, factory);
     }
-
-    static std::shared_ptr<opentracing::Tracer>
-    make(const Config& config, const std::shared_ptr<logging::Logger>& logger)
-    {
-        metrics::NullStatsFactory factory;
-        return make(config.serviceName(), config, logger, factory);
-    }
-
     static std::shared_ptr<opentracing::Tracer>
     make(const std::string& serviceName,
          const Config& config,
@@ -92,31 +84,12 @@ class Tracer : public opentracing::Tracer,
     {
         return make(serviceName, config, logger, statsFactory, 0);
     }
-
-    static std::shared_ptr<opentracing::Tracer>
-    make(const Config& config,
-         const std::shared_ptr<logging::Logger>& logger,
-         metrics::StatsFactory& statsFactory)
-    {
-        return make(config.serviceName(), config, logger, statsFactory, 0);
-    }
-
     static std::shared_ptr<opentracing::Tracer>
     make(const std::string& serviceName,
          const Config& config,
          const std::shared_ptr<logging::Logger>& logger,
          metrics::StatsFactory& statsFactory,
          int options);
-
-    static std::shared_ptr<opentracing::Tracer>
-    make(const Config& config,
-         const std::shared_ptr<logging::Logger>& logger,
-         metrics::StatsFactory& statsFactory,
-         int options)
-    {
-        return make(
-            config.serviceName(), config, logger, statsFactory, options);
-    }
 
     ~Tracer() { Close(); }
 

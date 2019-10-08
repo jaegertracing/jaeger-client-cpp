@@ -432,7 +432,7 @@ TEST(Tracer, testTracerTags)
         "test-service",
         tags);
 
-    auto tracer = Tracer::make(config, logging::nullLogger());
+    auto tracer = Tracer::make(config);
     const auto jaegerTracer = std::static_pointer_cast<Tracer>(tracer);
 
     ASSERT_TRUE(std::find(jaegerTracer->tags().begin(),

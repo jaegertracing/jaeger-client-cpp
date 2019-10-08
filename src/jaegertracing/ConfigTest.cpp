@@ -106,28 +106,68 @@ void setEnv(const char *variable, const char *value) {
 
 TEST(Config, testFromEnv)
 {
-    setEnv(reporters::Config::kJAEGER_AGENT_HOST_ENV_PROP, "host33");
-    setEnv(reporters::Config::kJAEGER_AGENT_PORT_ENV_PROP, "45");
-    setEnv(reporters::Config::kJAEGER_ENDPOINT_ENV_PROP,
-           "http://host34:56567");
+    std::vector<Tag> tags;
+    tags.emplace_back("hostname", std::string("foo"));
+    tags.emplace_back("my.app.version", std::string("1.2.3"));
 
-    setEnv(reporters::Config::kJAEGER_REPORTER_MAX_QUEUE_SIZE_ENV_PROP,
-           "33");
-    setEnv(reporters::Config::kJAEGER_REPORTER_FLUSH_INTERVAL_ENV_PROP,
-           "45");
-    setEnv(
-        reporters::Config::kJAEGER_REPORTER_LOG_SPANS_ENV_PROP, "true");
+    Config config(false,
+                  samplers::Config("probabilistic",
+                                   0.7,
+                                   "http://host34:57/sampling",
+                                   0,
+                                   samplers::Config::Clock::duration()),
+                  reporters::Config(10,
+                                    std::chrono::milliseconds(100),
+                                    false,
+                                    "host35:77",
+                                    "http://host36:56568"),
+                  propagation::HeadersConfig(),
+                  baggage::RestrictionsConfig(),
+                  "test-service",
+                  tags);
 
-    setEnv(samplers::Config::kJAEGER_SAMPLER_PARAM_ENV_PROP, "33");
-    setEnv(samplers::Config::kJAEGER_SAMPLER_TYPE_ENV_PROP, "const");
-    setEnv(samplers::Config::kJAEGER_SAMPLER_MANAGER_HOST_PORT_ENV_PROP,
-           "host34:56");
+    ASSERT_EQ(std::string("http://host36:56568"), config.reporter().endpoint());
+    ASSERT_EQ(std::string("host35:77"), config.reporter().localAgentHostPort());
 
-    setEnv(Config::kJAEGER_SERVICE_NAME_ENV_PROP, "AService");
-    setEnv(Config::kJAEGER_TAGS_ENV_PROP,
-           "hostname=foobar,my.app.version=1.2.3");
+    ASSERT_EQ(10, config.reporter().queueSize());
+    ASSERT_EQ(std::chrono::milliseconds(100),
+              config.reporter().bufferFlushInterval());
+    ASSERT_EQ(false, config.reporter().logSpans());
 
-    Config config;
+    ASSERT_EQ(.7, config.sampler().param());
+    ASSERT_EQ(std::string("probabilistic"), config.sampler().type());
+    ASSERT_EQ(std::string("http://host34:57/sampling"),
+              config.sampler().samplingServerURL());
+
+    config.fromEnv();
+
+    ASSERT_EQ(std::string("http://host36:56568"), config.reporter().endpoint());
+    ASSERT_EQ(std::string("host35:77"), config.reporter().localAgentHostPort());
+
+    ASSERT_EQ(10, config.reporter().queueSize());
+    ASSERT_EQ(std::chrono::milliseconds(100),
+              config.reporter().bufferFlushInterval());
+    ASSERT_EQ(false, config.reporter().logSpans());
+
+    ASSERT_EQ(.7, config.sampler().param());
+    ASSERT_EQ(std::string("probabilistic"), config.sampler().type());
+    ASSERT_EQ(std::string("http://host34:57/sampling"),
+              config.sampler().samplingServerURL());
+
+    setEnv("JAEGER_AGENT_HOST", "host33");
+    setEnv("JAEGER_AGENT_PORT", "45");
+    setEnv("JAEGER_ENDPOINT", "http://host34:56567");
+
+    setEnv("JAEGER_REPORTER_MAX_QUEUE_SIZE", "33");
+    setEnv("JAEGER_REPORTER_FLUSH_INTERVAL", "45");
+    setEnv("JAEGER_REPORTER_LOG_SPANS", "true");
+
+    setEnv("JAEGER_SAMPLER_PARAM", "33");
+    setEnv("JAEGER_SAMPLER_TYPE", "const");
+    setEnv("JAEGER_SAMPLER_MANAGER_HOST_PORT", "host34:56");
+
+    setEnv("JAEGER_SERVICE_NAME", "AService");
+    setEnv("JAEGER_TAGS", "hostname=foobar,my.app.version=4.5.6");
 
     config.fromEnv();
 
@@ -147,14 +187,16 @@ TEST(Config, testFromEnv)
     ASSERT_EQ(std::string("AService"), config.serviceName());
 
     std::vector<Tag> expectedTags;
-    expectedTags.emplace_back("hostname", std::string("foobar"));
+    expectedTags.emplace_back("hostname", std::string("foo"));
     expectedTags.emplace_back("my.app.version", std::string("1.2.3"));
+    expectedTags.emplace_back("hostname", std::string("foobar"));
+    expectedTags.emplace_back("my.app.version", std::string("4.5.6"));
     ASSERT_EQ(expectedTags, config.tags());
 
     ASSERT_EQ(false, config.disabled());
 
-    setEnv(Config::kJAEGER_JAEGER_DISABLED_ENV_PROP, "TRue");
-    setEnv(reporters::Config::kJAEGER_AGENT_PORT_ENV_PROP, "445");
+    setEnv("JAEGER_DISABLED", "TRue");
+    setEnv("JAEGER_AGENT_PORT", "445");
 
     config.fromEnv();
     ASSERT_EQ(true, config.disabled());

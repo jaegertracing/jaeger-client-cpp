@@ -71,7 +71,7 @@ class Config {
                     const baggage::RestrictionsConfig& baggageRestrictions =
                         baggage::RestrictionsConfig(),
                     const std::string& serviceName = "",
-                    const std::vector<Tag> tags = std::vector<Tag>())
+                    const std::vector<Tag>&  tags = std::vector<Tag>())
         : _disabled(disabled)
         , _serviceName(serviceName)
         , _tags(tags)
