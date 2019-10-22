@@ -22,6 +22,7 @@
 #include "jaegertracing/Sender.h"
 #include "jaegertracing/thrift-gen/jaeger_types.h"
 #include "jaegertracing/utils/Transport.h"
+#include <thrift/transport/TBufferTransports.h>
 
 namespace jaegertracing {
 
@@ -50,6 +51,18 @@ class ThriftSender : public Sender {
         _byteBufferSize = _processByteSize;
     }
 
+    template <typename ThriftType>
+    int calcSizeOfSerializedThrift(const ThriftType& base)
+    {
+        _thriftBuffer->resetBuffer();
+        auto _protocol = _protocolFactory->getProtocol(_thriftBuffer);
+        base.write(_protocol.get());
+        uint8_t* data = nullptr;
+        uint32_t size = 0;
+        _thriftBuffer->getBuffer(&data, &size);
+        return size;
+    }
+
     std::unique_ptr<utils::Transport> _transporter;
     int _maxSpanBytes;
     int _byteBufferSize;
@@ -57,6 +70,9 @@ class ThriftSender : public Sender {
     thrift::Process _process;
     int _processByteSize;
     std::unique_ptr<apache::thrift::protocol::TProtocolFactory> _protocolFactory;
+    // reuse buffer across serializations of different ThriftType for size
+    // calculation
+    std::shared_ptr<apache::thrift::transport::TMemoryBuffer> _thriftBuffer;
 };
 
 }  // namespace jaegertracing

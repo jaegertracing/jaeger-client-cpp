@@ -39,19 +39,6 @@ namespace {
 
 constexpr auto kEmitBatchOverhead = 30;
 
-template <typename ThriftType>
-int calcSizeOfSerializedThrift(apache::thrift::protocol::TProtocolFactory& factory, const ThriftType& base, int maxPacketSize)
-{
-    std::shared_ptr<apache::thrift::transport::TMemoryBuffer> buffer(
-        new apache::thrift::transport::TMemoryBuffer(maxPacketSize));
-    auto protocol = factory.getProtocol(buffer);
-    base.write(protocol.get());
-    uint8_t* data = nullptr;
-    uint32_t size = 0;
-    buffer->getBuffer(&data, &size);
-    return size;
-}
-
 }  // anonymous namespace
 
 ThriftSender::ThriftSender(std::unique_ptr<utils::Transport>&& transporter)
@@ -60,6 +47,7 @@ ThriftSender::ThriftSender(std::unique_ptr<utils::Transport>&& transporter)
     , _byteBufferSize(0)
     , _processByteSize(0)
     , _protocolFactory(_transporter->protocolFactory())
+    , _thriftBuffer(new apache::thrift::transport::TMemoryBuffer())
 {
 }
 
@@ -82,15 +70,13 @@ int ThriftSender::append(const Span& span)
                        });
         _process.__set_tags(thriftTags);
 
-        _processByteSize =
-            calcSizeOfSerializedThrift(*_protocolFactory, _process, _transporter->maxPacketSize());
+        _processByteSize = calcSizeOfSerializedThrift(_process);
         _maxSpanBytes =
             _transporter->maxPacketSize() - _processByteSize - kEmitBatchOverhead;
     }
     thrift::Span jaegerSpan;
     span.thrift(jaegerSpan);
-    const auto spanSize =
-        calcSizeOfSerializedThrift(*_protocolFactory, jaegerSpan, _transporter->maxPacketSize());
+    const auto spanSize = calcSizeOfSerializedThrift(jaegerSpan);
     if (spanSize > _maxSpanBytes) {
         std::ostringstream oss;
         throw Sender::Exception("Span is too large", 1);
