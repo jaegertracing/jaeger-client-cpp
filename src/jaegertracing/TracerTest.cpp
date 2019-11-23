@@ -118,7 +118,7 @@ absTimeDiff(const typename ClockType::time_point& lhs,
 TEST(Tracer, testTracer)
 {
     {
-    
+
     const auto handle = testutils::TracerUtil::installGlobalTracer();
     const auto tracer =
         std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
@@ -267,6 +267,48 @@ TEST(Tracer, testTracer)
     opentracing::Tracer::InitGlobal(opentracing::MakeNoopTracer());
     }
     //std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+}
+
+TEST(Tracer, testDebugSpan)
+{
+    const auto handle = testutils::TracerUtil::installGlobalTracer();
+    const auto tracer =
+        std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
+
+    // we force span sampling and require debug-id as the extracted
+    // jaeger-debug-id correlation value.
+    std::string correlationID = "debug-id";
+
+    StrMap headers ={
+        {kJaegerDebugHeader, correlationID},
+    };
+
+    WriterMock<opentracing::HTTPHeadersWriter> headerWriter(headers);
+    ReaderMock<opentracing::HTTPHeadersReader> headerReader(headers);
+
+    const FakeSpanContext fakeCtx;
+    tracer->Inject(fakeCtx, headerWriter);
+    auto ext = tracer->Extract(headerReader);
+
+    const SpanContext* ctx = dynamic_cast<SpanContext*>(ext->release());
+    opentracing::StartSpanOptions opts;
+    opts.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef, ctx);
+
+    auto otspan = tracer->StartSpanWithOptions("name", opts);
+    // downcast to jaegertracing span implementation so we can inspect tags
+    const std::unique_ptr<Span> span(dynamic_cast<Span*>(otspan.release()));
+
+    const auto& spanTags = span->tags();
+    auto spanItr =
+        std::find_if(std::begin(spanTags), std::end(spanTags), [](const Tag& tag) {
+            return tag.key() == kJaegerDebugHeader;
+        });
+    ASSERT_NE(std::end(spanTags), spanItr);
+    ASSERT_TRUE(spanItr->value().is<std::string>());
+    ASSERT_EQ(spanItr->value().get<std::string>(), correlationID);
+
+    tracer->Close();
+    opentracing::Tracer::InitGlobal(opentracing::MakeNoopTracer());
 }
 
 TEST(Tracer, testConstructorFailure)
