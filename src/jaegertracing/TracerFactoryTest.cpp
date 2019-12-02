@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+#include "jaegertracing/Tracer.h"
 #include "jaegertracing/TracerFactory.h"
 #include "jaegertracing/Constants.h"
+#include "jaegertracing/testutils/EnvVariable.h"
 #include <gtest/gtest.h>
 
 namespace jaegertracing {
@@ -27,7 +29,7 @@ TEST(TracerFactory, testInvalidConfig)
                                              R"({
       "service_name": {}
     })" };
-    TracerFactory tracerFactory;
+    TracerFactory tracerFactory(true);
     for (auto&& invalidConfig : invalidConfigTestCases) {
         std::string errorMessage;
         auto tracerMaybe =
@@ -65,17 +67,68 @@ TEST(TracerFactory, testValidConfig)
         "refreshInterval": 60
     }
   })";
-    TracerFactory tracerFactory;
+    TracerFactory tracerFactory(true);
     std::string errorMessage;
     auto tracerMaybe = tracerFactory.MakeTracer(config, errorMessage);
     ASSERT_EQ(errorMessage, "");
     ASSERT_TRUE(tracerMaybe);
 }
+
+TEST(TracerFactory, testWithoutReadFromEnv)
+{
+    const char* config = "";
+    testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "AService");
+    TracerFactory tracerFactory(false);
+    std::string errorMessage;
+    auto tracerMaybe = tracerFactory.MakeTracer(config, errorMessage);
+    ASSERT_FALSE(tracerMaybe);
+    ASSERT_NE(errorMessage, "");
+
+    testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "");
+}
+
+TEST(TracerFactory, testWithReadFromEnv)
+{
+    const char* config = "";
+    testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "AService");
+    TracerFactory tracerFactory(true);
+    std::string errorMessage;
+    auto tracerMaybe = tracerFactory.MakeTracer(config, errorMessage);
+    ASSERT_EQ(errorMessage, "");
+    ASSERT_TRUE(tracerMaybe);
+
+    auto tracer = tracerMaybe.value();
+    const auto jaegerTracer = std::dynamic_pointer_cast<jaegertracing::Tracer>(tracer);
+    ASSERT_EQ(std::string("AService"), jaegerTracer->serviceName());
+
+    testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "");
+}
+
+TEST(TracerFactory, testEnvTakesPrecedence)
+{
+
+    const char* config = R"(
+  {
+    "service_name": "Ignored"
+  })";
+    testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "test");
+    TracerFactory tracerFactory(true);
+    std::string errorMessage;
+    auto tracerMaybe = tracerFactory.MakeTracer(config, errorMessage);
+    ASSERT_EQ(errorMessage, "");
+    ASSERT_TRUE(tracerMaybe);
+
+    auto tracer = tracerMaybe.value();
+    const auto jaegerTracer = std::dynamic_pointer_cast<jaegertracing::Tracer>(tracer);
+    ASSERT_EQ(std::string("test"), jaegerTracer->serviceName());
+
+    testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "");
+}
 #else
 TEST(TracerFactory, failsWithoutYAML)
 {
     const char* config = "";
-    TracerFactory tracerFactory;
+    TracerFactory tracerFactory(true);
     std::string errorMessage;
     auto tracerMaybe = tracerFactory.MakeTracer(config, errorMessage);
     ASSERT_NE(errorMessage, "");

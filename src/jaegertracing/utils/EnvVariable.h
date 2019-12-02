@@ -62,4 +62,4 @@ inline std::pair<bool, bool> getBoolVariable(const char* envVar)
 }  // namespace utils
 }  // namespace jaegertracing
 
-#endif  // JAEGERTRACING_UTILS_HEXPARSING_H
+#endif  // JAEGERTRACING_UTILS_ENV_VARIABLE_H
