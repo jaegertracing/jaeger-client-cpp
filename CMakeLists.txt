@@ -19,7 +19,7 @@ HunterGate(
     SHA1 "29f10683f10c7b35e1f599d71542af0c2daa6a01"
 )
 
-project(jaegertracing VERSION 0.5.0)
+project(jaegertracing VERSION 0.5.20191202-dev)
 
 option(JAEGERTRACING_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
