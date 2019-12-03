@@ -15,7 +15,7 @@
  */
 
 #include "jaegertracing/Logging.h"
-#include "jaegertracing/Transport.h"
+#include "jaegertracing/Sender.h"
 #include "jaegertracing/utils/ErrorUtil.h"
 #include <algorithm>
 #include <gtest/gtest.h>
@@ -59,7 +59,7 @@ TEST(ErrorUtil, test)
     TestLogger logger;
     std::runtime_error stdEx("runtime error");
     std::system_error sysEx(-1, std::generic_category());
-    Transport::Exception transportEx("test", 5);
+    Sender::Exception transportEx("test", 5);
     for (auto i = 0; i < 4; ++i) {
         try {
             switch (i) {

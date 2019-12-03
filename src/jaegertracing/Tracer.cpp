@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "jaegertracing/Tag.h"
 #include "jaegertracing/Tracer.h"
 #include "jaegertracing/Reference.h"
 #include "jaegertracing/TraceID.h"
@@ -85,6 +86,7 @@ Tracer::StartSpanWithOptions(string_view operationName,
                 flags |=
                     (static_cast<unsigned char>(SpanContext::Flag::kSampled) |
                      static_cast<unsigned char>(SpanContext::Flag::kDebug));
+                samplerTags.push_back(Tag(kJaegerDebugHeader, parent->debugID()));
             }
             else {
                 const auto samplingStatus =
@@ -239,6 +241,7 @@ Tracer::make(const std::string& serviceName,
                                               logger,
                                               metrics,
                                               config.headers(),
+                                              config.tags(),
                                               options));
 }
 

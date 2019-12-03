@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "jaegertracing/UDPTransport.h"
+#include "jaegertracing/ThriftSender.h"
 
 #include "jaegertracing/Span.h"
 #include "jaegertracing/Tag.h"
@@ -23,12 +23,11 @@
 #include <cstdint>
 #include <iostream>
 #include <iterator>
-#include <string>
-#include <thrift/protocol/TCompactProtocol.h>
 #include <thrift/transport/TBufferTransports.h>
 
 #ifdef _MSC_VER
-#pragma warning(disable : 4267) // Conversion from unsigned to signed. It should not be a problem here.
+#pragma warning(disable : 4267)  // Conversion from unsigned to signed. It
+                                 // should not be a problem here.
 #endif
 
 namespace jaegertracing {
@@ -40,31 +39,19 @@ namespace {
 
 constexpr auto kEmitBatchOverhead = 30;
 
-template <typename ThriftType>
-int calcSizeOfSerializedThrift(const ThriftType& base, int maxPacketSize)
-{
-    std::shared_ptr<apache::thrift::transport::TMemoryBuffer> buffer(
-        new apache::thrift::transport::TMemoryBuffer(maxPacketSize));
-    apache::thrift::protocol::TCompactProtocolFactory factory;
-    auto protocol = factory.getProtocol(buffer);
-    base.write(protocol.get());
-    uint8_t* data = nullptr;
-    uint32_t size = 0;
-    buffer->getBuffer(&data, &size);
-    return size;
-}
-
 }  // anonymous namespace
 
-UDPTransport::UDPTransport(const net::IPAddress& ip, int maxPacketSize)
-    : _client(new utils::UDPClient(ip, maxPacketSize))
+ThriftSender::ThriftSender(std::unique_ptr<utils::Transport>&& transporter)
+    : _transporter(std::move(transporter))
     , _maxSpanBytes(0)
     , _byteBufferSize(0)
     , _processByteSize(0)
+    , _protocolFactory(_transporter->protocolFactory())
+    , _thriftBuffer(new apache::thrift::transport::TMemoryBuffer())
 {
 }
 
-int UDPTransport::append(const Span& span)
+int ThriftSender::append(const Span& span)
 {
     if (_process.serviceName.empty()) {
         const auto& tracer = static_cast<const Tracer&>(span.tracer());
@@ -76,20 +63,23 @@ int UDPTransport::append(const Span& span)
         std::transform(std::begin(tracerTags),
                        std::end(tracerTags),
                        std::back_inserter(thriftTags),
-                       [](const Tag& tag) { return tag.thrift(); });
+                       [](const Tag& tag) {
+                           thrift::Tag thriftTag;
+                           tag.thrift(thriftTag);
+                           return thriftTag;
+                       });
         _process.__set_tags(thriftTags);
 
-        _processByteSize =
-            calcSizeOfSerializedThrift(_process, _client->maxPacketSize());
+        _processByteSize = calcSizeOfSerializedThrift(_process);
         _maxSpanBytes =
-            _client->maxPacketSize() - _processByteSize - kEmitBatchOverhead;
+            _transporter->maxPacketSize() - _processByteSize - kEmitBatchOverhead;
     }
-    const auto jaegerSpan = span.thrift();
-    const auto spanSize =
-        calcSizeOfSerializedThrift(jaegerSpan, _client->maxPacketSize());
+    thrift::Span jaegerSpan;
+    span.thrift(jaegerSpan);
+    const auto spanSize = calcSizeOfSerializedThrift(jaegerSpan);
     if (spanSize > _maxSpanBytes) {
         std::ostringstream oss;
-        throw Transport::Exception("Span is too large", 1);
+        throw Sender::Exception("Span is too large", 1);
     }
 
     _byteBufferSize += spanSize;
@@ -108,7 +98,7 @@ int UDPTransport::append(const Span& span)
     return flushed;
 }
 
-int UDPTransport::flush()
+int ThriftSender::flush()
 {
     if (_spanBuffer.empty()) {
         return 0;
@@ -119,19 +109,19 @@ int UDPTransport::flush()
     batch.__set_spans(_spanBuffer);
 
     try {
-        _client->emitBatch(batch);
+      _transporter->emitBatch(batch);
     } catch (const std::system_error& ex) {
         std::ostringstream oss;
         oss << "Could not send span " << ex.what()
             << ", code=" << ex.code().value();
-        throw Transport::Exception(oss.str(), _spanBuffer.size());
+        throw Sender::Exception(oss.str(), _spanBuffer.size());
     } catch (const std::exception& ex) {
         std::ostringstream oss;
         oss << "Could not send span " << ex.what();
-        throw Transport::Exception(oss.str(), _spanBuffer.size());
+        throw Sender::Exception(oss.str(), _spanBuffer.size());
     } catch (...) {
-        throw Transport::Exception("Could not send span, unknown error",
-                                   _spanBuffer.size());
+        throw Sender::Exception("Could not send span, unknown error",
+                                _spanBuffer.size());
     }
 
     resetBuffers();

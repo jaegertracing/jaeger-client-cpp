@@ -42,8 +42,12 @@ class Config {
 
     static constexpr auto kDefaultSamplingProbability =
         static_cast<double>(0.001);
-    static constexpr auto kDefaultSamplingServerURL = "http://127.0.0.1:5778";
+    static constexpr auto kDefaultSamplingServerURL = "http://127.0.0.1:5778/sampling";
     static constexpr auto kDefaultMaxOperations = 2000;
+
+    static constexpr auto kJAEGER_SAMPLER_TYPE_ENV_PROP = "JAEGER_SAMPLER_TYPE";
+    static constexpr auto kJAEGER_SAMPLER_PARAM_ENV_PROP = "JAEGER_SAMPLER_PARAM";
+    static constexpr auto kJAEGER_SAMPLER_MANAGER_HOST_PORT_ENV_PROP = "JAEGER_SAMPLER_MANAGER_HOST_PORT";
 
     static Clock::duration defaultSamplingRefreshInterval()
     {
@@ -169,6 +173,8 @@ class Config {
     {
         return _samplingRefreshInterval;
     }
+
+  void fromEnv();
 
   private:
     std::string _type;

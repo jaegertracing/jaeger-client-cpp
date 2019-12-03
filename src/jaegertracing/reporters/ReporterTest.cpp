@@ -18,7 +18,7 @@
 
 #include "jaegertracing/Logging.h"
 #include "jaegertracing/Tracer.h"
-#include "jaegertracing/Transport.h"
+#include "jaegertracing/Sender.h"
 #include "jaegertracing/reporters/CompositeReporter.h"
 #include "jaegertracing/reporters/InMemoryReporter.h"
 #include "jaegertracing/reporters/LoggingReporter.h"
@@ -30,7 +30,7 @@ namespace jaegertracing {
 namespace reporters {
 namespace {
 
-class FakeTransport : public Transport {
+class FakeTransport : public Sender {
   public:
     FakeTransport(std::vector<Span>& spans, std::mutex& mutex)
         : _spans(spans)
@@ -68,7 +68,7 @@ TEST(Reporter, testRemoteReporter)
     RemoteReporter reporter(
         std::chrono::milliseconds(1),
         kFixedQueueSize,
-        std::unique_ptr<Transport>(new FakeTransport(spans, mutex)),
+        std::unique_ptr<Sender>(new FakeTransport(spans, mutex)),
         *logger,
         *metrics);
     constexpr auto kNumReports = 100;

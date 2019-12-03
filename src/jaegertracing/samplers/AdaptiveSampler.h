@@ -27,9 +27,14 @@
 #include "jaegertracing/samplers/GuaranteedThroughputProbabilisticSampler.h"
 #include "jaegertracing/samplers/ProbabilisticSampler.h"
 #include "jaegertracing/samplers/Sampler.h"
-#include "jaegertracing/thrift-gen/sampling_types.h"
 
 namespace jaegertracing {
+namespace sampling_manager {
+namespace thrift {
+class PerOperationSamplingStrategies;
+}
+}  // namespace sampling_manager
+
 namespace samplers {
 
 class AdaptiveSampler : public Sampler {

@@ -15,12 +15,33 @@
  */
 
 #include "jaegertracing/samplers/Config.h"
+#include "jaegertracing/utils/EnvVariable.h"
 
 namespace jaegertracing {
 namespace samplers {
 
 constexpr double Config::kDefaultSamplingProbability;
 constexpr const char* Config::kDefaultSamplingServerURL;
+
+constexpr const char* Config::kJAEGER_SAMPLER_TYPE_ENV_PROP;
+constexpr const char* Config::kJAEGER_SAMPLER_PARAM_ENV_PROP;
+
+void Config::fromEnv()
+{
+    const auto samplerType = utils::EnvVariable::getStringVariable(kJAEGER_SAMPLER_TYPE_ENV_PROP);
+    if (!samplerType.empty()) {
+        _type = samplerType;
+    }
+
+    const auto param = utils::EnvVariable::getStringVariable(kJAEGER_SAMPLER_PARAM_ENV_PROP);
+    if (!param.empty()) {
+        std::istringstream iss(param);
+        int paramVal = 0;
+        if (iss >> paramVal) {
+            _param = paramVal;
+        }
+    }
+}
 
 }  // namespace samplers
 }  // namespace jaegertracing

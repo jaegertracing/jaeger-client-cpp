@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-#include "jaegertracing/Transport.h"
+#include "jaegertracing/Sender.h"

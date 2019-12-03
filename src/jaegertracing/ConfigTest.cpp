@@ -21,6 +21,8 @@
 #include "jaegertracing/utils/YAML.h"
 #include <gtest/gtest.h>
 
+#include <cstdlib>
+
 namespace jaegertracing {
 
 #ifdef JAEGERTRACING_WITH_YAML_CPP
@@ -73,6 +75,12 @@ TEST(Config, testDefaultSamplingProbability)
               Config().sampler().param());
 }
 
+TEST(Config, testDefaultSamplingServerURL)
+{
+    ASSERT_EQ("http://127.0.0.1:5778/sampling",
+              Config().sampler().samplingServerURL());
+}
+
 TEST(Config, testZeroSamplingParam)
 {
     {
@@ -86,5 +94,96 @@ sampler:
 }
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
+
+
+void setEnv(const char *variable, const char *value) {
+#ifdef WIN32
+  _putenv_s(variable, value);
+#else
+  setenv(variable, value, true);
+#endif
+}
+
+TEST(Config, testFromEnv)
+{
+    std::vector<Tag> tags;
+    tags.emplace_back("hostname", std::string("foo"));
+    tags.emplace_back("my.app.version", std::string("1.2.3"));
+
+    Config config(false,
+                  samplers::Config("probabilistic",
+                                   0.7,
+                                   "http://host34:57/sampling",
+                                   0,
+                                   samplers::Config::Clock::duration()),
+                  reporters::Config(10,
+                                    std::chrono::milliseconds(100),
+                                    false,
+                                    "host35:77",
+                                    "http://host36:56568"),
+                  propagation::HeadersConfig(),
+                  baggage::RestrictionsConfig(),
+                  "test-service",
+                  tags);
+
+    config.fromEnv();
+
+    ASSERT_EQ(std::string("http://host36:56568"), config.reporter().endpoint());
+    ASSERT_EQ(std::string("host35:77"), config.reporter().localAgentHostPort());
+
+    ASSERT_EQ(10, config.reporter().queueSize());
+    ASSERT_EQ(std::chrono::milliseconds(100),
+              config.reporter().bufferFlushInterval());
+    ASSERT_EQ(false, config.reporter().logSpans());
+
+    ASSERT_EQ(.7, config.sampler().param());
+    ASSERT_EQ(std::string("probabilistic"), config.sampler().type());
+
+    setEnv("JAEGER_AGENT_HOST", "host33");
+    setEnv("JAEGER_AGENT_PORT", "45");
+    setEnv("JAEGER_ENDPOINT", "http://host34:56567");
+
+    setEnv("JAEGER_REPORTER_MAX_QUEUE_SIZE", "33");
+    setEnv("JAEGER_REPORTER_FLUSH_INTERVAL", "45");
+    setEnv("JAEGER_REPORTER_LOG_SPANS", "true");
+
+    setEnv("JAEGER_SAMPLER_PARAM", "33");
+    setEnv("JAEGER_SAMPLER_TYPE", "const");
+
+    setEnv("JAEGER_SERVICE_NAME", "AService");
+    setEnv("JAEGER_TAGS", "hostname=foobar,my.app.version=4.5.6");
+
+    config.fromEnv();
+
+    ASSERT_EQ(std::string("http://host34:56567"), config.reporter().endpoint());
+    ASSERT_EQ(std::string("host33:45"), config.reporter().localAgentHostPort());
+
+    ASSERT_EQ(33, config.reporter().queueSize());
+    ASSERT_EQ(std::chrono::milliseconds(45),
+              config.reporter().bufferFlushInterval());
+    ASSERT_EQ(true, config.reporter().logSpans());
+
+    ASSERT_EQ(33., config.sampler().param());
+    ASSERT_EQ(std::string("const"), config.sampler().type());
+
+    ASSERT_EQ(std::string("AService"), config.serviceName());
+
+    std::vector<Tag> expectedTags;
+    expectedTags.emplace_back("hostname", std::string("foo"));
+    expectedTags.emplace_back("my.app.version", std::string("1.2.3"));
+    expectedTags.emplace_back("hostname", std::string("foobar"));
+    expectedTags.emplace_back("my.app.version", std::string("4.5.6"));
+    ASSERT_EQ(expectedTags, config.tags());
+
+    ASSERT_EQ(false, config.disabled());
+
+    setEnv("JAEGER_DISABLED", "TRue");  // case-insensitive
+    setEnv("JAEGER_AGENT_PORT", "445");
+
+    config.fromEnv();
+    ASSERT_EQ(true, config.disabled());
+    ASSERT_EQ(std::string("host33:445"),
+              config.reporter().localAgentHostPort());
+}
 
 }  // namespace jaegertracing

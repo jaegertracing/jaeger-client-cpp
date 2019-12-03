@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef JAEGERTRACING_TRANSPORT_H
-#define JAEGERTRACING_TRANSPORT_H
+#ifndef JAEGERTRACING_SENDER_H
+#define JAEGERTRACING_SENDER_H
 
 #include <stdexcept>
 #include <string>
@@ -26,7 +26,7 @@ namespace jaegertracing {
 
 class Span;
 
-class Transport {
+class Sender {
   public:
     class Exception : public std::runtime_error {
       public:
@@ -42,7 +42,7 @@ class Transport {
         int _numFailed;
     };
 
-    virtual ~Transport() = default;
+    virtual ~Sender() = default;
 
     virtual int append(const Span& span) = 0;
 
@@ -53,4 +53,4 @@ class Transport {
 
 }  // namespace jaegertracing
 
-#endif  // JAEGERTRACING_TRANSPORT_H
+#endif  //JAEGERTRACING_SENDER_H

@@ -27,6 +27,7 @@
 #include "jaegertracing/net/http/Response.h"
 #include "jaegertracing/samplers/AdaptiveSampler.h"
 #include "jaegertracing/samplers/RemoteSamplingJSON.h"
+#include "jaegertracing/thrift-gen/SamplingManager.h"
 #include "jaegertracing/utils/ErrorUtil.h"
 
 namespace jaegertracing {

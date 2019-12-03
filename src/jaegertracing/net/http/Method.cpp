@@ -30,9 +30,8 @@ Method parseMethod(const std::string& methodName)
                                            "POST",    "PUT",    "DELETE",
                                            "TRACE",   "CONNECT" };
 #else
-    static constexpr auto kMethodNames = { "OPTIONS", "GET",    "HEAD",
-                                           "POST",    "PUT",    "DELETE",
-                                           "TRACE",   "CONNECT" };
+    static auto kMethodNames = { "OPTIONS", "GET",    "HEAD",  "POST",
+                                 "PUT",     "DELETE", "TRACE", "CONNECT" };
 #endif
 
 

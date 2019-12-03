@@ -49,10 +49,9 @@ TracerFactory::MakeTracer(const char* configuration,
         return opentracing::make_unexpected(
             opentracing::invalid_configuration_error);
     }
-    std::string serviceName = serviceNameNode.Scalar();
 
     const auto tracerConfig = jaegertracing::Config::parse(yaml);
-    return jaegertracing::Tracer::make(serviceName, tracerConfig);
+    return jaegertracing::Tracer::make(tracerConfig);
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 } catch (const std::bad_alloc&) {
     return opentracing::make_unexpected(

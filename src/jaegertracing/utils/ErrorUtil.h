@@ -18,7 +18,7 @@
 #define JAEGERTRACING_UTILS_ERRORUTIL_H
 
 #include "jaegertracing/Logging.h"
-#include "jaegertracing/Transport.h"
+#include "jaegertracing/Sender.h"
 #include <sstream>
 #include <string>
 #include <system_error>
@@ -31,7 +31,7 @@ inline void logError(logging::Logger& logger, const std::string& message)
 {
     try {
         throw;
-    } catch (const Transport::Exception& ex) {
+    } catch (const Sender::Exception& ex) {
         std::ostringstream oss;
         oss << message << ": " << ex.what() << ", numFailed=" << ex.numFailed();
         logger.error(oss.str());

@@ -15,12 +15,20 @@
  */
 
 #include "jaegertracing/net/http/Request.h"
+#include "jaegertracing/net/http/SocketReader.h"
 
 #include <regex>
 
 namespace jaegertracing {
 namespace net {
 namespace http {
+
+Request Request::read(Socket & socket)
+{
+  std::string response = SocketReader::read(socket);
+  std::istringstream responseStream(response);
+  return Request::parse(responseStream);
+}
 
 Request Request::parse(std::istream& in)
 {

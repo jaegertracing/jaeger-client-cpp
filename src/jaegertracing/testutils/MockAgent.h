@@ -25,7 +25,7 @@
 #include "jaegertracing/testutils/TUDPTransport.h"
 #include "jaegertracing/thrift-gen/Agent.h"
 #include "jaegertracing/thrift-gen/jaeger_types.h"
-#include "jaegertracing/utils/UDPClient.h"
+#include "jaegertracing/utils/UDPTransporter.h"
 #include <atomic>
 #include <future>
 #include <memory>
@@ -104,10 +104,10 @@ class MockAgent : public agent::thrift::AgentIf,
 
     net::IPAddress spanServerAddress() const { return _transport.addr(); }
 
-    std::unique_ptr<agent::thrift::AgentIf> spanServerClient()
+    std::unique_ptr<utils::Transport> spanServerClient()
     {
-        return std::unique_ptr<agent::thrift::AgentIf>(
-            new utils::UDPClient(spanServerAddress(), 0));
+        return std::unique_ptr<utils::Transport>(
+            new utils::UDPTransporter(spanServerAddress(), 0));
     }
 
     net::IPAddress samplingServerAddress() const { return _httpAddress; }

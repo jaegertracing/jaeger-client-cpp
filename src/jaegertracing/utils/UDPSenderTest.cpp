@@ -18,7 +18,7 @@
 #include "jaegertracing/net/Socket.h"
 #include "jaegertracing/thrift-gen/jaeger_types.h"
 #include "jaegertracing/thrift-gen/zipkincore_types.h"
-#include "jaegertracing/utils/UDPClient.h"
+#include "jaegertracing/utils/UDPTransporter.h"
 #include <future>
 #include <gtest/gtest.h>
 #include <stdexcept>
@@ -28,7 +28,7 @@
 namespace jaegertracing {
 namespace utils {
 
-TEST(UDPClient, testZipkinMessage)
+TEST(UDPSender, testZipkinMessage)
 {
     net::IPAddress serverAddr;
     std::promise<void> started;
@@ -48,13 +48,13 @@ TEST(UDPClient, testZipkinMessage)
     });
 
     started.get_future().wait();
-    UDPClient udpClient(serverAddr, 0);
+    UDPTransporter udpClient(serverAddr, 0);
     using ZipkinBatch = std::vector<twitter::zipkin::thrift::Span>;
     ASSERT_THROW(udpClient.emitZipkinBatch(ZipkinBatch()), std::logic_error);
     serverThread.join();
 }
 
-TEST(UDPClient, testBigMessage)
+TEST(UDPSender, testBigMessage)
 {
     net::IPAddress serverAddr;
     std::promise<void> started;
@@ -74,7 +74,7 @@ TEST(UDPClient, testBigMessage)
     });
 
     started.get_future().wait();
-    UDPClient udpClient(serverAddr, 1);
+    UDPTransporter udpClient(serverAddr, 1);
     ASSERT_THROW(udpClient.emitBatch(thrift::Batch()), std::logic_error);
     serverThread.join();
 }

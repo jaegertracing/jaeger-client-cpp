@@ -20,15 +20,14 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "jaegertracing/Logging.h"
-#include "jaegertracing/UDPTransport.h"
 #include "jaegertracing/metrics/Metrics.h"
-#include "jaegertracing/reporters/CompositeReporter.h"
-#include "jaegertracing/reporters/LoggingReporter.h"
-#include "jaegertracing/reporters/RemoteReporter.h"
 #include "jaegertracing/reporters/Reporter.h"
 #include "jaegertracing/utils/YAML.h"
+#include "jaegertracing/utils/HTTPTransporter.h"
+#include "jaegertracing/utils/UDPTransporter.h"
 
 namespace jaegertracing {
 namespace reporters {
@@ -39,6 +38,17 @@ class Config {
 
     static constexpr auto kDefaultQueueSize = 100;
     static constexpr auto kDefaultLocalAgentHostPort = "127.0.0.1:6831";
+    static constexpr auto kDefaultEndpoint = "";
+
+    static constexpr auto kJAEGER_AGENT_HOST_ENV_PROP = "JAEGER_AGENT_HOST";
+    static constexpr auto kJAEGER_AGENT_PORT_ENV_PROP = "JAEGER_AGENT_PORT";
+    static constexpr auto kJAEGER_ENDPOINT_ENV_PROP = "JAEGER_ENDPOINT";
+
+    static constexpr auto kJAEGER_REPORTER_LOG_SPANS_ENV_PROP = "JAEGER_REPORTER_LOG_SPANS";
+    static constexpr auto kJAEGER_REPORTER_FLUSH_INTERVAL_ENV_PROP = "JAEGER_REPORTER_FLUSH_INTERVAL";
+    static constexpr auto kJAEGER_REPORTER_MAX_QUEUE_SIZE_ENV_PROP = "JAEGER_REPORTER_MAX_QUEUE_SIZE";
+
+
 
     static Clock::duration defaultBufferFlushInterval()
     {
@@ -62,8 +72,10 @@ class Config {
             utils::yaml::findOrDefault<bool>(configYAML, "logSpans", false);
         const auto localAgentHostPort = utils::yaml::findOrDefault<std::string>(
             configYAML, "localAgentHostPort", "");
+        const auto endpoint = utils::yaml::findOrDefault<std::string>(
+            configYAML, "endpoint", "");
         return Config(
-            queueSize, bufferFlushInterval, logSpans, localAgentHostPort);
+            queueSize, bufferFlushInterval, logSpans, localAgentHostPort, endpoint);
     }
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
@@ -73,7 +85,7 @@ class Config {
         const Clock::duration& bufferFlushInterval =
             defaultBufferFlushInterval(),
         bool logSpans = false,
-        const std::string& localAgentHostPort = kDefaultLocalAgentHostPort)
+        const std::string& localAgentHostPort = kDefaultLocalAgentHostPort, const std::string& endpoint = kDefaultEndpoint)
         : _queueSize(queueSize > 0 ? queueSize : kDefaultQueueSize)
         , _bufferFlushInterval(bufferFlushInterval.count() > 0
                                    ? bufferFlushInterval
@@ -82,29 +94,13 @@ class Config {
         , _localAgentHostPort(localAgentHostPort.empty()
                                   ? kDefaultLocalAgentHostPort
                                   : localAgentHostPort)
+        , _endpoint(endpoint)
     {
     }
 
     std::unique_ptr<Reporter> makeReporter(const std::string& serviceName,
                                            logging::Logger& logger,
-                                           metrics::Metrics& metrics) const
-    {
-        std::unique_ptr<UDPTransport> sender(
-            new UDPTransport(net::IPAddress::v4(_localAgentHostPort), 0));
-        std::unique_ptr<RemoteReporter> remoteReporter(
-            new RemoteReporter(_bufferFlushInterval,
-                               _queueSize,
-                               std::move(sender),
-                               logger,
-                               metrics));
-        if (_logSpans) {
-            logger.info("Initializing logging reporter");
-            return std::unique_ptr<CompositeReporter>(new CompositeReporter(
-                { std::shared_ptr<RemoteReporter>(std::move(remoteReporter)),
-                  std::make_shared<LoggingReporter>(logger) }));
-        }
-        return std::unique_ptr<Reporter>(std::move(remoteReporter));
-    }
+                                           metrics::Metrics& metrics) const;
 
     int queueSize() const { return _queueSize; }
 
@@ -120,11 +116,19 @@ class Config {
         return _localAgentHostPort;
     }
 
+    const std::string& endpoint() const
+    {
+      return _endpoint;
+    }
+
+    void fromEnv();
+
   private:
     int _queueSize;
     Clock::duration _bufferFlushInterval;
     bool _logSpans;
     std::string _localAgentHostPort;
+    std::string _endpoint;
 };
 
 }  // namespace reporters

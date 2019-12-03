@@ -235,8 +235,6 @@ class Socket {
     resolveAddress(const std::string& host, int port, int family, int type);
 };
 
-static constexpr auto kUDPPacketMaxLength = 65000;
-
 }  // namespace net
 }  // namespace jaegertracing
 

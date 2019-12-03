@@ -18,6 +18,7 @@
 #define JAEGERTRACING_NET_HTTP_RESPONSE_H
 
 #include "jaegertracing/net/URI.h"
+#include "jaegertracing/net/Socket.h"
 #include "jaegertracing/net/http/Error.h"
 #include "jaegertracing/net/http/Header.h"
 #include "jaegertracing/net/http/Method.h"
@@ -56,6 +57,11 @@ class Response {
 };
 
 Response get(const URI& uri);
+
+/**
+ * Reads http response from a socket
+ */
+Response read(Socket& socket);
 
 }  // namespace http
 }  // namespace net

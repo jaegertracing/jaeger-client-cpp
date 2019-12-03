@@ -118,7 +118,7 @@ absTimeDiff(const typename ClockType::time_point& lhs,
 TEST(Tracer, testTracer)
 {
     {
-    
+
     const auto handle = testutils::TracerUtil::installGlobalTracer();
     const auto tracer =
         std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
@@ -269,6 +269,48 @@ TEST(Tracer, testTracer)
     //std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 }
 
+TEST(Tracer, testDebugSpan)
+{
+    const auto handle = testutils::TracerUtil::installGlobalTracer();
+    const auto tracer =
+        std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
+
+    // we force span sampling and require debug-id as the extracted
+    // jaeger-debug-id correlation value.
+    std::string correlationID = "debug-id";
+
+    StrMap headers ={
+        {kJaegerDebugHeader, correlationID},
+    };
+
+    WriterMock<opentracing::HTTPHeadersWriter> headerWriter(headers);
+    ReaderMock<opentracing::HTTPHeadersReader> headerReader(headers);
+
+    const FakeSpanContext fakeCtx;
+    tracer->Inject(fakeCtx, headerWriter);
+    auto ext = tracer->Extract(headerReader);
+
+    const SpanContext* ctx = dynamic_cast<SpanContext*>(ext->release());
+    opentracing::StartSpanOptions opts;
+    opts.references.emplace_back(opentracing::SpanReferenceType::ChildOfRef, ctx);
+
+    auto otspan = tracer->StartSpanWithOptions("name", opts);
+    // downcast to jaegertracing span implementation so we can inspect tags
+    const std::unique_ptr<Span> span(dynamic_cast<Span*>(otspan.release()));
+
+    const auto& spanTags = span->tags();
+    auto spanItr =
+        std::find_if(std::begin(spanTags), std::end(spanTags), [](const Tag& tag) {
+            return tag.key() == kJaegerDebugHeader;
+        });
+    ASSERT_NE(std::end(spanTags), spanItr);
+    ASSERT_TRUE(spanItr->value().is<std::string>());
+    ASSERT_EQ(spanItr->value().get<std::string>(), correlationID);
+
+    tracer->Close();
+    opentracing::Tracer::InitGlobal(opentracing::MakeNoopTracer());
+}
+
 TEST(Tracer, testConstructorFailure)
 {
     Config config;
@@ -414,6 +456,38 @@ TEST(Tracer, testPropagation)
         ASSERT_EQ(ctx, *extractedCtx);
     }
     tracer->Close();
+}
+
+TEST(Tracer, testTracerTags)
+{
+    std::vector<Tag> tags;
+    tags.emplace_back("hostname", std::string("foobar"));
+    tags.emplace_back("my.app.version", std::string("1.2.3"));
+
+    Config config(
+        false,
+        samplers::Config(
+            "const", 1, "", 0, samplers::Config::Clock::duration()),
+        reporters::Config(0, std::chrono::milliseconds(100), false, "", ""),
+        propagation::HeadersConfig(),
+        baggage::RestrictionsConfig(),
+        "test-service",
+        tags);
+
+    auto tracer = Tracer::make(config);
+    const auto jaegerTracer = std::static_pointer_cast<Tracer>(tracer);
+
+    ASSERT_TRUE(std::find(jaegerTracer->tags().begin(),
+                          jaegerTracer->tags().end(),
+                          Tag("hostname", std::string("foobar"))) !=
+        jaegerTracer->tags().end());
+
+    ASSERT_TRUE(std::find(jaegerTracer->tags().begin(),
+                          jaegerTracer->tags().end(),
+                          Tag("my.app.version", std::string("1.2.3"))) !=
+        jaegerTracer->tags().end());
+
+    ASSERT_EQ(std::string("test-service"), jaegerTracer->serviceName());
 }
 
 }  // namespace jaegertracing

@@ -16,23 +16,22 @@
 
 #include <gtest/gtest.h>
 
-#include "jaegertracing/Config.h"
 #include "jaegertracing/Tracer.h"
-#include "jaegertracing/UDPTransport.h"
+#include "jaegertracing/ThriftSender.h"
 #include "jaegertracing/testutils/TracerUtil.h"
 #include "jaegertracing/utils/ErrorUtil.h"
 
 namespace jaegertracing {
 namespace {
 
-class MockUDPClient : public utils::UDPClient {
+class MockUDPSender : public utils::UDPTransporter {
   public:
     enum class ExceptionType { kSystemError, kException, kString };
 
-    MockUDPClient(const net::IPAddress& serverAddr,
+    MockUDPSender(const net::IPAddress& serverAddr,
                   int maxPacketSize,
                   ExceptionType type)
-        : UDPClient(serverAddr, maxPacketSize)
+        : UDPTransporter(serverAddr, maxPacketSize)
         , _type(type)
     {
     }
@@ -55,27 +54,28 @@ class MockUDPClient : public utils::UDPClient {
     ExceptionType _type;
 };
 
-class MockUDPTransport : public UDPTransport {
+class MockThriftSender : public ThriftSender {
   public:
-    MockUDPTransport(const net::IPAddress& ip,
+    MockThriftSender(const net::IPAddress& ip,
                      int maxPacketSize,
-                     MockUDPClient::ExceptionType type)
-        : UDPTransport(ip, maxPacketSize)
+                     MockUDPSender::ExceptionType type)
+        : ThriftSender(std::unique_ptr<utils::Transport>(new MockUDPSender(ip, maxPacketSize, type)))
     {
-        setClient(std::unique_ptr<utils::UDPClient>(
-            new MockUDPClient(ip, maxPacketSize, type)));
     }
 };
 
 }  // anonymous namespace
 
-TEST(UDPTransport, testManyMessages)
+TEST(ThriftSender, testManyMessages)
 {
     const auto handle = testutils::TracerUtil::installGlobalTracer();
     const auto tracer =
         std::static_pointer_cast<const Tracer>(opentracing::Tracer::Global());
 
-    UDPTransport sender(handle->_mockAgent->spanServerAddress(), 0);
+    std::unique_ptr<utils::Transport> transporter(
+        new utils::UDPTransporter(handle->_mockAgent->spanServerAddress(), 0));
+    ThriftSender sender(
+        std::forward<std::unique_ptr<utils::Transport>>(transporter));
     constexpr auto kNumMessages = 2000;
     const auto logger = logging::consoleLogger();
     for (auto i = 0; i < kNumMessages; ++i) {
@@ -85,7 +85,7 @@ TEST(UDPTransport, testManyMessages)
     }
 }
 
-TEST(UDPTransport, testExceptions)
+TEST(ThriftSender, testExceptions)
 {
     const auto handle = testutils::TracerUtil::installGlobalTracer();
     const auto tracer =
@@ -94,15 +94,15 @@ TEST(UDPTransport, testExceptions)
     Span span(tracer);
     span.SetOperationName("test");
 
-    const MockUDPClient::ExceptionType exceptionTypes[] = {
-        MockUDPClient::ExceptionType::kSystemError,
-        MockUDPClient::ExceptionType::kException,
-        MockUDPClient::ExceptionType::kString
+    const MockUDPSender::ExceptionType exceptionTypes[] = {
+        MockUDPSender::ExceptionType::kSystemError,
+        MockUDPSender::ExceptionType::kException,
+        MockUDPSender::ExceptionType::kString
     };
     for (auto type : exceptionTypes) {
-        MockUDPTransport sender(net::IPAddress::v4("localhost", 0), 0, type);
-        sender.append(span);
-        ASSERT_THROW(sender.flush(), Transport::Exception);
+      MockThriftSender mockSender(net::IPAddress::v4("localhost", 0), 0, type);
+      mockSender.append(span);
+        ASSERT_THROW(mockSender.flush(), Sender::Exception);
     }
 }
 

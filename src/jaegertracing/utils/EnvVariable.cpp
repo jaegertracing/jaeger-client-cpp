@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2019 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,4 @@
  * limitations under the License.
  */
 
-#include "jaegertracing/Span.h"
-#include "jaegertracing/thrift-gen/jaeger_types.h"
-#include <gtest/gtest.h>
-#include <string>
-
-namespace jaegertracing {
-
-TEST(Span, testThriftConversion)
-{
-    const Span span;
-    ASSERT_TRUE(span.serviceName().empty());
-    ASSERT_TRUE(span.operationName().empty());
-    thrift::Span thriftSpan;
-    ASSERT_NO_THROW(span.thrift(thriftSpan));
-}
-
-}  // namespace jaegertracing
+#include "jaegertracing/utils/EnvVariable.h"
