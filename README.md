@@ -60,7 +60,7 @@ The default host and port for Jaeger Agent is `127.0.0.1:6831`. When the applica
 YAML configuration:
 
 ```yml
-repoter:
+reporter:
   localAgentHostPort: jaeger-agent:6831
 ```
 
@@ -71,7 +71,7 @@ NOTE: It is not recommended to use a remote host for UDP connections.
 In case the client should connect directly to the collector instead of going through an agent, it's necessary update the reporter configuration
 
 ```yml
-repoter:
+reporter:
   endpoint: http://${collectorhost}:${collectorport}/api/traces
 ```
 
