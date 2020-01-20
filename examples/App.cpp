@@ -38,6 +38,7 @@ int main(int argc, char* argv[])
     }
     setUpTracer(argv[1]);
     tracedFunction();
+    
     // Not strictly necessary to close tracer, but might flush any buffered
     // spans. See more details in opentracing::Tracer::Close() documentation.
     opentracing::Tracer::Global()->Close();
