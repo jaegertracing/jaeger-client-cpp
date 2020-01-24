@@ -36,10 +36,14 @@ void Config::fromEnv()
     const auto param = utils::EnvVariable::getStringVariable(kJAEGER_SAMPLER_PARAM_ENV_PROP);
     if (!param.empty()) {
         std::istringstream iss(param);
-        int paramVal = 0;
+        double paramVal = 0;
         if (iss >> paramVal) {
             _param = paramVal;
         }
+    }
+    const auto samplingServerURL = utils::EnvVariable::getStringVariable(kJAEGER_SAMPLER_SERVER_URL_ENV_PROP);
+    if (!samplingServerURL.empty()) {
+        _samplingServerURL = samplingServerURL;
     }
 }
 
