@@ -331,6 +331,17 @@ TEST(Sampler, testRemotelyControlledSampler)
     mockAgent->start();
     const auto logger = logging::nullLogger();
     const auto metrics = metrics::Metrics::makeNullMetrics();
+            
+    // Make sure remote sampling probability is 1
+    sampling_manager::thrift::SamplingStrategyResponse config;
+    config.__set_strategyType(
+        sampling_manager::thrift::SamplingStrategyType::PROBABILISTIC);
+    sampling_manager::thrift::ProbabilisticSamplingStrategy probaStrategy;
+    probaStrategy.__set_samplingRate(1.0);
+    config.__set_probabilisticSampling(probaStrategy);
+    mockAgent->addSamplingStrategy("test-service", config);
+
+    // Default probability of 0.5, switches to 1 when downloaded
     RemotelyControlledSampler sampler(
         "test-service",
         "http://" + mockAgent->samplingServerAddress().authority(),
@@ -339,6 +350,9 @@ TEST(Sampler, testRemotelyControlledSampler)
         std::chrono::milliseconds(100),
         *logger,
         *metrics);
+    
+    // Wait a bit for remote config download to be done
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     std::random_device device;
     std::mt19937_64 rng;
     rng.seed(device());
@@ -347,7 +361,8 @@ TEST(Sampler, testRemotelyControlledSampler)
              RemotelyControlledSampler::Clock::now() - startTime)
              .count() < 1;) {
         TraceID traceID(rng(), rng());
-        sampler.isSampled(traceID, kTestOperationName);
+        // If probability was 0.5 we could reasonnably assume one of 50 samples fail
+        ASSERT_TRUE(sampler.isSampled(traceID, kTestOperationName).isSampled());
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     sampler.close();
