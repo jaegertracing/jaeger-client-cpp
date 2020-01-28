@@ -83,7 +83,7 @@ The default sampling collector URL is `http://127.0.0.1:5778/sampling`. Similar 
 
 ```yml
 sampler:
-  samplingServerURL: http://jaeger-agent.local:5778
+  samplingServerURL: http://jaeger-agent.local:5778/sampling
 ```
 
 ### Configuration via Environment
