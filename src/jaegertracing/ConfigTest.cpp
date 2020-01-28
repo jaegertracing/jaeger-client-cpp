@@ -149,7 +149,7 @@ TEST(Config, testFromEnv)
 
     setEnv("JAEGER_SAMPLER_TYPE", "remote");
     setEnv("JAEGER_SAMPLER_PARAM", "0.33");
-    setEnv("JAEGER_SAMPLER_SERVER_URL", "http://myagent:1234");
+    setEnv("JAEGER_SAMPLING_ENDPOINT", "http://myagent:1234");
 
     setEnv("JAEGER_SERVICE_NAME", "AService");
     setEnv("JAEGER_TAGS", "hostname=foobar,my.app.version=4.5.6");

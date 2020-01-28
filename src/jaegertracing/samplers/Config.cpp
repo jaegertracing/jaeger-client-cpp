@@ -41,7 +41,7 @@ void Config::fromEnv()
             _param = paramVal;
         }
     }
-    const auto samplingServerURL = utils::EnvVariable::getStringVariable(kJAEGER_SAMPLER_SERVER_URL_ENV_PROP);
+    const auto samplingServerURL = utils::EnvVariable::getStringVariable(kJAEGER_SAMPLING_ENDPOINT_ENV_PROP);
     if (!samplingServerURL.empty()) {
         _samplingServerURL = samplingServerURL;
     }
