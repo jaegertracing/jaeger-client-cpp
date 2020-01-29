@@ -147,8 +147,9 @@ TEST(Config, testFromEnv)
     setEnv("JAEGER_REPORTER_FLUSH_INTERVAL", "45");
     setEnv("JAEGER_REPORTER_LOG_SPANS", "true");
 
-    setEnv("JAEGER_SAMPLER_PARAM", "33");
-    setEnv("JAEGER_SAMPLER_TYPE", "const");
+    setEnv("JAEGER_SAMPLER_TYPE", "remote");
+    setEnv("JAEGER_SAMPLER_PARAM", "0.33");
+    setEnv("JAEGER_SAMPLING_ENDPOINT", "http://myagent:1234");
 
     setEnv("JAEGER_SERVICE_NAME", "AService");
     setEnv("JAEGER_TAGS", "hostname=foobar,my.app.version=4.5.6");
@@ -163,8 +164,9 @@ TEST(Config, testFromEnv)
               config.reporter().bufferFlushInterval());
     ASSERT_EQ(true, config.reporter().logSpans());
 
-    ASSERT_EQ(33., config.sampler().param());
-    ASSERT_EQ(std::string("const"), config.sampler().type());
+    ASSERT_EQ(std::string("remote"), config.sampler().type());
+    ASSERT_EQ(0.33, config.sampler().param());
+    ASSERT_EQ(std::string("http://myagent:1234"), config.sampler().samplingServerURL());
 
     ASSERT_EQ(std::string("AService"), config.serviceName());
 

@@ -47,7 +47,7 @@ class Config {
 
     static constexpr auto kJAEGER_SAMPLER_TYPE_ENV_PROP = "JAEGER_SAMPLER_TYPE";
     static constexpr auto kJAEGER_SAMPLER_PARAM_ENV_PROP = "JAEGER_SAMPLER_PARAM";
-    static constexpr auto kJAEGER_SAMPLER_MANAGER_HOST_PORT_ENV_PROP = "JAEGER_SAMPLER_MANAGER_HOST_PORT";
+    static constexpr auto kJAEGER_SAMPLING_ENDPOINT_ENV_PROP = "JAEGER_SAMPLING_ENDPOINT";
 
     static Clock::duration defaultSamplingRefreshInterval()
     {
