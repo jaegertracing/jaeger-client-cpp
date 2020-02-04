@@ -53,6 +53,9 @@ void Config::fromEnv()
                 std::getline(tagStream, tagValue, '=');
                 if (std::getline(tagStream, tagValue, '=')) {
                     // error, should be logged somewhere
+                    std::cerr << "wrong format in tag " << tagKey
+                    << " of env var " << kJAEGER_TAGS_ENV_PROP
+                    << ", it can not contain an =\n";
                 }
                 else {
                     _tags.emplace_back(tagKey, tagValue);

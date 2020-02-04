@@ -20,6 +20,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <iostream>
 
 namespace jaegertracing {
 namespace utils {
@@ -31,6 +32,7 @@ inline std::string getStringVariable(const char* envVar)
     return std::string(rawVariable ? rawVariable : "");
 }
 
+/// @return pair<true, value> if non empty and conversion ok, pair<false,0> if empty
 inline std::pair<bool, int> getIntVariable(const char* envVar)
 {
     const auto rawVariable = std::getenv(envVar);
@@ -39,12 +41,16 @@ inline std::pair<bool, int> getIntVariable(const char* envVar)
         std::istringstream iss(variable);
         int intVal = 0;
         if (iss >> intVal) {
-            return std::make_pair(false, intVal);
+            return std::make_pair(true, intVal);
+        }
+        else {
+            std::cerr << "Failed to convert env var " << envVar << ": " << rawVariable << " to an int\n";
         }
     }
     return std::make_pair(false, 0);
 }
 
+/// @return pair<true, value> if non empty and conversion ok, pair<false,0> if empty
 inline std::pair<bool, bool> getBoolVariable(const char* envVar)
 {
     const auto rawVariable = std::getenv(envVar);

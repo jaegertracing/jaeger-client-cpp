@@ -72,16 +72,12 @@ void Config::fromEnv()
         _localAgentHostPort = oss.str();
     }
     const auto agentPort =
-        utils::EnvVariable::getStringVariable(kJAEGER_AGENT_PORT_ENV_PROP);
-    if (!agentPort.empty()) {
-        std::istringstream iss(agentPort);
-        int port = 0;
-        if (iss >> port) {
-            auto agentHostPort = net::IPAddress::parse(_localAgentHostPort);
-            std::ostringstream oss;
-            oss << agentHostPort.first << ":" << port;
-            _localAgentHostPort = oss.str();
-        }
+        utils::EnvVariable::getIntVariable(kJAEGER_AGENT_PORT_ENV_PROP);
+    if (agentPort.first && (agentPort.second > 0) && (agentPort.second <= USHRT_MAX)) {
+        auto agentHostPort = net::IPAddress::parse(_localAgentHostPort);
+        std::ostringstream oss;
+        oss << agentHostPort.first << ":" << agentPort.second;
+        _localAgentHostPort = oss.str();
     }
 
     const auto endpoint =
@@ -98,19 +94,15 @@ void Config::fromEnv()
 
     const auto flushInterval = utils::EnvVariable::getIntVariable(
         kJAEGER_REPORTER_FLUSH_INTERVAL_ENV_PROP);
-    if (!flushInterval.first) {
-        if (flushInterval.second > 0) {
-            _bufferFlushInterval =
-                std::chrono::milliseconds(flushInterval.second);
-        }
+    if (flushInterval.first && (flushInterval.second > 0) ) {
+        _bufferFlushInterval =
+            std::chrono::milliseconds(flushInterval.second);
     }
 
     const auto maxQueueSize = utils::EnvVariable::getIntVariable(
         kJAEGER_REPORTER_MAX_QUEUE_SIZE_ENV_PROP);
-    if (!maxQueueSize.first) {
-        if (maxQueueSize.second > 0) {
-            _queueSize = maxQueueSize.second;
-        }
+    if (maxQueueSize.first &&  (maxQueueSize.second > 0) ) {
+        _queueSize = maxQueueSize.second;
     }
 }
 

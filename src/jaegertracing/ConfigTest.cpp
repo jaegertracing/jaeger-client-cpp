@@ -139,6 +139,24 @@ TEST(Config, testFromEnv)
     ASSERT_EQ(.7, config.sampler().param());
     ASSERT_EQ(std::string("probabilistic"), config.sampler().type());
 
+    // make sure we generate an error trying to convert this to double
+    // So that 0.7 from the constructor is used
+    setEnv("JAEGER_SAMPLER_PARAM", "\"0.33\"");
+    setEnv("JAEGER_TAGS", "hostname=foo2,my.app.name=bar=beer");
+    setEnv("JAEGER_REPORTER_FLUSH_INTERVAL", "a45");
+    config.fromEnv();
+
+    // Previous values are kept
+    ASSERT_EQ(.7, config.sampler().param());
+    ASSERT_EQ(std::chrono::milliseconds(100),
+              config.reporter().bufferFlushInterval());
+    std::vector<Tag> expectedTags;
+    expectedTags.emplace_back("hostname", std::string("foo"));
+    expectedTags.emplace_back("my.app.version", std::string("1.2.3"));
+    expectedTags.emplace_back("hostname", std::string("foo2"));
+    ASSERT_EQ(expectedTags, config.tags());
+
+    // Test success
     setEnv("JAEGER_AGENT_HOST", "host33");
     setEnv("JAEGER_AGENT_PORT", "45");
     setEnv("JAEGER_ENDPOINT", "http://host34:56567");
@@ -170,9 +188,6 @@ TEST(Config, testFromEnv)
 
     ASSERT_EQ(std::string("AService"), config.serviceName());
 
-    std::vector<Tag> expectedTags;
-    expectedTags.emplace_back("hostname", std::string("foo"));
-    expectedTags.emplace_back("my.app.version", std::string("1.2.3"));
     expectedTags.emplace_back("hostname", std::string("foobar"));
     expectedTags.emplace_back("my.app.version", std::string("4.5.6"));
     ASSERT_EQ(expectedTags, config.tags());
@@ -184,6 +199,12 @@ TEST(Config, testFromEnv)
 
     config.fromEnv();
     ASSERT_EQ(true, config.disabled());
+    ASSERT_EQ(std::string("host33:445"),
+              config.reporter().localAgentHostPort());
+
+    // Port higher than 65535 is silently ignored
+    setEnv("JAEGER_AGENT_PORT", "99445");
+    config.fromEnv();
     ASSERT_EQ(std::string("host33:445"),
               config.reporter().localAgentHostPort());
 }

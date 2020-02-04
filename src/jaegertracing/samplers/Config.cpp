@@ -40,6 +40,10 @@ void Config::fromEnv()
         if (iss >> paramVal) {
             _param = paramVal;
         }
+        else {
+            std::cerr << "Failed to convert env var " << kJAEGER_SAMPLER_PARAM_ENV_PROP << ": "
+            << param << " to a double, using instead " << _param << std::endl;
+        }
     }
     const auto samplingServerURL = utils::EnvVariable::getStringVariable(kJAEGER_SAMPLING_ENDPOINT_ENV_PROP);
     if (!samplingServerURL.empty()) {
