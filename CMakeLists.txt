@@ -72,14 +72,8 @@ hunter_add_package(opentracing-cpp)
 # Not `${hunter_config}` because OpenTracing provides its own
 # OpenTracingConfig.cmake file
 find_package(OpenTracing CONFIG REQUIRED)
-# Under Windows, link dynamically with OpenTracing
-if (WIN32)
-  list(APPEND LIBS OpenTracing::opentracing)
-  set(OPENTRACING_LIB OpenTracing::opentracing)
-else()
-  list(APPEND LIBS OpenTracing::opentracing-static)
-  set(OPENTRACING_LIB OpenTracing::opentracing-static)
-endif()
+list(APPEND LIBS OpenTracing::opentracing)
+set(OPENTRACING_LIB OpenTracing::opentracing)
 list(APPEND package_deps OpenTracing)
 
 hunter_add_package(nlohmann_json)
