@@ -273,11 +273,13 @@ class Tracer : public opentracing::Tracer,
     struct AnalyzedReferences {
         AnalyzedReferences()
             : _parent(nullptr)
+            , _self(nullptr)
             , _references()
         {
         }
 
         const SpanContext* _parent;
+        const SpanContext* _self;
         std::vector<Reference> _references;
     };
 
@@ -300,6 +302,14 @@ class Tracer : public opentracing::Tracer,
     baggage::BaggageSetter _baggageSetter;
     int _options;
 };
+
+
+// JaegerSpecific_Self returns a StartSpanOption pointing to the Span that should be used as the started span context
+//
+// See opentracing::SpanReference
+inline opentracing::SpanReference JaegerSpecific_UseTheseIDs(const opentracing::SpanContext* span_context) noexcept {
+    return {static_cast<opentracing::SpanReferenceType>(SpanReferenceType_JaegerSpecific_UseTheseIDs), span_context};
+}
 
 }  // namespace jaegertracing
 

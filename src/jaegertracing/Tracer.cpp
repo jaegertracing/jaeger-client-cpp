@@ -67,6 +67,7 @@ Tracer::StartSpanWithOptions(string_view operationName,
     try {
         const auto result = analyzeReferences(options.references);
         const auto* parent = result._parent;
+        const auto* self = result._self;
         const auto& references = result._references;
 
         std::vector<Tag> samplerTags;
@@ -75,10 +76,19 @@ Tracer::StartSpanWithOptions(string_view operationName,
         if (!parent || !parent->isValid()) {
             newTrace = true;
             auto highID = static_cast<uint64_t>(0);
-            if (_options & kGen128BitOption) {
-                highID = randomID();
+            auto lowID = static_cast<uint64_t>(0);
+            if (self) {
+                highID = self->traceID().high();
+                lowID = self->traceID().low();
             }
-            const TraceID traceID(highID, randomID());
+            else {
+                if (_options & kGen128BitOption) {
+                    highID = randomID();
+                }
+                lowID = randomID();
+            }
+            const TraceID traceID(highID, lowID);
+            // self.spanID is ignored for the root span
             const auto spanID = traceID.low();
             const auto parentID = 0;
             auto flags = static_cast<unsigned char>(0);
@@ -101,7 +111,7 @@ Tracer::StartSpanWithOptions(string_view operationName,
         }
         else {
             const auto traceID = parent->traceID();
-            const auto spanID = randomID();
+            const auto spanID = self ? self->spanID() : randomID();
             const auto parentID = parent->spanID();
             const auto flags = parent->flags();
             ctx = SpanContext(traceID, spanID, parentID, flags, StrMap());
@@ -192,6 +202,12 @@ Tracer::analyzeReferences(const std::vector<OpenTracingRef>& references) const
         if (!ctx->isValid() && !ctx->isDebugIDContainerOnly() &&
             ctx->baggage().empty()) {
             continue;
+        }
+
+        if (static_cast<int>(ref.first) == SpanReferenceType_JaegerSpecific_UseTheseIDs)
+        {
+            result._self = ctx;
+            continue; // not a reference
         }
 
         result._references.emplace_back(Reference(*ctx, ref.first));
