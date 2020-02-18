@@ -88,8 +88,7 @@ Tracer::StartSpanWithOptions(string_view operationName,
                 lowID = randomID();
             }
             const TraceID traceID(highID, lowID);
-            // self.spanID is ignored for the root span
-            const auto spanID = traceID.low();
+            const auto spanID = self ? self->spanID() : traceID.low();
             const auto parentID = 0;
             auto flags = static_cast<unsigned char>(0);
             if (parent && parent->isDebugIDContainerOnly()) {
@@ -204,7 +203,7 @@ Tracer::analyzeReferences(const std::vector<OpenTracingRef>& references) const
             continue;
         }
 
-        if (static_cast<int>(ref.first) == SpanReferenceType_JaegerSpecific_UseTheseIDs)
+        if (static_cast<int>(ref.first) == SpanReferenceType_JaegerSpecific_SelfRef)
         {
             result._self = ctx;
             continue; // not a reference
