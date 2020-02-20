@@ -307,9 +307,7 @@ class Tracer : public opentracing::Tracer,
 // jaegertracing::SelfRef returns a StartSpanOption pointing to the Span which traceID and spanID should become the new Span's IDs
 //
 // See opentracing::SpanReference
-inline opentracing::SpanReference SelfRef(const opentracing::SpanContext* span_context) noexcept {
-    return {static_cast<opentracing::SpanReferenceType>(SpanReferenceType_JaegerSpecific_SelfRef), span_context};
-}
+opentracing::SpanReference SelfRef(const opentracing::SpanContext* span_context) noexcept;
 
 }  // namespace jaegertracing
 

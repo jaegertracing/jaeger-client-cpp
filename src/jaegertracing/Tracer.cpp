@@ -33,6 +33,10 @@ using SystemClock = Tracer::SystemClock;
 using SteadyClock = Tracer::SteadyClock;
 using TimePoints = std::tuple<SystemClock::time_point, SteadyClock::time_point>;
 
+// An extension of enum opentracing::SpanReferenceType, for a new Span. Only to copy traceID and (for non-root spans) spanID
+// spanID for root spans still traceID.low()
+const static int SpanReferenceType_JaegerSpecific_SelfRef = 99;
+
 TimePoints determineStartTimes(const opentracing::StartSpanOptions& options)
 {
     if (options.start_system_timestamp == SystemClock::time_point() &&
@@ -69,6 +73,10 @@ Tracer::StartSpanWithOptions(string_view operationName,
         const auto* parent = result._parent;
         const auto* self = result._self;
         const auto& references = result._references;
+        if (self && (parent || !references.empty()))
+        {
+            throw std::exception("Self reference must be the only reference");
+        }
 
         std::vector<Tag> samplerTags;
         auto newTrace = false;
@@ -110,7 +118,7 @@ Tracer::StartSpanWithOptions(string_view operationName,
         }
         else {
             const auto traceID = parent->traceID();
-            const auto spanID = self ? self->spanID() : randomID();
+            const auto spanID = randomID();
             const auto parentID = parent->spanID();
             const auto flags = parent->flags();
             ctx = SpanContext(traceID, spanID, parentID, flags, StrMap());
@@ -258,6 +266,10 @@ Tracer::make(const std::string& serviceName,
                                               config.headers(),
                                               config.tags(),
                                               options));
+}
+
+opentracing::SpanReference SelfRef(const opentracing::SpanContext* span_context) noexcept {
+    return {static_cast<opentracing::SpanReferenceType>(SpanReferenceType_JaegerSpecific_SelfRef), span_context};
 }
 
 }  // namespace jaegertracing

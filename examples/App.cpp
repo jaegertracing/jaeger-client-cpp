@@ -24,12 +24,6 @@ void tracedSubroutine(const std::unique_ptr<opentracing::Span>& parentSpan)
 
 void tracedFunction()
 {
-    //{
-    //jaegertracing::SpanContext spanContextWithUserIDs { {111, 222}, 333, 0, 0, jaegertracing::SpanContext::StrMap() }; // TraceId and SpanID must be != 0
-    //auto span = opentracing::Tracer::Global()->StartSpan(
-    //    "tracedFunction1", {jaegertracing::SelfRef(&spanContextWithUserIDs)});
-    //}
-
     auto span = opentracing::Tracer::Global()->StartSpan("tracedFunction");
     tracedSubroutine(span);
 }

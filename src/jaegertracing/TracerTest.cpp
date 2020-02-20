@@ -490,23 +490,4 @@ TEST(Tracer, testTracerTags)
     ASSERT_EQ(std::string("test-service"), jaegerTracer->serviceName());
 }
 
-TEST(Tracer, testTracerStartSpanSelfRef)
-{
-	// Got a strange error: SEH exception with code 0xc0000005 thrown in the test body.
-	// Commented out for now, check it later before the merge
-
-	/*
-    const auto handle = testutils::TracerUtil::installGlobalTracer();
-    const auto tracer = std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
-    {
-        jaegertracing::SpanContext spanSelfContext { {1, 2}, 3, 0, 0, jaegertracing::SpanContext::StrMap() };
-        auto span = tracer->StartSpan("tracedFunction1", {jaegertracing::SelfRef(&spanSelfContext)});
-        auto jaegerSpan = dynamic_cast<jaegertracing::Span&>(*span.get());
-        ASSERT_EQ(jaegerSpan.context().traceID(), jaegertracing::TraceID(1, 2));
-        ASSERT_EQ(jaegerSpan.context().spanID(), 3);
-    }
-    tracer->Close();
-	*/
-}
-
 }  // namespace jaegertracing

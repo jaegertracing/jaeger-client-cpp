@@ -30,9 +30,6 @@ namespace thrift {
 class SpanRef;
 }
 
-// An extension of enum opentracing::SpanReferenceType, for a new Span. Only to copy traceID and spanID
-const static int SpanReferenceType_JaegerSpecific_SelfRef = 99;
-
 class Reference {
   public:
     using Type = opentracing::SpanReferenceType;
