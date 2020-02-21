@@ -304,9 +304,12 @@ class Tracer : public opentracing::Tracer,
 };
 
 
-// jaegertracing::SelfRef returns a StartSpanOption pointing to the Span which traceID and spanID should become the new Span's IDs
-//
-// See opentracing::SpanReference
+// jaegertracing::SelfRef() returns an opentracing::SpanReference which can be passed to Tracer::StartSpan
+// to influence the SpanContext of the newly created span. Specifically, the new span inherits the traceID
+// and spanID from the passed SELF reference. It can be used to pass externally generated IDs to the tracer,
+// with the purpose of recording spans from data generated elsewhere (e.g. from logs), or by augmenting the
+// data of the existing span (Jaeger backend will merge multiple instances of the spans with the same IDs).
+// Must be the lone reference, can be used only for root spans
 opentracing::SpanReference SelfRef(const opentracing::SpanContext* span_context) noexcept;
 
 }  // namespace jaegertracing

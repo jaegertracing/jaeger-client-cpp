@@ -33,8 +33,7 @@ using SystemClock = Tracer::SystemClock;
 using SteadyClock = Tracer::SteadyClock;
 using TimePoints = std::tuple<SystemClock::time_point, SteadyClock::time_point>;
 
-// An extension of enum opentracing::SpanReferenceType, for a new Span. Only to copy traceID and (for non-root spans) spanID
-// spanID for root spans still traceID.low()
+// An extension of opentracing::SpanReferenceType enum. See jaegertracing::SelfRef().
 const static int SpanReferenceType_JaegerSpecific_SelfRef = 99;
 
 TimePoints determineStartTimes(const opentracing::StartSpanOptions& options)
