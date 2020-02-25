@@ -167,7 +167,7 @@ class SpanContext : public opentracing::SpanContext {
         forEachBaggageItem(f);
     }
 
-    std::unique_ptr<opentracing::SpanContext> Clone() const noexcept
+    std::unique_ptr<opentracing::SpanContext> Clone() const noexcept override
     {
         std::lock_guard<std::mutex> lock(_mutex);
         return std::unique_ptr<opentracing::SpanContext>(
