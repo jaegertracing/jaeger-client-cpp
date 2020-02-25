@@ -454,6 +454,24 @@ TEST(Tracer, testPropagation)
         ASSERT_TRUE(static_cast<bool>(extractedCtx));
         ASSERT_EQ(3, extractedCtx->baggage().size());
         ASSERT_EQ(ctx, *extractedCtx);
+        
+        // Test b3- 
+        headerMap.clear();
+        headerMap[kB3TraceIdHeaderName] = "8a36814379ee00aab1d424a9134adca1";
+        headerMap[kB3SpanIdHeaderName] = "b1cf504cf04e96b4";
+        headerMap[kB3ParentSpanIdHeaderName] = "c18983619541935d";
+        headerMap[kB3SampledHeaderName] = "1";
+        result = tracer->Extract(headerReader);
+        ASSERT_TRUE(static_cast<bool>(result));
+        extractedCtx.reset(static_cast<SpanContext*>(result->release()));
+        extractedCtx->print(std::cout);
+        headerMap.clear();
+        tracer->Inject(*extractedCtx, headerWriter);
+        for (auto itr = std::begin(headerMap); itr != std::end(headerMap); ++itr) {
+            std::cout<<std::endl<<itr->first<<":"<<itr->second;
+        }
+        std::cout<<std::endl;
+        ASSERT_EQ(4, headerMap.size());
     }
     tracer->Close();
 }
