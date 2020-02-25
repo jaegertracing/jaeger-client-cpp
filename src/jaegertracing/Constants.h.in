@@ -37,7 +37,11 @@ static constexpr auto kSamplerTypeRemote = "remote";
 static constexpr auto kSamplerTypeProbabilistic = "probabilistic";
 static constexpr auto kSamplerTypeRateLimiting = "ratelimiting";
 static constexpr auto kSamplerTypeLowerBound = "lowerbound";
-
+static constexpr auto kB3TraceHeaderPrefix = "x-b3-";
+static constexpr auto kB3TraceIdHeaderName = "x-b3-traceid";
+static constexpr auto kB3SpanIdHeaderName = "x-b3-spanid";
+static constexpr auto kB3ParentSpanIdHeaderName = "x-b3-parentspanid";
+static constexpr auto kB3SampledHeaderName = "x-b3-sampled";
 }  // namespace jaegertracing
 
 #endif  // JAEGERTRACING_CONSTANTS_H

@@ -102,12 +102,18 @@ Tracer::StartSpanWithOptions(string_view operationName,
         else {
             const auto traceID = parent->traceID();
             const auto spanID = randomID();
+            // TODO - Review orig code
+            // Shouldnt parentId be from parentID or is it because its ignored ?
             const auto parentID = parent->spanID();
             const auto flags = parent->flags();
-            ctx = SpanContext(traceID, spanID, parentID, flags, StrMap());
+            const auto b3Headers = parent->B3Headers();
+            ctx = SpanContext(traceID, spanID, parentID, flags, StrMap(),
+                    "", b3Headers);
         }
 
         if (parent && !parent->baggage().empty()) {
+            // TODO - Review do we need b3 here? Other spancontext params
+            // also not passed
             ctx = ctx.withBaggage(parent->baggage());
         }
 

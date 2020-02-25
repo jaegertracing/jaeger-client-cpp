@@ -62,9 +62,13 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
         SpanContext ctx;
         StrMap baggage;
         std::string debugID;
+        std::string b3TraceId;
+        std::string b3SpanId;
+        std::string b3ParentSpanId;
+        std::string b3Sampled;
         const auto result = reader.ForeachKey(
-            [this, &ctx, &debugID, &baggage](const std::string& rawKey,
-                                             const std::string& value) {
+            [this, &ctx, &debugID, &baggage, &b3TraceId, &b3SpanId, &b3ParentSpanId,
+                   &b3Sampled](const std::string& rawKey, const std::string& value) {
                 const auto key = normalizeKey(rawKey);
                 if (key == _headerKeys.traceContextHeaderName()) {
                     const auto safeValue = decodeValue(value);
@@ -82,6 +86,21 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
                         baggage[pair.first] = pair.second;
                     }
                 }
+                /* TODO - Review - We dont have the iterator position to continue
+                   from here and we also dont want to run another loop,
+                   either uberctx- or x-b3- should be present */
+                else if (key == kB3TraceIdHeaderName) {
+                    b3TraceId = decodeValue(value);
+                }
+                else if (key == kB3SpanIdHeaderName) {
+                    b3SpanId = decodeValue(value);
+                }
+                else if (key == kB3ParentSpanIdHeaderName) {
+                    b3ParentSpanId = decodeValue(value);
+                }
+                else if (key == kB3SampledHeaderName) {
+                    b3Sampled = decodeValue(value);
+                }
                 else {
                     const auto prefix = _headerKeys.traceBaggageHeaderPrefix();
                     if (key.size() >= prefix.size() &&
@@ -93,6 +112,16 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
                 }
                 return opentracing::make_expected();
             });
+
+        // TODO: Review - parent-span-id mandatory here?
+        bool b3Present = false;
+        if (!b3TraceId.empty() && !b3SpanId.empty() && !b3ParentSpanId.empty() &&
+                !b3Sampled.empty()) {
+            std::istringstream issB3(b3TraceId+":"+b3SpanId+":"+b3ParentSpanId+":"+b3Sampled);
+            if (!(issB3 >> ctx) || ctx == SpanContext())
+                return SpanContext();
+            b3Present = true;
+        }
 
         if (!result &&
             result.error() == opentracing::span_context_corrupted_error) {
@@ -114,14 +143,33 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
                            ctx.parentID(),
                            flags,
                            baggage,
-                           debugID);
+                           debugID,
+                           b3Present);
     }
 
     void inject(const SpanContext& ctx, const Writer& writer) const override
     {
-        std::ostringstream oss;
-        oss << ctx;
-        writer.Set(_headerKeys.traceContextHeaderName(), oss.str());
+        if (ctx.B3Headers()) {
+            std::ostringstream ss;
+            ss << ctx.traceID();
+            writer.Set(kB3TraceIdHeaderName, ss.str());
+            // TODO - Review Is there a cleaner way ?
+            ss.str(std::string());
+            ss.clear();
+            ss << std::hex << ctx.spanID();
+            writer.Set(kB3SpanIdHeaderName, ss.str());
+            ss.str(std::string());
+            ss.clear();
+            ss << std::hex << ctx.parentID();
+            writer.Set(kB3ParentSpanIdHeaderName, ss.str());
+            writer.Set(kB3SampledHeaderName, std::to_string(ctx.isSampled()));
+        }
+        else {
+            std::ostringstream oss;
+            oss << ctx;
+            writer.Set(_headerKeys.traceContextHeaderName(), oss.str());
+        }
+
         ctx.forEachBaggageItem(
             [this, &writer](const std::string& key, const std::string& value) {
                 const auto safeKey = addBaggageKeyPrefix(key);
