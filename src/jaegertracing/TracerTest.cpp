@@ -179,6 +179,14 @@ TEST(Tracer, testTracer)
     ASSERT_TRUE(static_cast<bool>(span));
     ASSERT_EQ(static_cast<opentracing::Tracer*>(tracer.get()), &span->tracer());
 
+    {
+        auto spanRootNoSelfRef = tracer->StartSpan("test-root-noselfref");
+        ASSERT_TRUE(spanRootNoSelfRef);
+        auto spanChildNoSelfRef = tracer->StartSpan("test-child-noselfref",
+            { opentracing::ChildOf(&spanRootNoSelfRef->context()) });
+        ASSERT_TRUE(spanChildNoSelfRef);
+    }
+
     span->SetOperationName("test-set-operation");
     span->SetTag("tag-key", "tag-value");
     span->SetBaggageItem("test-baggage-item-key", "test baggage item value");
