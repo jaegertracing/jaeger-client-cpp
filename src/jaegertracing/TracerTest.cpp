@@ -500,11 +500,11 @@ TEST(Tracer, testTracerSimpleChild)
     const auto handle = testutils::TracerUtil::installGlobalTracer();
     const auto tracer = std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
     {
-        auto spanRootNoSelfRef = tracer->StartSpan("test-root-of-simple-child");
-        ASSERT_TRUE(spanRootNoSelfRef);
-        auto spanChildNoSelfRef = tracer->StartSpan("test-simple-child",
-            { opentracing::ChildOf(&spanRootNoSelfRef->context()) });
-        ASSERT_TRUE(spanChildNoSelfRef);
+        auto spanRoot = tracer->StartSpan("test-simple-root");
+        ASSERT_TRUE(spanRoot);
+        auto spanChild = tracer->StartSpan("test-simple-child",
+            { opentracing::ChildOf(&spanRoot->context()) });
+        ASSERT_TRUE(spanChild);
     }
     tracer->Close();
 }
@@ -516,10 +516,18 @@ TEST(Tracer, testTracerSpanSelfRef)
     const auto tracer = std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
     {
         jaegertracing::SpanContext spanSelfContext { {1, 2}, 3, 0, 0, jaegertracing::SpanContext::StrMap() };
-        auto span = tracer->StartSpan("tracedFunction1", {jaegertracing::SelfRef(&spanSelfContext)});
-        auto jaegerSpan = dynamic_cast<jaegertracing::Span&>(*span.get());
-        ASSERT_EQ(jaegerSpan.context().traceID(), jaegertracing::TraceID(1, 2));
-        ASSERT_EQ(jaegerSpan.context().spanID(), 3);
+        auto spanRoot = tracer->StartSpan("test-root-self-ref", {jaegertracing::SelfRef(&spanSelfContext)});
+        ASSERT_TRUE(spanRoot);
+        auto jaegerSpanRoot = dynamic_cast<jaegertracing::Span&>(*spanRoot.get());
+        ASSERT_EQ(jaegerSpanRoot.context().traceID(), jaegertracing::TraceID(1, 2));
+        ASSERT_EQ(jaegerSpanRoot.context().spanID(), 3);
+
+        auto spanChild = tracer->StartSpan("test-child-self-ref",
+            { opentracing::ChildOf(&spanRoot->context()) });
+        ASSERT_TRUE(spanChild);
+        auto jaegerSpanChild = dynamic_cast<jaegertracing::Span&>(*spanChild.get());
+        ASSERT_EQ(jaegerSpanChild.context().traceID(), jaegertracing::TraceID(1, 2));
+        ASSERT_NE(jaegerSpanChild.context().spanID(), 3);
     }
     tracer->Close();
 }
