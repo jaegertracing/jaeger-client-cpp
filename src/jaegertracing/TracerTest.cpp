@@ -58,6 +58,11 @@ class FakeSpanContext : public opentracing::SpanContext {
     {
         // Do nothing
     }
+
+    virtual std::unique_ptr<SpanContext> Clone() const noexcept override
+    {
+        return std::unique_ptr<FakeSpanContext>(new FakeSpanContext());
+    }
 };
 
 template <typename BaseWriter>
