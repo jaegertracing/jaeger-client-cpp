@@ -509,13 +509,12 @@ TEST(Tracer, testTracerSimpleChild)
     tracer->Close();
 }
 
-
 TEST(Tracer, testTracerSpanSelfRef)
 {
     const auto handle = testutils::TracerUtil::installGlobalTracer();
     const auto tracer = std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
     {
-        jaegertracing::SpanContext spanSelfContext { {1, 2}, 3, 0, 0, jaegertracing::SpanContext::StrMap() };
+        const jaegertracing::SpanContext spanSelfContext { {1, 2}, 3, 0, 0, jaegertracing::SpanContext::StrMap() };
         auto spanRoot = tracer->StartSpan("test-root-self-ref", {jaegertracing::SelfRef(&spanSelfContext)});
         ASSERT_TRUE(spanRoot);
         auto jaegerSpanRoot = dynamic_cast<jaegertracing::Span&>(*spanRoot.get());
@@ -528,6 +527,27 @@ TEST(Tracer, testTracerSpanSelfRef)
         auto jaegerSpanChild = dynamic_cast<jaegertracing::Span&>(*spanChild.get());
         ASSERT_EQ(jaegerSpanChild.context().traceID(), jaegertracing::TraceID(1, 2));
         ASSERT_NE(jaegerSpanChild.context().spanID(), 3);
+    }
+    tracer->Close();
+}
+
+TEST(Tracer, testTracerSpanSelfRefWithOtherRefs)
+{
+    const auto handle = testutils::TracerUtil::installGlobalTracer();
+    const auto tracer = std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
+    {
+        const jaegertracing::SpanContext spanSelfContext { {1, 2}, 3, 0, 0, jaegertracing::SpanContext::StrMap() };
+        auto spanRoot = tracer->StartSpan("test-root-self-ref", {jaegertracing::SelfRef(&spanSelfContext)});
+        ASSERT_TRUE(spanRoot);
+        auto jaegerSpanRoot = dynamic_cast<jaegertracing::Span&>(*spanRoot.get());
+        ASSERT_EQ(jaegerSpanRoot.context().traceID(), jaegertracing::TraceID(1, 2));
+        ASSERT_EQ(jaegerSpanRoot.context().spanID(), 3);
+
+        const jaegertracing::SpanContext spanSelfContext2 { {1, 2}, 4, 0, 0, jaegertracing::SpanContext::StrMap() };
+        auto spanChild = tracer->StartSpan("test-child-self-ref",
+            { opentracing::ChildOf(&spanRoot->context()), jaegertracing::SelfRef(&spanSelfContext2) }
+        );
+        ASSERT_FALSE(spanChild);
     }
     tracer->Close();
 }

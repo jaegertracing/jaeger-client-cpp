@@ -74,7 +74,7 @@ Tracer::StartSpanWithOptions(string_view operationName,
         const auto& references = result._references;
         if (self && (parent || !references.empty()))
         {
-            throw std::exception(); // Self reference must be the only reference
+            throw std::invalid_argument("self reference must be the only reference");
         }
 
         std::vector<Tag> samplerTags;
@@ -139,6 +139,11 @@ Tracer::StartSpanWithOptions(string_view operationName,
                                  options.tags,
                                  newTrace,
                                  references);
+    } catch (const std::exception& ex) {
+        std::ostringstream oss;
+        oss << "Error occurred in Tracer::StartSpanWithOptions: " << ex.what();
+        utils::ErrorUtil::logError(*_logger, oss.str());
+        return nullptr;
     } catch (...) {
         utils::ErrorUtil::logError(
             *_logger, "Error occurred in Tracer::StartSpanWithOptions");
