@@ -74,7 +74,7 @@ Tracer::StartSpanWithOptions(string_view operationName,
         const auto& references = result._references;
         if (self && (parent || !references.empty()))
         {
-            throw std::invalid_argument("self reference must be the only reference");
+            throw std::invalid_argument("Self and references are exclusive. Only one of them can be specified");
         }
 
         std::vector<Tag> samplerTags;
