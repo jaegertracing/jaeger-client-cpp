@@ -107,6 +107,21 @@ JAEGER_SAMPLER_PARAM | The sampler parameter (double)
 JAEGER_SAMPLING_ENDPOINT | The url for the remote sampling conf when using sampler type remote. Default is http://127.0.0.1:5778/sampling
 JAEGER_TAGS | A comma separated list of `name = value` tracer level tags, which get added to all reported spans. The value can also refer to an environment variable using the format `${envVarName:default}`, where the `:default` is optional, and identifies a value to be used if the environment variable cannot be found
 
+### SelfRef
+Jaeger Tracer supports an additional reference type call 'SelfRef'.
+It returns an opentracing::SpanReference which can be passed to Tracer::StartSpan
+to influence the SpanContext of the newly created span. Specifically, the new span inherits the traceID
+and spanID from the passed SELF reference. It can be used to pass externally generated IDs to the tracer,
+with the purpose of recording spans from data generated elsewhere (e.g. from logs), or by augmenting the
+data of the existing span (Jaeger backend will merge multiple instances of the spans with the same IDs).
+Must be the lone reference, can be used only for root spans.
+
+Usage example:
+```
+  jaegertracing::SpanContext customCtx { {1, 2}, 3, 0, 0, jaegertracing::SpanContext::StrMap() }; // TraceId and SpanID must be != 0
+  auto span = tracer->StartSpan("spanName", { jaegertracing::SelfRef(&customCtx) });
+```
+
 ## License
 
 [Apache 2.0 License](./LICENSE).

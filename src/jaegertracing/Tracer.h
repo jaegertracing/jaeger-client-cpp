@@ -273,11 +273,13 @@ class Tracer : public opentracing::Tracer,
     struct AnalyzedReferences {
         AnalyzedReferences()
             : _parent(nullptr)
+            , _self(nullptr)
             , _references()
         {
         }
 
         const SpanContext* _parent;
+        const SpanContext* _self;
         std::vector<Reference> _references;
     };
 
@@ -300,6 +302,15 @@ class Tracer : public opentracing::Tracer,
     baggage::BaggageSetter _baggageSetter;
     int _options;
 };
+
+
+// jaegertracing::SelfRef() returns an opentracing::SpanReference which can be passed to Tracer::StartSpan
+// to influence the SpanContext of the newly created span. Specifically, the new span inherits the traceID
+// and spanID from the passed SELF reference. It can be used to pass externally generated IDs to the tracer,
+// with the purpose of recording spans from data generated elsewhere (e.g. from logs), or by augmenting the
+// data of the existing span (Jaeger backend will merge multiple instances of the spans with the same IDs).
+// Must be the lone reference, can be used only for root spans
+opentracing::SpanReference SelfRef(const opentracing::SpanContext* span_context) noexcept;
 
 }  // namespace jaegertracing
 

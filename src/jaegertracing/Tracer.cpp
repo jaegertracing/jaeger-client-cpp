@@ -33,6 +33,9 @@ using SystemClock = Tracer::SystemClock;
 using SteadyClock = Tracer::SteadyClock;
 using TimePoints = std::tuple<SystemClock::time_point, SteadyClock::time_point>;
 
+// An extension of opentracing::SpanReferenceType enum. See jaegertracing::SelfRef().
+const static int SpanReferenceType_JaegerSpecific_SelfRef = 99;
+
 TimePoints determineStartTimes(const opentracing::StartSpanOptions& options)
 {
     if (options.start_system_timestamp == SystemClock::time_point() &&
@@ -67,7 +70,12 @@ Tracer::StartSpanWithOptions(string_view operationName,
     try {
         const auto result = analyzeReferences(options.references);
         const auto* parent = result._parent;
+        const auto* self = result._self;
         const auto& references = result._references;
+        if (self && (parent || !references.empty()))
+        {
+            throw std::invalid_argument("Self and references are exclusive. Only one of them can be specified");
+        }
 
         std::vector<Tag> samplerTags;
         auto newTrace = false;
@@ -75,11 +83,19 @@ Tracer::StartSpanWithOptions(string_view operationName,
         if (!parent || !parent->isValid()) {
             newTrace = true;
             auto highID = static_cast<uint64_t>(0);
-            if (_options & kGen128BitOption) {
-                highID = randomID();
+            auto lowID = static_cast<uint64_t>(0);
+            if (self) {
+                highID = self->traceID().high();
+                lowID = self->traceID().low();
             }
-            const TraceID traceID(highID, randomID());
-            const auto spanID = traceID.low();
+            else {
+                if (_options & kGen128BitOption) {
+                    highID = randomID();
+                }
+                lowID = randomID();
+            }
+            const TraceID traceID(highID, lowID);
+            const auto spanID = self ? self->spanID() : traceID.low();
             const auto parentID = 0;
             auto flags = static_cast<unsigned char>(0);
             if (parent && parent->isDebugIDContainerOnly()) {
@@ -123,6 +139,11 @@ Tracer::StartSpanWithOptions(string_view operationName,
                                  options.tags,
                                  newTrace,
                                  references);
+    } catch (const std::exception& ex) {
+        std::ostringstream oss;
+        oss << "Error occurred in Tracer::StartSpanWithOptions: " << ex.what();
+        utils::ErrorUtil::logError(*_logger, oss.str());
+        return nullptr;
     } catch (...) {
         utils::ErrorUtil::logError(
             *_logger, "Error occurred in Tracer::StartSpanWithOptions");
@@ -194,6 +215,12 @@ Tracer::analyzeReferences(const std::vector<OpenTracingRef>& references) const
             continue;
         }
 
+        if (static_cast<int>(ref.first) == SpanReferenceType_JaegerSpecific_SelfRef)
+        {
+            result._self = ctx;
+            continue; // not a reference
+        }
+
         result._references.emplace_back(Reference(*ctx, ref.first));
 
         if (!hasParent) {
@@ -243,6 +270,10 @@ Tracer::make(const std::string& serviceName,
                                               config.headers(),
                                               config.tags(),
                                               options));
+}
+
+opentracing::SpanReference SelfRef(const opentracing::SpanContext* span_context) noexcept {
+    return {static_cast<opentracing::SpanReferenceType>(SpanReferenceType_JaegerSpecific_SelfRef), span_context};
 }
 
 }  // namespace jaegertracing
