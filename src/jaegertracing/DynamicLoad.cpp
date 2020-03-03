@@ -41,7 +41,8 @@ static int makeTracerFactory(const char* opentracingVersion,
         return opentracing::incompatible_library_versions_error.value();
     }
 
-    *tracerFactory = new (std::nothrow) jaegertracing::TracerFactory{};
+    const auto jaegerTracerFactory = new (std::nothrow) jaegertracing::TracerFactory(true);
+    *tracerFactory = jaegerTracerFactory;
     if (*tracerFactory == nullptr) {
         *errorCategory = static_cast<const void*>(&std::generic_category());
         return static_cast<int>(std::errc::not_enough_memory);

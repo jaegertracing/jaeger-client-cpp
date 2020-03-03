@@ -26,6 +26,18 @@ class TracerFactory : public opentracing::TracerFactory {
     opentracing::expected<std::shared_ptr<opentracing::Tracer>>
     MakeTracer(const char* configuration, std::string& errorMessage) const
         noexcept override;
+
+    TracerFactory()
+        : TracerFactory(false)
+    {
+    }
+
+    TracerFactory(bool readFromEnv)
+        : _readFromEnv(readFromEnv)
+    {
+    }
+  private:
+    bool _readFromEnv;
 };
 
 }  // namespace jaegertracing
