@@ -92,15 +92,11 @@ option(JAEGERTRACING_BUILD_EXAMPLES "Build examples" ON)
 
 option(JAEGERTRACING_COVERAGE "Build with coverage" $ENV{COVERAGE})
 option(JAEGERTRACING_BUILD_CROSSDOCK "Build crossdock" $ENV{CROSSDOCK})
-cmake_dependent_option(
-  JAEGERTRACING_WITH_YAML_CPP "Use yaml-cpp to parse config files" ON
-  "NOT JAEGERTRACING_BUILD_CROSSDOCK" ON)
+option(JAEGERTRACING_WITH_YAML_CPP "Use yaml-cpp to parse config files" ON)
 
 if(JAEGERTRACING_WITH_YAML_CPP)
   hunter_add_package(yaml-cpp)
-  # Not `${hunter_config}` because yaml-cpp provides its own
-  # yaml-cpp-config.cmake file
-  find_package(yaml-cpp CONFIG REQUIRED)
+  find_package(yaml-cpp ${hunter_config} REQUIRED)
   if(HUNTER_ENABLED)
       list(APPEND LIBS yaml-cpp::yaml-cpp)
   else()
