@@ -28,6 +28,8 @@
 #include <climits>
 #include <opentracing/propagation.h>
 #include <sstream>
+#include "jaegertracing/propagation/B3Tracer.h"
+#include "jaegertracing/propagation/UberTracer.h"
 
 namespace jaegertracing {
 
@@ -62,114 +64,28 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
         SpanContext ctx;
         StrMap baggage;
         std::string debugID;
-        std::string b3TraceId;
-        std::string b3SpanId;
-        std::string b3ParentSpanId;
-        std::string b3Sampled;
-        const auto result = reader.ForeachKey(
-            [this, &ctx, &debugID, &baggage, &b3TraceId, &b3SpanId, &b3ParentSpanId,
-                   &b3Sampled](const std::string& rawKey, const std::string& value) {
-                const auto key = normalizeKey(rawKey);
-                if (key == _headerKeys.traceContextHeaderName()) {
-                    const auto safeValue = decodeValue(value);
-                    std::istringstream iss(safeValue);
-                    if (!(iss >> ctx) || ctx == SpanContext()) {
-                        return opentracing::make_expected_from_error<void>(
-                            opentracing::span_context_corrupted_error);
-                    }
-                }
-                else if (key == _headerKeys.jaegerDebugHeader()) {
-                    debugID = value;
-                }
-                else if (key == _headerKeys.jaegerBaggageHeader()) {
-                    for (auto&& pair : parseCommaSeparatedMap(value)) {
-                        baggage[pair.first] = pair.second;
-                    }
-                }
-                /* TODO - Review - We dont have the iterator position to continue
-                   from here and we also dont want to run another loop,
-                   either uberctx- or x-b3- should be present */
-                else if (key == kB3TraceIdHeaderName) {
-                    b3TraceId = decodeValue(value);
-                }
-                else if (key == kB3SpanIdHeaderName) {
-                    b3SpanId = decodeValue(value);
-                }
-                else if (key == kB3ParentSpanIdHeaderName) {
-                    b3ParentSpanId = decodeValue(value);
-                }
-                else if (key == kB3SampledHeaderName) {
-                    b3Sampled = decodeValue(value);
-                }
-                else {
-                    const auto prefix = _headerKeys.traceBaggageHeaderPrefix();
-                    if (key.size() >= prefix.size() &&
-                        key.substr(0, prefix.size()) == prefix) {
-                        const auto safeKey = removeBaggageKeyPrefix(key);
-                        const auto safeValue = decodeValue(value);
-                        baggage[safeKey] = safeValue;
-                    }
-                }
-                return opentracing::make_expected();
-            });
-
-        // TODO: Review - parent-span-id mandatory here?
-        bool b3Present = false;
-        if (!b3TraceId.empty() && !b3SpanId.empty() && !b3ParentSpanId.empty() &&
-                !b3Sampled.empty()) {
-            std::istringstream issB3(b3TraceId+":"+b3SpanId+":"+b3ParentSpanId+":"+b3Sampled);
-            if (!(issB3 >> ctx) || ctx == SpanContext())
-                return SpanContext();
-            b3Present = true;
+        auto tracer = getTracerType(reader);
+        if (tracer == TracerType::TRACER_TYPE_B3) {
+            return b3Tracer.extractImpl(this, reader);
         }
-
-        if (!result &&
-            result.error() == opentracing::span_context_corrupted_error) {
+        else if (tracer == TracerType::TRACER_TYPE_UBER) {
+            return uberTracer.extractImpl(this, reader);
+        }
+        else
+        {        
             _metrics->decodingErrors().inc(1);
             return SpanContext();
         }
-
-        if (!ctx.traceID().isValid() && debugID.empty() && baggage.empty()) {
-            return SpanContext();
-        }
-
-        int flags = ctx.flags();
-        if (!debugID.empty()) {
-            flags |= static_cast<unsigned char>(SpanContext::Flag::kDebug) |
-                     static_cast<unsigned char>(SpanContext::Flag::kSampled);
-        }
-        return SpanContext(ctx.traceID(),
-                           ctx.spanID(),
-                           ctx.parentID(),
-                           flags,
-                           baggage,
-                           debugID,
-                           b3Present);
     }
 
     void inject(const SpanContext& ctx, const Writer& writer) const override
     {
-        if (ctx.B3Headers()) {
-            std::ostringstream ss;
-            ss << ctx.traceID();
-            writer.Set(kB3TraceIdHeaderName, ss.str());
-            // TODO - Review Is there a cleaner way ?
-            ss.str(std::string());
-            ss.clear();
-            ss << std::hex << ctx.spanID();
-            writer.Set(kB3SpanIdHeaderName, ss.str());
-            ss.str(std::string());
-            ss.clear();
-            ss << std::hex << ctx.parentID();
-            writer.Set(kB3ParentSpanIdHeaderName, ss.str());
-            writer.Set(kB3SampledHeaderName, std::to_string(ctx.isSampled()));
+        if (ctx.tracerType() == TracerType::TRACER_TYPE_B3) {
+            b3Tracer.inject(this, ctx, writer);
         }
         else {
-            std::ostringstream oss;
-            oss << ctx;
-            writer.Set(_headerKeys.traceContextHeaderName(), oss.str());
+            uberTracer.inject(this, ctx, writer);
         }
-
         ctx.forEachBaggageItem(
             [this, &writer](const std::string& key, const std::string& value) {
                 const auto safeKey = addBaggageKeyPrefix(key);
@@ -179,7 +95,34 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
             });
     }
 
-  protected:
+    TracerType getTracerType(const Reader& reader) const
+    {
+        TracerType b3Type = TracerType::TRACER_TYPE_UNKNOWN;
+        TracerType uberType = TracerType::TRACER_TYPE_UNKNOWN;
+
+        const auto result = reader.ForeachKey(
+                [this, &b3Type, &uberType](const std::string& rawKey, const std::string& value) {
+                    const auto key = normalizeKey(rawKey);
+                    const std::string b3Prefix("x-b3-"); // use const
+                    const std::string uberPrefix("uber-"); // use const
+                    if (key.substr(0, b3Prefix.size()) == b3Prefix) {
+                        b3Type = TracerType::TRACER_TYPE_B3;
+                    }
+                    else if (key.substr(0, uberPrefix.size()) == uberPrefix) {
+                        uberType = TracerType::TRACER_TYPE_UBER;
+                    }
+
+                    return opentracing::make_expected();
+                });
+
+        if (b3Type == TracerType::TRACER_TYPE_B3)
+            return TracerType::TRACER_TYPE_B3;
+        else if (uberType == TracerType::TRACER_TYPE_UBER)
+            return TracerType::TRACER_TYPE_UBER;
+        else
+            return TracerType::TRACER_TYPE_UNKNOWN;
+    }
+
     virtual std::string encodeValue(const std::string& str) const
     {
         return str;
@@ -195,7 +138,6 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
         return rawKey;
     }
 
-  private:
     static StrMap parseCommaSeparatedMap(const std::string& escapedValue)
     {
         StrMap map;
@@ -224,6 +166,9 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
 
     HeadersConfig _headerKeys;
     std::shared_ptr<metrics::Metrics> _metrics;
+  private:
+    B3Tracer<ReaderType, WriterType> b3Tracer;
+    UberTracer<ReaderType, WriterType> uberTracer;
 };
 
 using TextMapPropagator = Propagator<const opentracing::TextMapReader&,

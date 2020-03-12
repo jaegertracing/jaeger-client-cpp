@@ -32,6 +32,13 @@
 
 namespace jaegertracing {
 
+enum class TracerType
+{
+    TRACER_TYPE_UNKNOWN,
+    TRACER_TYPE_UBER,
+    TRACER_TYPE_B3,
+};
+
 class SpanContext : public opentracing::SpanContext {
   public:
     using StrMap = std::unordered_map<std::string, std::string>;
@@ -45,7 +52,7 @@ class SpanContext : public opentracing::SpanContext {
         , _spanID(0)
         , _parentID(0)
         , _flags(0)
-        , _b3Headers(false)
+        , _tracerType(TracerType::TRACER_TYPE_UNKNOWN)
         , _mutex()
     {
     }
@@ -62,7 +69,7 @@ class SpanContext : public opentracing::SpanContext {
         , _flags(flags)
         , _baggage(baggage)
         , _debugID(debugID)
-        , _b3Headers(false)
+        , _tracerType(TracerType::TRACER_TYPE_UNKNOWN)
         , _mutex()
     {
     }
@@ -73,14 +80,14 @@ class SpanContext : public opentracing::SpanContext {
                 unsigned char flags,
                 const StrMap& baggage,
                 const std::string& debugID,
-                bool b3Present)
+                TracerType type)
         : _traceID(traceID)
         , _spanID(spanID)
         , _parentID(parentID)
         , _flags(flags)
         , _baggage(baggage)
         , _debugID(debugID)
-        , _b3Headers(b3Present)
+        , _tracerType(type)
         , _mutex()
     {
     }
@@ -92,7 +99,7 @@ class SpanContext : public opentracing::SpanContext {
         , _flags(ctx._flags)
         , _baggage(ctx._baggage)
         , _debugID(ctx._debugID)
-        , _b3Headers(ctx._b3Headers)
+        , _tracerType(ctx._tracerType)
     {
     }
 
@@ -111,7 +118,7 @@ class SpanContext : public opentracing::SpanContext {
         swap(_flags, ctx._flags);
         swap(_baggage, ctx._baggage);
         swap(_debugID, ctx._debugID);
-        swap(_b3Headers, ctx._b3Headers);
+        swap(_tracerType, ctx._tracerType);
     }
 
     friend void swap(SpanContext& lhs, SpanContext& rhs) { lhs.swap(rhs); }
@@ -128,7 +135,7 @@ class SpanContext : public opentracing::SpanContext {
     {
         std::lock_guard<std::mutex> lock(_mutex);
         return SpanContext(
-            _traceID, _spanID, _parentID, _flags, baggage, _debugID, _b3Headers);
+            _traceID, _spanID, _parentID, _flags, baggage, _debugID, _tracerType);
     }
 
     template <typename Function>
@@ -196,7 +203,7 @@ class SpanContext : public opentracing::SpanContext {
             new SpanContext(*this));
     }
 
-    const bool B3Headers() const { return _b3Headers; }
+    const TracerType tracerType() const { return _tracerType; }
 
     friend bool operator==(const SpanContext& lhs, const SpanContext& rhs)
     {
@@ -225,7 +232,7 @@ class SpanContext : public opentracing::SpanContext {
     unsigned char _flags;
     StrMap _baggage;
     std::string _debugID;
-    bool _b3Headers;
+    TracerType _tracerType;
     mutable std::mutex _mutex;  // Protects _baggage.
 };
 

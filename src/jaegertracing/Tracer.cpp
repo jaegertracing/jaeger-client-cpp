@@ -106,9 +106,11 @@ Tracer::StartSpanWithOptions(string_view operationName,
             // Shouldnt parentId be from parentID or is it because its ignored ?
             const auto parentID = parent->spanID();
             const auto flags = parent->flags();
-            const auto b3Headers = parent->B3Headers();
+            TracerType type = parent->tracerType();
+            type = TracerType::TRACER_TYPE_B3;
+
             ctx = SpanContext(traceID, spanID, parentID, flags, StrMap(),
-                    "", b3Headers);
+                    "", type);
         }
 
         if (parent && !parent->baggage().empty()) {
