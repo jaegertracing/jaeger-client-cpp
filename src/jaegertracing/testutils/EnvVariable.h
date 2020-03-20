@@ -31,6 +31,20 @@ inline void setEnv(const char *variable, const char *value) {
 #endif
 }
 
+inline void resetEnv() {
+    setEnv("JAEGER_AGENT_HOST", "");
+    setEnv("JAEGER_AGENT_PORT", "");
+    setEnv("JAEGER_ENDPOINT", "");
+    setEnv("JAEGER_REPORTER_MAX_QUEUE_SIZE", "");
+    setEnv("JAEGER_REPORTER_FLUSH_INTERVAL", "");
+    setEnv("JAEGER_REPORTER_LOG_SPANS", "");
+    setEnv("JAEGER_SAMPLER_PARAM", "");
+    setEnv("JAEGER_SAMPLER_TYPE", "");
+    setEnv("JAEGER_SERVICE_NAME", "");
+    setEnv("JAEGER_TAGS", "");
+    setEnv("JAEGER_DISABLED", "");
+}
+
 }  // namespace EnvVariable
 }  // namespace testutils
 }  // namespace jaegertracing

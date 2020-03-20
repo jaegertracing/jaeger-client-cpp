@@ -118,6 +118,9 @@ TEST(Config, testFromEnv)
                   "test-service",
                   tags);
 
+    // In case the test computer has env set
+    testutils::EnvVariable::resetEnv();
+    // Make sure fromEnv has no effect if env not set
     config.fromEnv();
 
     ASSERT_EQ(std::string("http://host36:56568"), config.reporter().endpoint());
@@ -199,17 +202,7 @@ TEST(Config, testFromEnv)
     ASSERT_EQ(std::string("host33:445"),
               config.reporter().localAgentHostPort());
 
-    testutils::EnvVariable::setEnv("JAEGER_AGENT_HOST", "");
-    testutils::EnvVariable::setEnv("JAEGER_AGENT_PORT", "");
-    testutils::EnvVariable::setEnv("JAEGER_ENDPOINT", "");
-    testutils::EnvVariable::setEnv("JAEGER_REPORTER_MAX_QUEUE_SIZE", "");
-    testutils::EnvVariable::setEnv("JAEGER_REPORTER_FLUSH_INTERVAL", "");
-    testutils::EnvVariable::setEnv("JAEGER_REPORTER_LOG_SPANS", "");
-    testutils::EnvVariable::setEnv("JAEGER_SAMPLER_PARAM", "");
-    testutils::EnvVariable::setEnv("JAEGER_SAMPLER_TYPE", "");
-    testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "");
-    testutils::EnvVariable::setEnv("JAEGER_TAGS", "");
-    testutils::EnvVariable::setEnv("JAEGER_DISABLED", "");
+    testutils::EnvVariable::resetEnv();
 }
 
 }  // namespace jaegertracing
