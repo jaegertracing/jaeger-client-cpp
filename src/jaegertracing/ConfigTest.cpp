@@ -19,6 +19,7 @@
 #include "jaegertracing/propagation/HeadersConfig.h"
 #include "jaegertracing/samplers/Config.h"
 #include "jaegertracing/utils/YAML.h"
+#include "jaegertracing/testutils/EnvVariable.h"
 #include <gtest/gtest.h>
 
 #include <cstdlib>
@@ -95,15 +96,6 @@ sampler:
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
-
-void setEnv(const char *variable, const char *value) {
-#ifdef WIN32
-  _putenv_s(variable, value);
-#else
-  setenv(variable, value, true);
-#endif
-}
-
 TEST(Config, testFromEnv)
 {
     std::vector<Tag> tags;
@@ -141,9 +133,9 @@ TEST(Config, testFromEnv)
 
     // make sure we generate an error trying to convert this to double
     // So that 0.7 from the constructor is used
-    setEnv("JAEGER_SAMPLER_PARAM", "\"0.33\"");
-    setEnv("JAEGER_TAGS", "hostname=foo2,my.app.name=bar=beer");
-    setEnv("JAEGER_REPORTER_FLUSH_INTERVAL", "a45");
+    testutils::EnvVariable::setEnv("JAEGER_SAMPLER_PARAM", "\"0.33\"");
+    testutils::EnvVariable::setEnv("JAEGER_TAGS", "hostname=foo2,my.app.name=bar=beer");
+    testutils::EnvVariable::setEnv("JAEGER_REPORTER_FLUSH_INTERVAL", "a45");
     config.fromEnv();
 
     // Previous values are kept
@@ -156,21 +148,20 @@ TEST(Config, testFromEnv)
     expectedTags.emplace_back("hostname", std::string("foo2"));
     ASSERT_EQ(expectedTags, config.tags());
 
-    // Test success
-    setEnv("JAEGER_AGENT_HOST", "host33");
-    setEnv("JAEGER_AGENT_PORT", "45");
-    setEnv("JAEGER_ENDPOINT", "http://host34:56567");
+    testutils::EnvVariable::setEnv("JAEGER_AGENT_HOST", "host33");
+    testutils::EnvVariable::setEnv("JAEGER_AGENT_PORT", "45");
+    testutils::EnvVariable::setEnv("JAEGER_ENDPOINT", "http://host34:56567");
 
-    setEnv("JAEGER_REPORTER_MAX_QUEUE_SIZE", "33");
-    setEnv("JAEGER_REPORTER_FLUSH_INTERVAL", "45");
-    setEnv("JAEGER_REPORTER_LOG_SPANS", "true");
+    testutils::EnvVariable::setEnv("JAEGER_REPORTER_MAX_QUEUE_SIZE", "33");
+    testutils::EnvVariable::setEnv("JAEGER_REPORTER_FLUSH_INTERVAL", "45");
+    testutils::EnvVariable::setEnv("JAEGER_REPORTER_LOG_SPANS", "true");
 
-    setEnv("JAEGER_SAMPLER_TYPE", "remote");
-    setEnv("JAEGER_SAMPLER_PARAM", "0.33");
-    setEnv("JAEGER_SAMPLING_ENDPOINT", "http://myagent:1234");
+    testutils::EnvVariable::setEnv("JAEGER_SAMPLER_TYPE", "remote");
+    testutils::EnvVariable::setEnv("JAEGER_SAMPLER_PARAM", "0.33");
+    testutils::EnvVariable::setEnv("JAEGER_SAMPLING_ENDPOINT", "http://myagent:1234");
 
-    setEnv("JAEGER_SERVICE_NAME", "AService");
-    setEnv("JAEGER_TAGS", "hostname=foobar,my.app.version=4.5.6");
+    testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "AService");
+    testutils::EnvVariable::setEnv("JAEGER_TAGS", "hostname=foobar,my.app.version=4.5.6");
 
     config.fromEnv();
 
@@ -194,8 +185,8 @@ TEST(Config, testFromEnv)
 
     ASSERT_EQ(false, config.disabled());
 
-    setEnv("JAEGER_DISABLED", "TRue");  // case-insensitive
-    setEnv("JAEGER_AGENT_PORT", "445");
+    testutils::EnvVariable::setEnv("JAEGER_DISABLED", "TRue");  // case-insensitive
+    testutils::EnvVariable::setEnv("JAEGER_AGENT_PORT", "445");
 
     config.fromEnv();
     ASSERT_EQ(true, config.disabled());
@@ -203,10 +194,22 @@ TEST(Config, testFromEnv)
               config.reporter().localAgentHostPort());
 
     // Port higher than 65535 is silently ignored
-    setEnv("JAEGER_AGENT_PORT", "99445");
+    testutils::EnvVariable::setEnv("JAEGER_AGENT_PORT", "99445");
     config.fromEnv();
     ASSERT_EQ(std::string("host33:445"),
               config.reporter().localAgentHostPort());
+
+    testutils::EnvVariable::setEnv("JAEGER_AGENT_HOST", "");
+    testutils::EnvVariable::setEnv("JAEGER_AGENT_PORT", "");
+    testutils::EnvVariable::setEnv("JAEGER_ENDPOINT", "");
+    testutils::EnvVariable::setEnv("JAEGER_REPORTER_MAX_QUEUE_SIZE", "");
+    testutils::EnvVariable::setEnv("JAEGER_REPORTER_FLUSH_INTERVAL", "");
+    testutils::EnvVariable::setEnv("JAEGER_REPORTER_LOG_SPANS", "");
+    testutils::EnvVariable::setEnv("JAEGER_SAMPLER_PARAM", "");
+    testutils::EnvVariable::setEnv("JAEGER_SAMPLER_TYPE", "");
+    testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "");
+    testutils::EnvVariable::setEnv("JAEGER_TAGS", "");
+    testutils::EnvVariable::setEnv("JAEGER_DISABLED", "");
 }
 
 }  // namespace jaegertracing
