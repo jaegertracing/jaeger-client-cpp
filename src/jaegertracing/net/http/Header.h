@@ -18,7 +18,13 @@
 #define JAEGERTRACING_NET_HTTP_HEADER_H
 
 #include <cassert>
+
+#ifdef USE_BOOST_REGEX
+#include <boost/regex.hpp>
+#else
 #include <regex>
+#endif
+
 #include <string>
 
 #include "jaegertracing/net/http/Error.h"
@@ -77,6 +83,20 @@ inline std::istream& readLineCRLF(std::istream& in, std::string& line)
 
 inline void readHeaders(std::istream& in, std::vector<Header>& headers)
 {
+#ifdef USE_BOOST_REGEX
+    const boost::regex headerPattern("([^:]+): (.+)$");
+    std::string line;
+    boost::smatch match;
+    while (readLineCRLF(in, line)) {
+        if (line.empty()) {
+            break;
+        }
+        if (!boost::regex_search(line, match, headerPattern) || match.size() < 3) {
+            throw ParseError::make("header", line);
+        }
+        headers.emplace_back(Header(match[1], match[2]));
+    }
+#else
     const std::regex headerPattern("([^:]+): (.+)$");
     std::string line;
     std::smatch match;
@@ -89,6 +109,7 @@ inline void readHeaders(std::istream& in, std::vector<Header>& headers)
         }
         headers.emplace_back(Header(match[1], match[2]));
     }
+#endif
 }
 
 }  // namespace http

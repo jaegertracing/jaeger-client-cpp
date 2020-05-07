@@ -54,9 +54,15 @@ endif()
 
 set(package_deps)
 
+# fall back to boost::regex for gcc 4.8.x and earlier
+# (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53631)
+set(BOOST_MIN_VERSION 1.55)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
    CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
-  message(FATAL_ERROR "Must use gcc >= 4.9")
+  add_definitions(-DUSE_BOOST_REGEX)
+  hunter_add_package(Boost COMPONENTS regex)
+  find_package(Boost CONFIG REQUIRED regex)
+  list(APPEND LIBS "${Boost_REGEX_LIBRARY_RELEASE}")
 endif()
 
 hunter_add_package(thrift)

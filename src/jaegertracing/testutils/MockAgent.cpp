@@ -16,7 +16,12 @@
 
 #include "jaegertracing/testutils/MockAgent.h"
 
+#ifdef USE_BOOST_REGEX
+#include <boost/regex.hpp>
+#else
 #include <regex>
+#endif
+
 #include <thread>
 
 #include <thrift/protocol/TCompactProtocol.h>
@@ -155,7 +160,11 @@ void MockAgent::serveHTTP(std::promise<void>& started)
     _servingHTTP = true;
     started.set_value();
 
+#ifdef USE_BOOST_REGEX
+    const boost::regex servicePattern("[?&]service=([^?&]+)");
+#else
     const std::regex servicePattern("[?&]service=([^?&]+)");
+#endif
     while (isServingHTTP()) {
         constexpr auto kBufferSize = 256;
         std::array<char, kBufferSize> buffer;
@@ -185,6 +194,16 @@ void MockAgent::serveHTTP(std::promise<void>& started)
                            _httpAddress.authority() + "/baggageRestrictions")) {
                 resource = Resource::kBaggage;
             }
+#ifdef USE_BOOST_REGEX
+            boost::smatch match;
+            if (!boost::regex_search(target, match, servicePattern)) {
+                throw net::http::ParseError("no 'service' parameter");
+            }
+            if (boost::regex_search(match.suffix().str(), servicePattern)) {
+                throw net::http::ParseError(
+                    "'service' parameter must occur only once");
+            }
+#else
             std::smatch match;
             if (!std::regex_search(target, match, servicePattern)) {
                 throw net::http::ParseError("no 'service' parameter");
@@ -193,6 +212,7 @@ void MockAgent::serveHTTP(std::promise<void>& started)
                 throw net::http::ParseError(
                     "'service' parameter must occur only once");
             }
+#endif
             const auto serviceName = match[1].str();
 
             std::string responseJSON;
