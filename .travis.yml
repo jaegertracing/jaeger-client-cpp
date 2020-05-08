@@ -14,6 +14,17 @@ matrix:
         - ubuntu-toolchain-r-test
         packages:
         - *1
+        - g++-4.8
+    env:
+    - MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8 && CMAKE_OPTIONS='-DCMAKE_BUILD_TYPE=Debug
+      -DBUILD_SHARED_LIBS=ON -DJAEGERTRACING_COVERAGE=ON'"
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - *1
         - g++-4.9
     env:
     - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9 && CMAKE_OPTIONS='-DCMAKE_BUILD_TYPE=Debug
