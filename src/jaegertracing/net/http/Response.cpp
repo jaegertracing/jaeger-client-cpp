@@ -16,8 +16,8 @@
 
 #include "jaegertracing/net/http/Response.h"
 #include "jaegertracing/net/http/SocketReader.h"
+#include "jaegertracing/utils/Regex.h"
 
-#include <regex>
 #include <sstream>
 #include <stdexcept>
 
@@ -34,11 +34,11 @@ namespace http {
 
 Response Response::parse(std::istream& in)
 {
-    const std::regex statusLinePattern("HTTP/([0-9]\\.[0-9]) ([0-9]+) (.+)$");
+    const jaegertracing::utils::regex::regex statusLinePattern("HTTP/([0-9]\\.[0-9]) ([0-9]+) (.+)$");
     std::string line;
-    std::smatch match;
+    jaegertracing::utils::regex::smatch match;
     if (!readLineCRLF(in, line) ||
-        !std::regex_match(line, match, statusLinePattern) || match.size() < 4) {
+        !jaegertracing::utils::regex::regex_match(line, match, statusLinePattern) || match.size() < 4) {
         throw ParseError::make("status line", line);
     }
     Response response;

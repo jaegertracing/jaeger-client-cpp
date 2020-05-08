@@ -15,12 +15,12 @@
  */
 
 #include "jaegertracing/net/URI.h"
+#include "jaegertracing/utils/Regex.h"
 
 #include <cassert>
 #include <cstring>
 #include <iomanip>
 #include <iostream>
-#include <regex>
 #include <cctype>
 
 namespace jaegertracing {
@@ -68,11 +68,11 @@ URI URI::parse(const std::string& uriStr)
 {
     // See https://tools.ietf.org/html/rfc3986 for explanation.
     URI uri;
-    std::regex uriRegex(
+    jaegertracing::utils::regex::regex uriRegex(
         "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?",
-        std::regex::extended);
-    std::smatch match;
-    std::regex_match(uriStr, match, uriRegex);
+        jaegertracing::utils::regex::regex::extended);
+    jaegertracing::utils::regex::smatch match;
+    jaegertracing::utils::regex::regex_match(uriStr, match, uriRegex);
 
     constexpr auto kSchemeIndex = 2;
     constexpr auto kAuthorityIndex = 4;

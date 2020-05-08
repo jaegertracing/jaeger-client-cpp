@@ -15,8 +15,8 @@
  */
 
 #include "jaegertracing/testutils/MockAgent.h"
+#include "jaegertracing/utils/Regex.h"
 
-#include <regex>
 #include <thread>
 
 #include <thrift/protocol/TCompactProtocol.h>
@@ -155,7 +155,7 @@ void MockAgent::serveHTTP(std::promise<void>& started)
     _servingHTTP = true;
     started.set_value();
 
-    const std::regex servicePattern("[?&]service=([^?&]+)");
+    const jaegertracing::utils::regex::regex servicePattern("[?&]service=([^?&]+)");
     while (isServingHTTP()) {
         constexpr auto kBufferSize = 256;
         std::array<char, kBufferSize> buffer;
@@ -185,11 +185,11 @@ void MockAgent::serveHTTP(std::promise<void>& started)
                            _httpAddress.authority() + "/baggageRestrictions")) {
                 resource = Resource::kBaggage;
             }
-            std::smatch match;
-            if (!std::regex_search(target, match, servicePattern)) {
+            jaegertracing::utils::regex::smatch match;
+            if (!jaegertracing::utils::regex::regex_search(target, match, servicePattern)) {
                 throw net::http::ParseError("no 'service' parameter");
             }
-            if (std::regex_search(match.suffix().str(), servicePattern)) {
+            if (jaegertracing::utils::regex::regex_search(match.suffix().str(), servicePattern)) {
                 throw net::http::ParseError(
                     "'service' parameter must occur only once");
             }

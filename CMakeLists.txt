@@ -56,7 +56,10 @@ set(package_deps)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
    CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
-  message(FATAL_ERROR "Must use gcc >= 4.9")
+  add_definitions(-DUSE_BOOST_REGEX)
+  hunter_add_package(Boost COMPONENTS regex)
+  find_package(Boost CONFIG REQUIRED regex)
+  list(APPEND LIBS "${Boost_REGEX_LIBRARY_RELEASE}")
 endif()
 
 hunter_add_package(thrift)

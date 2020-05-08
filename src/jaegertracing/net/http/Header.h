@@ -18,10 +18,10 @@
 #define JAEGERTRACING_NET_HTTP_HEADER_H
 
 #include <cassert>
-#include <regex>
 #include <string>
 
 #include "jaegertracing/net/http/Error.h"
+#include "jaegertracing/utils/Regex.h"
 
 namespace jaegertracing {
 namespace net {
@@ -77,14 +77,14 @@ inline std::istream& readLineCRLF(std::istream& in, std::string& line)
 
 inline void readHeaders(std::istream& in, std::vector<Header>& headers)
 {
-    const std::regex headerPattern("([^:]+): (.+)$");
+    const auto headerPattern = jaegertracing::utils::regex::regex("([^:]+): (.+)$");
     std::string line;
-    std::smatch match;
+    jaegertracing::utils::regex::smatch match;
     while (readLineCRLF(in, line)) {
         if (line.empty()) {
             break;
         }
-        if (!std::regex_match(line, match, headerPattern) || match.size() < 3) {
+        if (!jaegertracing::utils::regex::regex_match(line, match, headerPattern) || match.size() < 3) {
             throw ParseError::make("header", line);
         }
         headers.emplace_back(Header(match[1], match[2]));
