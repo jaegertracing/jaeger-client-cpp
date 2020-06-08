@@ -1,6 +1,21 @@
 Changes by Version
 ==================
 
+0.6.0 (2020-06-08)
+------------------
+- Support plugin configuration via environment variables (#192)
+- An extension of enum opentracing::SpanReferenceType, for a new Span. (#206)
+- Update OpenTracing to 1.6.0 (#209)
+- Fix loading of sampling endpoint address from JAEGER_SAMPLING_ENDPOINT environment variable (#200)
+- Fix sampling endpoint URL
+- Fix typo in README.md (#194)
+- Add jaeger-debug-id as a tag (#190)
+- Reuse TMemoryBuffer when calculating size of ThriftType (#185)
+- Support Tracer tags and  configuration via environment variables (#181)
+- Add an HTTP Sender (#165) (#171)
+- Remove Thrift headers from Jaeger public headers (#172)
+- Update default samplingServerURL to include /sampling path (#158)
+
 0.5.0 (2019-09-07)
 ------------------
 - Improve C++ flag handling in CMake (#128)
