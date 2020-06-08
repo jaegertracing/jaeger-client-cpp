@@ -1,6 +1,12 @@
 Changes by Version
 ==================
 
+0.6.1 (unreleased)
+------------------
+
+- Nothing yet.
+
+
 0.6.0 (2020-06-08)
 ------------------
 - Support plugin configuration via environment variables (#192)
@@ -15,6 +21,7 @@ Changes by Version
 - Add an HTTP Sender (#165) (#171)
 - Remove Thrift headers from Jaeger public headers (#172)
 - Update default samplingServerURL to include /sampling path (#158)
+
 
 0.5.0 (2019-09-07)
 ------------------
