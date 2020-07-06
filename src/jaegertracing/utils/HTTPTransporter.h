@@ -60,12 +60,20 @@ class HTTPTransporter : public Transport {
         _buffer->getBuffer(&data, &size);
 
         // Sends the HTTP message
-        const auto numWritten = ::send(_socket.handle(), reinterpret_cast<char*>(data), sizeof(uint8_t) * size, 0);
+        auto numWritten = ::send(_socket.handle(), reinterpret_cast<char*>(data), sizeof(uint8_t) * size, 0);
+        if (net::Socket::isRetError(numWritten)) {
+            // If the connection was lost in the mean time, this is where it's going to git an error, try reconnect
+            _socket.close();
+            _socket.open(AF_INET, SOCK_STREAM);
+            _socket.connect(_serverAddr);
+
+            numWritten = ::send(_socket.handle(), reinterpret_cast<char*>(data), sizeof(uint8_t) * size, 0);
+        }
 
         if (static_cast<unsigned>(numWritten) != size) {
             std::ostringstream oss;
             oss << "Failed to write message, numWritten=" << numWritten << ", size=" << size;
-            throw std::system_error(errno, std::system_category(), oss.str());
+            throw net::make_socket_error(oss.str());
         }
 
         // Waits for response. Check that the server acknowledged
@@ -74,7 +82,7 @@ class HTTPTransporter : public Transport {
         if (response.statusCode() < 200 && response.statusCode() > 204) {
           std::ostringstream oss;
           oss << "Failed to write message, HTTP error " << response.statusCode() << response.reason();
-          throw std::system_error(errno, std::system_category(), oss.str());
+          throw net::make_socket_error(oss.str());
         }
     }
 

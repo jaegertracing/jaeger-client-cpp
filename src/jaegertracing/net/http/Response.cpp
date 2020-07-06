@@ -83,7 +83,7 @@ Response get(const URI& uri)
         std::ostringstream oss;
         oss << "Failed to write entire HTTP request"
             << ", uri=" << uri << ", request=" << request;
-        throw std::system_error(errno, std::system_category(), oss.str());
+        throw net::make_socket_error(oss.str());
     }
 
   return read(socket);

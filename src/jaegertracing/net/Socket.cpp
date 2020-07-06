@@ -44,7 +44,7 @@ void initSocket()
         oss << "Failed to find a usable Winsock DLL. WSAStartup failed with "
                "error "
             << err;
-        throw std::system_error(errno, std::system_category(), oss.str());
+        throw net::make_socket_error(oss.str());
     }
 
     /* Confirm that the WinSock DLL supports 2.2.*/
@@ -60,7 +60,7 @@ void initSocket()
         oss << "Failed to find a usable Winsock DLL. WSAStartup failed with "
                "error "
             << err;
-        throw std::system_error(errno, std::system_category(), oss.str());
+        throw net::make_socket_error(oss.str());
     }
 #endif
 }

@@ -68,7 +68,7 @@ class UDPTransporter : public Transport {
             oss << "Failed to write message"
                    ", numWritten="
                 << numWritten << ", size=" << size;
-            throw std::system_error(errno, std::system_category(), oss.str());
+            throw net::make_socket_error(oss.str());
         }
     }
 

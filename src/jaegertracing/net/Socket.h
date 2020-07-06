@@ -53,7 +53,14 @@ typedef int HandleType;
 namespace jaegertracing {
 namespace net {
 
-
+inline std::system_error make_socket_error(const std::string& msg)
+{
+#ifdef WIN32
+    return std::system_error(WSAGetLastError(), std::system_category(), msg);
+#else
+    return std::system_error(errno, std::system_category(), msg);
+#endif
+}
 
 class Socket {
   public:
@@ -97,7 +104,7 @@ class Socket {
             oss << "Failed to open socket"
                    ", family="
                 << family << ", type=" << type;
-            throw std::system_error(errno, std::system_category(), oss.str());
+            throw make_socket_error(oss.str());
         }
         _handle = handle;
         _family = family;
@@ -115,7 +122,7 @@ class Socket {
             oss << "Failed to bind socket to address"
                    ", addr=";
             addr.print(oss);
-            throw std::system_error(errno, std::system_category(), oss.str());
+            throw make_socket_error(oss.str());
         }
     }
 
@@ -135,7 +142,7 @@ class Socket {
             std::ostringstream oss;
             oss << "Cannot connect socket to remote address ";
             serverAddr.print(oss);
-            throw std::runtime_error(oss.str());
+            throw make_socket_error(oss.str());
         }
     }
 
@@ -158,7 +165,7 @@ class Socket {
         std::ostringstream oss;
         oss << "Cannot connect socket to remote address ";
         serverURI.print(oss);
-        throw std::runtime_error(oss.str());
+        throw make_socket_error(oss.str());
     }
 
     static constexpr auto kDefaultBacklog = 128;
@@ -167,8 +174,7 @@ class Socket {
     {
         const auto returnCode = ::listen(_handle, backlog);
         if (returnCode != 0) {
-            throw std::system_error(
-                errno, std::system_category(), "Failed to listen on socket");
+            throw make_socket_error("Failed to listen on socket");
         }
     }
 
@@ -180,8 +186,7 @@ class Socket {
             _handle, reinterpret_cast<::sockaddr*>(&addrStorage), &addrLen);
 
         if (isHandleInvalid(clientHandle)) {
-            throw std::system_error(
-                errno, std::system_category(), "Failed to accept on socket");
+            throw make_socket_error("Failed to accept on socket");
         }
 
         Socket clientSocket;
@@ -203,6 +208,13 @@ class Socket {
             _handle = -1;
         }
     }
+
+#ifdef WIN32
+    // return value from ::send, ::recv
+    static bool isRetError(int ret) { return (ret == SOCKET_ERROR); }
+#else
+    static bool isRetError(ssize_t ret) { return (ret < 0); }
+#endif
 
     HandleType handle() { return _handle; }
   private:
@@ -229,6 +241,7 @@ class Socket {
         return (h < 0);
 #endif
     }
+
 
     friend class IPAddress;
     friend std::unique_ptr<::addrinfo, AddrInfoDeleter>

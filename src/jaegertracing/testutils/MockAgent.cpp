@@ -146,9 +146,7 @@ void MockAgent::serveHTTP(std::promise<void>& started)
     const auto returnCode = ::getsockname(
         socket.handle(), reinterpret_cast<sockaddr*>(&addrStorage), &addrLen);
     if (returnCode != 0) {
-        throw std::system_error(errno,
-                                std::generic_category(),
-                                "Failed to get HTTP address from socket");
+        throw net::make_socket_error("Failed to get HTTP address from socket");
     }
     _httpAddress = net::IPAddress(addrStorage, addrLen);
 
