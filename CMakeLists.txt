@@ -11,9 +11,10 @@ set(HUNTER_CONFIGURATION_TYPES "Release;Debug" CACHE STRING
 
 include(CMakeDependentOption)
 include(HunterGate)
+
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.23.5.tar.gz"
-    SHA1 "2c5c6fc1cf609d0856695d60f147594daf4e6b3e"
+        URL "https://github.com/ruslo/hunter/archive/v0.23.151.tar.gz"
+        SHA1 "68657b81508c2d3c248731b5a0c2125f19866721"
 )
 
 project(jaegertracing VERSION 0.4.2)
@@ -41,7 +42,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
    CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
   message(FATAL_ERROR "Must use gcc >= 4.9")
 endif()
-
+#hunter_default_version(boost VERSION 1.69)
 hunter_add_package(thrift)
 find_package(thrift ${hunter_config} REQUIRED)
 if(HUNTER_ENABLED)
@@ -145,7 +146,7 @@ set(SRC
     src/jaegertracing/propagation/HeadersConfig.cpp
     src/jaegertracing/propagation/Injector.cpp
     src/jaegertracing/propagation/Propagator.cpp
-    src/jaegertracing/reporters/CompositeReporter.cpp
+        src/jaegertracing/reporters/CompositeReporter.cpp
     src/jaegertracing/reporters/Config.cpp
     src/jaegertracing/reporters/InMemoryReporter.cpp
     src/jaegertracing/reporters/LoggingReporter.cpp
@@ -187,7 +188,7 @@ set(SRC
     src/jaegertracing/utils/HexParsing.cpp
     src/jaegertracing/utils/RateLimiter.cpp
     src/jaegertracing/utils/UDPClient.cpp
-    src/jaegertracing/utils/YAML.cpp)
+    src/jaegertracing/utils/YAML.cpp src/jaegertracing/propagation/ZipkinPropagator.cpp src/jaegertracing/propagation/ZipkinPropagator.h)
 
 if(JAEGERTRACING_BUILD_CROSSDOCK)
   list(APPEND SRC
@@ -208,7 +209,7 @@ cmake_dependent_option(BUILD_SHARED_LIBS "Build shared libraries" ON
   "NOT JAEGERTRACING_PLUGIN" OFF)
 
 if(BUILD_SHARED_LIBS)
-  add_library(jaegertracing SHARED ${SRC})
+  add_library(jaegertracing SHARED ${SRC} src/jaegertracing/propagation/ZipkinPropagator.cpp src/jaegertracing/propagation/ZipkinPropagator.h)
   add_lib_deps(jaegertracing)
   set_target_properties(jaegertracing PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -220,7 +221,7 @@ endif()
 if(JAEGERTRACING_PLUGIN)
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/export.map
     "{ global: OpenTracingMakeTracerFactory; local: *; };")
-  add_library(jaegertracing_plugin MODULE ${SRC})
+  add_library(jaegertracing_plugin MODULE ${SRC} src/jaegertracing/propagation/ZipkinPropagator.cpp src/jaegertracing/propagation/ZipkinPropagator.h)
   add_lib_deps(jaegertracing_plugin)
   target_link_libraries(jaegertracing_plugin PUBLIC
     -static-libgcc
@@ -228,7 +229,7 @@ if(JAEGERTRACING_PLUGIN)
     -Wl,--version-script=${CMAKE_CURRENT_BINARY_DIR}/export.map)
 endif()
 
-add_library(jaegertracing-static STATIC ${SRC})
+add_library(jaegertracing-static STATIC ${SRC} src/jaegertracing/propagation/ZipkinPropagator.cpp src/jaegertracing/propagation/ZipkinPropagator.h)
 set_target_properties(jaegertracing-static PROPERTIES
   OUTPUT_NAME jaegertracing)
 add_lib_deps(jaegertracing-static)
@@ -243,7 +244,7 @@ configure_file(
   @ONLY)
 
 if(JAEGERTRACING_BUILD_EXAMPLES)
-  add_executable(app examples/App.cpp)
+  add_executable(app examples/App.cpp src/jaegertracing/propagation/ZipkinPropagator.cpp src/jaegertracing/propagation/ZipkinPropagator.h)
   target_link_libraries(app PUBLIC ${JAEGERTRACING_LIB})
 endif()
 
@@ -252,7 +253,7 @@ if(BUILD_TESTING)
       src/jaegertracing/testutils/TUDPTransport.cpp
       src/jaegertracing/testutils/SamplingManager.cpp
       src/jaegertracing/testutils/MockAgent.cpp
-      src/jaegertracing/testutils/TracerUtil.cpp)
+      src/jaegertracing/testutils/TracerUtil.cpp src/jaegertracing/propagation/ZipkinPropagator.cpp src/jaegertracing/propagation/ZipkinPropagator.h)
   target_link_libraries(testutils PUBLIC ${JAEGERTRACING_LIB})
 
   add_executable(UnitTest
@@ -281,7 +282,7 @@ if(BUILD_TESTING)
       src/jaegertracing/testutils/TUDPTransportTest.cpp
       src/jaegertracing/utils/ErrorUtilTest.cpp
       src/jaegertracing/utils/RateLimiterTest.cpp
-      src/jaegertracing/utils/UDPClientTest.cpp)
+      src/jaegertracing/utils/UDPClientTest.cpp src/jaegertracing/propagation/ZipkinPropagator.cpp src/jaegertracing/propagation/ZipkinPropagator.h)
   target_link_libraries(
       UnitTest PRIVATE testutils GTest::main)
   add_test(NAME UnitTest COMMAND UnitTest)
@@ -305,8 +306,8 @@ if(BUILD_TESTING)
 endif()
 
 if(JAEGERTRACING_BUILD_CROSSDOCK)
-  set(CROSSDOCK_SRC crossdock/Server.cpp)
-  add_executable(crossdock ${CROSSDOCK_SRC})
+  set(CROSSDOCK_SRC crossdock/Server.cpp src/jaegertracing/propagation/ZipkinPropagator.cpp src/jaegertracing/propagation/ZipkinPropagator.h)
+  add_executable(crossdock ${CROSSDOCK_SRC} src/jaegertracing/propagation/ZipkinPropagator.cpp src/jaegertracing/propagation/ZipkinPropagator.h)
   target_include_directories(crossdock PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/crossdock>)
   target_link_libraries(crossdock PUBLIC ${JAEGERTRACING_LIB})

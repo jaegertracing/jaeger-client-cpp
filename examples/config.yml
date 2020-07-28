@@ -1,6 +1,9 @@
-disabled: false
+disabled: true
 reporter:
     logSpans: true
 sampler:
   type: const
   param: 1
+headers:
+  enableZipkin: true
+

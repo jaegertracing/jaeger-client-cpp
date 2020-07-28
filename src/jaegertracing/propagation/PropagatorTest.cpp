@@ -55,6 +55,7 @@ TEST(Propagator, testBinaryPropagation)
     std::random_device randomDevice;
     std::default_random_engine engine(randomDevice());
     constexpr auto kMaxNumBaggageItems = 10;
+//    TODO 读一下这个
     const auto numBaggageItems = engine() % (kMaxNumBaggageItems - 1) + 1;
     SpanContext::StrMap baggage;
     for (auto i = static_cast<size_t>(0); i < numBaggageItems; ++i) {

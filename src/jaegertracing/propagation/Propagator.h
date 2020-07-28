@@ -117,7 +117,7 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
                            debugID);
     }
 
-    void inject(const SpanContext& ctx, const Writer& writer) const override
+    virtual void inject(const SpanContext& ctx, const Writer& writer) const override
     {
         std::ostringstream oss;
         oss << ctx;
@@ -147,7 +147,7 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
         return rawKey;
     }
 
-  private:
+  protected:
     static StrMap parseCommaSeparatedMap(const std::string& escapedValue)
     {
         StrMap map;
