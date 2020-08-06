@@ -76,7 +76,7 @@ TEST(UDPTransport, testManyMessages)
         std::static_pointer_cast<const Tracer>(opentracing::Tracer::Global());
 
     UDPTransport sender(handle->_mockAgent->spanServerAddress(), 0);
-    constexpr auto kNumMessages = 2000;
+    constexpr auto kNumMessages = 200;
     const auto logger = logging::consoleLogger();
     for (auto i = 0; i < kNumMessages; ++i) {
         Span span(tracer);
@@ -100,7 +100,7 @@ TEST(UDPTransport, testExceptions)
         MockUDPClient::ExceptionType::kString
     };
     for (auto type : exceptionTypes) {
-        MockUDPTransport sender(net::IPAddress(), 0, type);
+        MockUDPTransport sender(handle->_mockAgent->spanServerAddress(), 0, type);
         sender.append(span);
         ASSERT_THROW(sender.flush(), Transport::Exception);
     }

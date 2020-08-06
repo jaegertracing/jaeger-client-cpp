@@ -42,3 +42,9 @@
 
 # Log files
 *.log
+
+#CMake fiels
+cmake-build-*/
+
+# idea
+.idea

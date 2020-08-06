@@ -38,7 +38,7 @@ struct ResourceHandle {
     std::shared_ptr<MockAgent> _mockAgent;
 };
 
-std::shared_ptr<ResourceHandle> installGlobalTracer();
+std::shared_ptr<ResourceHandle> installGlobalTracer(bool enableZipkinHeaders = false);
 
 }  // namespace TracerUtil
 }  // namespace testutils
