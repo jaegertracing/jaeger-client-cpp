@@ -329,10 +329,10 @@ void AggregationValidatorProcessor::process_validateTrace(int32_t seqid, ::apach
   }
 }
 
-::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > AggregationValidatorProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
+::std::shared_ptr< ::apache::thrift::TProcessor > AggregationValidatorProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
   ::apache::thrift::ReleaseHandler< AggregationValidatorIfFactory > cleanup(handlerFactory_);
-  ::apache::thrift::stdcxx::shared_ptr< AggregationValidatorIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > processor(new AggregationValidatorProcessor(handler));
+  ::std::shared_ptr< AggregationValidatorIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > processor(new AggregationValidatorProcessor(handler));
   return processor;
 }
 

@@ -36,7 +36,7 @@ class SamplingManagerIfFactory {
 
 class SamplingManagerIfSingletonFactory : virtual public SamplingManagerIfFactory {
  public:
-  SamplingManagerIfSingletonFactory(const ::apache::thrift::stdcxx::shared_ptr<SamplingManagerIf>& iface) : iface_(iface) {}
+  SamplingManagerIfSingletonFactory(const ::std::shared_ptr<SamplingManagerIf>& iface) : iface_(iface) {}
   virtual ~SamplingManagerIfSingletonFactory() {}
 
   virtual SamplingManagerIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
@@ -45,7 +45,7 @@ class SamplingManagerIfSingletonFactory : virtual public SamplingManagerIfFactor
   virtual void releaseHandler(SamplingManagerIf* /* handler */) {}
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<SamplingManagerIf> iface_;
+  ::std::shared_ptr<SamplingManagerIf> iface_;
 };
 
 class SamplingManagerNull : virtual public SamplingManagerIf {
@@ -162,42 +162,42 @@ class SamplingManager_getSamplingStrategy_presult {
 
 class SamplingManagerClient : virtual public SamplingManagerIf {
  public:
-  SamplingManagerClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  SamplingManagerClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  SamplingManagerClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  SamplingManagerClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void getSamplingStrategy(SamplingStrategyResponse& _return, const std::string& serviceName);
   void send_getSamplingStrategy(const std::string& serviceName);
   void recv_getSamplingStrategy(SamplingStrategyResponse& _return);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
 };
 
 class SamplingManagerProcessor : public ::apache::thrift::TDispatchProcessor {
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<SamplingManagerIf> iface_;
+  ::std::shared_ptr<SamplingManagerIf> iface_;
   virtual bool dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext);
  private:
   typedef  void (SamplingManagerProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
@@ -205,7 +205,7 @@ class SamplingManagerProcessor : public ::apache::thrift::TDispatchProcessor {
   ProcessMap processMap_;
   void process_getSamplingStrategy(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
-  SamplingManagerProcessor(::apache::thrift::stdcxx::shared_ptr<SamplingManagerIf> iface) :
+  SamplingManagerProcessor(::std::shared_ptr<SamplingManagerIf> iface) :
     iface_(iface) {
     processMap_["getSamplingStrategy"] = &SamplingManagerProcessor::process_getSamplingStrategy;
   }
@@ -215,24 +215,24 @@ class SamplingManagerProcessor : public ::apache::thrift::TDispatchProcessor {
 
 class SamplingManagerProcessorFactory : public ::apache::thrift::TProcessorFactory {
  public:
-  SamplingManagerProcessorFactory(const ::apache::thrift::stdcxx::shared_ptr< SamplingManagerIfFactory >& handlerFactory) :
+  SamplingManagerProcessorFactory(const ::std::shared_ptr< SamplingManagerIfFactory >& handlerFactory) :
       handlerFactory_(handlerFactory) {}
 
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr< SamplingManagerIfFactory > handlerFactory_;
+  ::std::shared_ptr< SamplingManagerIfFactory > handlerFactory_;
 };
 
 class SamplingManagerMultiface : virtual public SamplingManagerIf {
  public:
-  SamplingManagerMultiface(std::vector<apache::thrift::stdcxx::shared_ptr<SamplingManagerIf> >& ifaces) : ifaces_(ifaces) {
+  SamplingManagerMultiface(std::vector<std::shared_ptr<SamplingManagerIf> >& ifaces) : ifaces_(ifaces) {
   }
   virtual ~SamplingManagerMultiface() {}
  protected:
-  std::vector<apache::thrift::stdcxx::shared_ptr<SamplingManagerIf> > ifaces_;
+  std::vector<std::shared_ptr<SamplingManagerIf> > ifaces_;
   SamplingManagerMultiface() {}
-  void add(::apache::thrift::stdcxx::shared_ptr<SamplingManagerIf> iface) {
+  void add(::std::shared_ptr<SamplingManagerIf> iface) {
     ifaces_.push_back(iface);
   }
  public:
@@ -253,35 +253,35 @@ class SamplingManagerMultiface : virtual public SamplingManagerIf {
 // only be used when you need to share a connection among multiple threads
 class SamplingManagerConcurrentClient : virtual public SamplingManagerIf {
  public:
-  SamplingManagerConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  SamplingManagerConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  SamplingManagerConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  SamplingManagerConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void getSamplingStrategy(SamplingStrategyResponse& _return, const std::string& serviceName);
   int32_t send_getSamplingStrategy(const std::string& serviceName);
   void recv_getSamplingStrategy(SamplingStrategyResponse& _return, const int32_t seqid);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
   ::apache::thrift::async::TConcurrentClientSyncInfo sync_;

@@ -37,7 +37,7 @@ class DependencyIfFactory {
 
 class DependencyIfSingletonFactory : virtual public DependencyIfFactory {
  public:
-  DependencyIfSingletonFactory(const ::apache::thrift::stdcxx::shared_ptr<DependencyIf>& iface) : iface_(iface) {}
+  DependencyIfSingletonFactory(const ::std::shared_ptr<DependencyIf>& iface) : iface_(iface) {}
   virtual ~DependencyIfSingletonFactory() {}
 
   virtual DependencyIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
@@ -46,7 +46,7 @@ class DependencyIfSingletonFactory : virtual public DependencyIfFactory {
   virtual void releaseHandler(DependencyIf* /* handler */) {}
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<DependencyIf> iface_;
+  ::std::shared_ptr<DependencyIf> iface_;
 };
 
 class DependencyNull : virtual public DependencyIf {
@@ -209,27 +209,27 @@ class Dependency_saveDependencies_pargs {
 
 class DependencyClient : virtual public DependencyIf {
  public:
-  DependencyClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  DependencyClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  DependencyClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  DependencyClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void getDependenciesForTrace(Dependencies& _return, const std::string& traceId);
@@ -238,15 +238,15 @@ class DependencyClient : virtual public DependencyIf {
   void saveDependencies(const Dependencies& dependencies);
   void send_saveDependencies(const Dependencies& dependencies);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
 };
 
 class DependencyProcessor : public ::apache::thrift::TDispatchProcessor {
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<DependencyIf> iface_;
+  ::std::shared_ptr<DependencyIf> iface_;
   virtual bool dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext);
  private:
   typedef  void (DependencyProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
@@ -255,7 +255,7 @@ class DependencyProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_getDependenciesForTrace(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_saveDependencies(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
-  DependencyProcessor(::apache::thrift::stdcxx::shared_ptr<DependencyIf> iface) :
+  DependencyProcessor(::std::shared_ptr<DependencyIf> iface) :
     iface_(iface) {
     processMap_["getDependenciesForTrace"] = &DependencyProcessor::process_getDependenciesForTrace;
     processMap_["saveDependencies"] = &DependencyProcessor::process_saveDependencies;
@@ -266,24 +266,24 @@ class DependencyProcessor : public ::apache::thrift::TDispatchProcessor {
 
 class DependencyProcessorFactory : public ::apache::thrift::TProcessorFactory {
  public:
-  DependencyProcessorFactory(const ::apache::thrift::stdcxx::shared_ptr< DependencyIfFactory >& handlerFactory) :
+  DependencyProcessorFactory(const ::std::shared_ptr< DependencyIfFactory >& handlerFactory) :
       handlerFactory_(handlerFactory) {}
 
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr< DependencyIfFactory > handlerFactory_;
+  ::std::shared_ptr< DependencyIfFactory > handlerFactory_;
 };
 
 class DependencyMultiface : virtual public DependencyIf {
  public:
-  DependencyMultiface(std::vector<apache::thrift::stdcxx::shared_ptr<DependencyIf> >& ifaces) : ifaces_(ifaces) {
+  DependencyMultiface(std::vector<std::shared_ptr<DependencyIf> >& ifaces) : ifaces_(ifaces) {
   }
   virtual ~DependencyMultiface() {}
  protected:
-  std::vector<apache::thrift::stdcxx::shared_ptr<DependencyIf> > ifaces_;
+  std::vector<std::shared_ptr<DependencyIf> > ifaces_;
   DependencyMultiface() {}
-  void add(::apache::thrift::stdcxx::shared_ptr<DependencyIf> iface) {
+  void add(::std::shared_ptr<DependencyIf> iface) {
     ifaces_.push_back(iface);
   }
  public:
@@ -313,27 +313,27 @@ class DependencyMultiface : virtual public DependencyIf {
 // only be used when you need to share a connection among multiple threads
 class DependencyConcurrentClient : virtual public DependencyIf {
  public:
-  DependencyConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  DependencyConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  DependencyConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  DependencyConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void getDependenciesForTrace(Dependencies& _return, const std::string& traceId);
@@ -342,8 +342,8 @@ class DependencyConcurrentClient : virtual public DependencyIf {
   void saveDependencies(const Dependencies& dependencies);
   void send_saveDependencies(const Dependencies& dependencies);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
   ::apache::thrift::async::TConcurrentClientSyncInfo sync_;

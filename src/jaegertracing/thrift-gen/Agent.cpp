@@ -325,10 +325,10 @@ void AgentProcessor::process_emitBatch(int32_t, ::apache::thrift::protocol::TPro
   return;
 }
 
-::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > AgentProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
+::std::shared_ptr< ::apache::thrift::TProcessor > AgentProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
   ::apache::thrift::ReleaseHandler< AgentIfFactory > cleanup(handlerFactory_);
-  ::apache::thrift::stdcxx::shared_ptr< AgentIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > processor(new AgentProcessor(handler));
+  ::std::shared_ptr< AgentIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > processor(new AgentProcessor(handler));
   return processor;
 }
 

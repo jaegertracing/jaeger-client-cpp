@@ -37,7 +37,7 @@ class AgentIfFactory {
 
 class AgentIfSingletonFactory : virtual public AgentIfFactory {
  public:
-  AgentIfSingletonFactory(const ::apache::thrift::stdcxx::shared_ptr<AgentIf>& iface) : iface_(iface) {}
+  AgentIfSingletonFactory(const ::std::shared_ptr<AgentIf>& iface) : iface_(iface) {}
   virtual ~AgentIfSingletonFactory() {}
 
   virtual AgentIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
@@ -46,7 +46,7 @@ class AgentIfSingletonFactory : virtual public AgentIfFactory {
   virtual void releaseHandler(AgentIf* /* handler */) {}
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<AgentIf> iface_;
+  ::std::shared_ptr<AgentIf> iface_;
 };
 
 class AgentNull : virtual public AgentIf {
@@ -160,27 +160,27 @@ class Agent_emitBatch_pargs {
 
 class AgentClient : virtual public AgentIf {
  public:
-  AgentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  AgentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  AgentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  AgentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void emitZipkinBatch(const std::vector< ::twitter::zipkin::thrift::Span> & spans);
@@ -188,15 +188,15 @@ class AgentClient : virtual public AgentIf {
   void emitBatch(const  ::jaegertracing::thrift::Batch& batch);
   void send_emitBatch(const  ::jaegertracing::thrift::Batch& batch);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
 };
 
 class AgentProcessor : public ::apache::thrift::TDispatchProcessor {
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<AgentIf> iface_;
+  ::std::shared_ptr<AgentIf> iface_;
   virtual bool dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext);
  private:
   typedef  void (AgentProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
@@ -205,7 +205,7 @@ class AgentProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_emitZipkinBatch(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_emitBatch(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
-  AgentProcessor(::apache::thrift::stdcxx::shared_ptr<AgentIf> iface) :
+  AgentProcessor(::std::shared_ptr<AgentIf> iface) :
     iface_(iface) {
     processMap_["emitZipkinBatch"] = &AgentProcessor::process_emitZipkinBatch;
     processMap_["emitBatch"] = &AgentProcessor::process_emitBatch;
@@ -216,24 +216,24 @@ class AgentProcessor : public ::apache::thrift::TDispatchProcessor {
 
 class AgentProcessorFactory : public ::apache::thrift::TProcessorFactory {
  public:
-  AgentProcessorFactory(const ::apache::thrift::stdcxx::shared_ptr< AgentIfFactory >& handlerFactory) :
+  AgentProcessorFactory(const ::std::shared_ptr< AgentIfFactory >& handlerFactory) :
       handlerFactory_(handlerFactory) {}
 
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr< AgentIfFactory > handlerFactory_;
+  ::std::shared_ptr< AgentIfFactory > handlerFactory_;
 };
 
 class AgentMultiface : virtual public AgentIf {
  public:
-  AgentMultiface(std::vector<apache::thrift::stdcxx::shared_ptr<AgentIf> >& ifaces) : ifaces_(ifaces) {
+  AgentMultiface(std::vector<std::shared_ptr<AgentIf> >& ifaces) : ifaces_(ifaces) {
   }
   virtual ~AgentMultiface() {}
  protected:
-  std::vector<apache::thrift::stdcxx::shared_ptr<AgentIf> > ifaces_;
+  std::vector<std::shared_ptr<AgentIf> > ifaces_;
   AgentMultiface() {}
-  void add(::apache::thrift::stdcxx::shared_ptr<AgentIf> iface) {
+  void add(::std::shared_ptr<AgentIf> iface) {
     ifaces_.push_back(iface);
   }
  public:
@@ -262,27 +262,27 @@ class AgentMultiface : virtual public AgentIf {
 // only be used when you need to share a connection among multiple threads
 class AgentConcurrentClient : virtual public AgentIf {
  public:
-  AgentConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  AgentConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  AgentConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  AgentConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void emitZipkinBatch(const std::vector< ::twitter::zipkin::thrift::Span> & spans);
@@ -290,8 +290,8 @@ class AgentConcurrentClient : virtual public AgentIf {
   void emitBatch(const  ::jaegertracing::thrift::Batch& batch);
   void send_emitBatch(const  ::jaegertracing::thrift::Batch& batch);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
   ::apache::thrift::async::TConcurrentClientSyncInfo sync_;

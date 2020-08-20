@@ -326,10 +326,10 @@ void SamplingManagerProcessor::process_getSamplingStrategy(int32_t seqid, ::apac
   }
 }
 
-::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > SamplingManagerProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
+::std::shared_ptr< ::apache::thrift::TProcessor > SamplingManagerProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
   ::apache::thrift::ReleaseHandler< SamplingManagerIfFactory > cleanup(handlerFactory_);
-  ::apache::thrift::stdcxx::shared_ptr< SamplingManagerIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > processor(new SamplingManagerProcessor(handler));
+  ::std::shared_ptr< SamplingManagerIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > processor(new SamplingManagerProcessor(handler));
   return processor;
 }
 
