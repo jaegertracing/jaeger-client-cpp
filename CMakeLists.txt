@@ -216,7 +216,9 @@ set(SRC
     src/jaegertracing/utils/UDPTransporter.cpp
     src/jaegertracing/utils/HTTPTransporter.cpp
     src/jaegertracing/utils/YAML.cpp
-    src/jaegertracing/ThriftMethods.cpp)
+    src/jaegertracing/ThriftMethods.cpp
+    src/jaegertracing/propagation/ZipkinPropagator.cpp
+    src/jaegertracing/propagation/ZipkinPropagator.h)
 
 if(JAEGERTRACING_BUILD_CROSSDOCK)
   list(APPEND SRC
@@ -340,7 +342,8 @@ if(BUILD_TESTING)
       src/jaegertracing/utils/ErrorUtilTest.cpp
       src/jaegertracing/utils/RateLimiterTest.cpp
       src/jaegertracing/utils/UDPSenderTest.cpp
-      src/jaegertracing/utils/HTTPTransporterTest.cpp)
+      src/jaegertracing/utils/HTTPTransporterTest.cpp
+      src/jaegertracing/propagation/ZipkinPropagatorTest.cpp)
   target_link_libraries(
       UnitTest PRIVATE testutils PUBLIC GTest::main ${JAEGERTRACING_LIB})
   add_test(NAME UnitTest COMMAND UnitTest)

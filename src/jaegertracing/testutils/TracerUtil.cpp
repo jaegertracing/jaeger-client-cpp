@@ -31,7 +31,7 @@ namespace jaegertracing {
 namespace testutils {
 namespace TracerUtil {
 
-std::shared_ptr<ResourceHandle> installGlobalTracer()
+std::shared_ptr<ResourceHandle> installGlobalTracer(bool enableZipkinHeaders)
 {
     std::unique_ptr<ResourceHandle> handle(new ResourceHandle());
     handle->_mockAgent->start();
@@ -49,8 +49,8 @@ std::shared_ptr<ResourceHandle> installGlobalTracer()
                           reporters::Config::Clock::duration(),
                           false,
                           handle->_mockAgent->spanServerAddress().authority()),
-        propagation::HeadersConfig(),
-        baggage::RestrictionsConfig());
+        propagation::HeadersConfig(enableZipkinHeaders),
+        baggage::RestrictionsConfig(enableZipkinHeaders));
 
     auto tracer = Tracer::make("test-service", config, logging::nullLogger());
     opentracing::Tracer::InitGlobal(tracer);

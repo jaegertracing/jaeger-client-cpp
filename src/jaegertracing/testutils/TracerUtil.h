@@ -40,7 +40,7 @@ struct ResourceHandle {
     std::shared_ptr<MockAgent> _mockAgent;
 };
 
-std::shared_ptr<ResourceHandle> installGlobalTracer();
+std::shared_ptr<ResourceHandle> installGlobalTracer(bool enableZipkinHeaders = false);
 std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint);
 
 }  // namespace TracerUtil

@@ -45,4 +45,11 @@
 
 # CLion folders
 cmake-build-debug
+#CMake fiels
+cmake-build-*/
+
+# idea
 .idea
+
+#vscode
+.vscode 

@@ -41,6 +41,7 @@
 #include "jaegertracing/reporters/Reporter.h"
 #include "jaegertracing/samplers/Sampler.h"
 #include "jaegertracing/utils/ErrorUtil.h"
+#include "jaegertracing/propagation/ZipkinPropagator.h"
 
 namespace jaegertracing {
 
@@ -91,7 +92,9 @@ class Tracer : public opentracing::Tracer,
          metrics::StatsFactory& statsFactory,
          int options);
 
-    ~Tracer() { Close(); }
+    ~Tracer() {
+        Close();
+    }
 
     std::unique_ptr<opentracing::Span>
     StartSpanWithOptions(string_view operationName,
@@ -132,7 +135,7 @@ class Tracer : public opentracing::Tracer,
             return opentracing::make_expected_from_error<void>(
                 opentracing::invalid_span_context_error);
         }
-        _httpHeaderPropagator.inject(*jaegerCtx, writer);
+        _httpHeaderPropagator->inject(*jaegerCtx, writer);
         return opentracing::make_expected();
     }
 
@@ -161,7 +164,7 @@ class Tracer : public opentracing::Tracer,
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(const opentracing::HTTPHeadersReader& reader) const override
     {
-        const auto spanContext = _httpHeaderPropagator.extract(reader);
+        const auto spanContext = _httpHeaderPropagator->extract(reader);
         if (spanContext == SpanContext()) {
             return std::unique_ptr<opentracing::SpanContext>();
         }
@@ -217,13 +220,23 @@ class Tracer : public opentracing::Tracer,
         , _logger(logger)
         , _randomNumberGenerator()
         , _textPropagator(headersConfig, _metrics)
-        , _httpHeaderPropagator(headersConfig, _metrics)
+//        ,_httpHeaderPropagator(new propagation::ZipkinPropagator(headersConfig,_metrics))
         , _binaryPropagator(_metrics)
         , _tags()
         , _restrictionManager(new baggage::DefaultRestrictionManager(0))
         , _baggageSetter(*_restrictionManager, *_metrics)
         , _options(options)
     {
+        if (headersConfig.enableZipkinHeaders()){
+            _httpHeaderPropagator = std::unique_ptr<propagation::ZipkinPropagator>(
+                new propagation::ZipkinPropagator(headersConfig,_metrics)
+                );
+        }else{
+            _httpHeaderPropagator =  std::unique_ptr<propagation::HTTPHeaderPropagator>(
+                new propagation::HTTPHeaderPropagator(headersConfig,_metrics)
+                );
+        }
+
         _tags.push_back(Tag(kJaegerClientVersionTagKey, kJaegerClientVersion));
 
         try {
@@ -295,7 +308,7 @@ class Tracer : public opentracing::Tracer,
     mutable std::mt19937_64 _randomNumberGenerator;
     mutable std::mutex _randomMutex;
     propagation::TextMapPropagator _textPropagator;
-    propagation::HTTPHeaderPropagator _httpHeaderPropagator;
+    std::unique_ptr<propagation::HTTPHeaderPropagator> _httpHeaderPropagator;
     propagation::BinaryPropagator _binaryPropagator;
     std::vector<Tag> _tags;
     std::unique_ptr<baggage::RestrictionManager> _restrictionManager;

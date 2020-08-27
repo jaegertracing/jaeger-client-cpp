@@ -341,7 +341,6 @@ TEST(Tracer, testPropagation)
     const std::unique_ptr<Span> span(static_cast<Span*>(
         tracer->StartSpanWithOptions("test-inject", {}).release()));
     span->SetBaggageItem("test-baggage-item-key", "test baggage item value");
-
     // Binary
     {
         std::stringstream ss;
@@ -552,4 +551,56 @@ TEST(Tracer, testTracerSpanSelfRefWithOtherRefs)
     tracer->Close();
 }
 
+TEST(Tracer, testZipkinHeadersInject)
+{
+    const auto handle = testutils::TracerUtil::installGlobalTracer(true);
+    const auto tracer =
+        std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
+    auto span = tracer->StartSpan("test-span");
+    map<std::string, std::string> headers;
+    auto carrier = jaegertracing::propagation::HTTPKeyCarrier(&headers);
+    tracer->Inject(span->context(), carrier);
+    bool findTraceIdHeader = false, findSpanIdHeader = false,
+         findParentIdHeader = false, findSpanSampledHeader = false;
+
+    for (auto& header : headers) {
+        if (header.first == kzipkinParentSpanIdHeaderName) {
+            findParentIdHeader = true;
+        }
+        if (header.first == kzipkinTraceIdHeaderName) {
+            findTraceIdHeader = true;
+        }
+        if (header.first == kzipkinSpanIdHeaderName) {
+            findSpanIdHeader = true;
+        }
+        if (header.first == kzipkinTraceSampledHeaderName) {
+            findSpanSampledHeader = true;
+        }
+    }
+    ASSERT_EQ(findParentIdHeader, true);
+    ASSERT_EQ(findTraceIdHeader, true);
+    ASSERT_EQ(findSpanIdHeader, true);
+    ASSERT_EQ(findSpanSampledHeader, true);
+}
+TEST(Tracer, testZipkinHeadersExtract)
+{
+    const auto handle = testutils::TracerUtil::installGlobalTracer(true);
+    const auto tracer =
+        std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
+    auto span = tracer->StartSpan("test-span");
+    map<std::string, std::string> headers{
+        { kzipkinTraceIdHeaderName, "aaaa" },
+        { kzipkinSpanIdHeaderName, "bbbb" },
+        { kzipkinParentSpanIdHeaderName, "cccc" },
+        { kzipkinTraceSampledHeaderName, "1" },
+    };
+    auto carrier = jaegertracing::propagation::HTTPKeyCarrier(&headers);
+    auto context = tracer->Extract(carrier);
+    std::unique_ptr<const SpanContext> ctx(
+        static_cast<SpanContext*>(context->release()));
+    ASSERT_EQ(ctx->traceID(), TraceID(0, 0xaaaa));
+    ASSERT_EQ(ctx->spanID(), 0xbbbb);
+    ASSERT_EQ(ctx->parentID(), 0xcccc);
+    ASSERT_EQ(ctx->isSampled(), true);
+}
 }  // namespace jaegertracing

@@ -70,6 +70,40 @@ baggage_restrictions: 4
     }
 }
 
+TEST(Config,testZipkinHeaders){
+
+        constexpr auto kConfigYAML = R"cfg(
+disabled: true
+sampler:
+    type: probabilistic
+    param: 0.001
+reporter:
+    queueSize: 100
+    bufferFlushInterval: 10
+    logSpans: false
+    localAgentHostPort: 127.0.0.1:6831
+headers:
+    jaegerDebugHeader: debug-id
+    jaegerBaggageHeader: baggage
+    TraceContextHeaderName: trace-id
+    traceBaggageHeaderPrefix: "testctx-"
+    enableZipkinHeaders: true
+    zipkinTraceIdHeaderName: x-b3-traceid
+    zipkinSpanIdHeaderName: x-b3-spanid
+    zipkinParentSpanIdHederName: x-b3-parent-id
+    zipkinSampledHeaderName: x-b3-sampled
+baggage_restrictions:
+    denyBaggageOnInitializationFailure: false
+    hostPort: 127.0.0.1:5778
+    refreshInterval: 60
+)cfg";
+        auto const config = Config::parse(YAML::Load(kConfigYAML));
+        ASSERT_EQ(true,config.headers().enableZipkinHeaders());
+        ASSERT_EQ("x-b3-traceid", config.headers().zipkinTraceIdHeaderName());
+        ASSERT_EQ("x-b3-spanid",config.headers().zipkinSpanIdHeaderName());
+        ASSERT_EQ("x-b3-sampled",config.headers().zipkinTraceSampledHeaderName());
+}
+
 TEST(Config, testDefaultSamplingProbability)
 {
     ASSERT_EQ(samplers::Config::kDefaultSamplingProbability,
