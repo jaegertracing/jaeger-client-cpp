@@ -94,7 +94,7 @@ class ZipkinPropagator : public HTTPHeaderPropagator {
                 in >> std::hex >> zipkinParentSpanId;
             }
             else if (key == _headerKeys.zipkinTraceSampledHeaderName()) {
-                zipkinTraceSampled = value == "1" or value == "true";
+                zipkinTraceSampled = value == "1" || value == "true";
             }
             else if (key == _headerKeys.zipkinTraceIdHeaderName()) {
                 in >> std::hex >>
@@ -110,15 +110,15 @@ class ZipkinPropagator : public HTTPHeaderPropagator {
         if (zipkinTraceSampled) {
             flags |= static_cast<uint64_t>(SpanContext::Flag::kSampled);
         }
-        if (not zipkinSpanId or not zipkinTraceSampled) {
+        if (!zipkinSpanId ||  !zipkinTraceSampled) {
             return ctx;
         }
 
-        if (not zipkinParentSpanId) {
+        if (!zipkinParentSpanId) {
             zipkinParentSpanId = zipkinSpanId;
         }
         TraceID traceID(zipkinTraceIdHigh, zipkinTraceIdLow);
-        if (not traceID.isValid()) {
+        if (!traceID.isValid()) {
             return ctx;
         }
         return SpanContext(traceID,
