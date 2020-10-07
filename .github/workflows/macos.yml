@@ -24,4 +24,4 @@ jobs:
       run: cmake -Bbuild
 
     - name: Build
-      run: cmake --build build --config Debug -j4
+      run: cmake --build build -j4
