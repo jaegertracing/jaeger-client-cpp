@@ -17,6 +17,15 @@ jobs:
     runs-on: windows-latest
     
     steps:
+    
+    - name: Set up cache
+      uses: actions/cache@v2
+      with:
+        path: ~\AppData\Local\hunter
+        key: ${{ runner.os }}-hunter-${{ hashFiles('**/') }}
+        restore-keys: |
+          ${{ runner.os }}-hunter-
+
     - name: Checkout repository
       uses: actions/checkout@v2
 

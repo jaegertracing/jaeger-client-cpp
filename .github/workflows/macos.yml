@@ -17,6 +17,14 @@ jobs:
     runs-on: macos-latest
     
     steps:
+    - name: Set up cache
+      uses: actions/cache@v2
+      with:
+        path: ~\.hunter
+        key: ${{ runner.os }}-hunter-${{ hashFiles('**/') }}
+        restore-keys: |
+        ${{ runner.os }}-hunter-
+        
     - name: Checkout repository
       uses: actions/checkout@v2
 
