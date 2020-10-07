@@ -19,15 +19,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-    
-    - name: Create build directory
-      run: mkdir build && cd build
 
     - name: Configure
-      run: cmake ..
+      run: cmake -Bbuild
 
     - name: Build
-      run: make -j4
-
-    - name: Test
-      run: make test -j4
+      run: cmake --build build --config Debug -j4
