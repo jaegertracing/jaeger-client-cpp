@@ -40,6 +40,7 @@ std::shared_ptr<ResourceHandle> installGlobalTracer()
         << "http://" << handle->_mockAgent->samplingServerAddress().authority();
     Config config(
         false,
+        false,
         samplers::Config("const",
                          1,
                          samplingServerURLStream.str(),
@@ -61,6 +62,7 @@ std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint)
 {
     std::ostringstream samplingServerURLStream;
     Config config(
+        false,
         false,
         samplers::Config("const",
                          1,

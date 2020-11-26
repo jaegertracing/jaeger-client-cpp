@@ -34,6 +34,7 @@ class Config {
     static constexpr auto kJAEGER_SERVICE_NAME_ENV_PROP = "JAEGER_SERVICE_NAME";
     static constexpr auto kJAEGER_TAGS_ENV_PROP = "JAEGER_TAGS";
     static constexpr auto kJAEGER_JAEGER_DISABLED_ENV_PROP = "JAEGER_DISABLED";
+    static constexpr auto kJAEGER_JAEGER_TRACEID_128BIT_ENV_PROP = "JAEGER_TRACEID_128BIT";
 
 #ifdef JAEGERTRACING_WITH_YAML_CPP
 
@@ -48,6 +49,8 @@ class Config {
 
         const auto disabled =
             utils::yaml::findOrDefault<bool>(configYAML, "disabled", false);
+        const auto traceId128Bit =
+            utils::yaml::findOrDefault<bool>(configYAML, "traceid_128bit", false);
         const auto samplerNode = configYAML["sampler"];
         const auto sampler = samplers::Config::parse(samplerNode);
         const auto reporterNode = configYAML["reporter"];
@@ -58,12 +61,13 @@ class Config {
         const auto baggageRestrictions =
             baggage::RestrictionsConfig::parse(baggageRestrictionsNode);
         return Config(
-            disabled, sampler, reporter, headers, baggageRestrictions, serviceName);
+            disabled, traceId128Bit, sampler, reporter, headers, baggageRestrictions, serviceName);
     }
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
     explicit Config(bool disabled = false,
+                    bool traceId128Bit = false,
                     const samplers::Config& sampler = samplers::Config(),
                     const reporters::Config& reporter = reporters::Config(),
                     const propagation::HeadersConfig& headers =
@@ -73,6 +77,7 @@ class Config {
                     const std::string& serviceName = "",
                     const std::vector<Tag>&  tags = std::vector<Tag>())
         : _disabled(disabled)
+        , _traceId128Bit(traceId128Bit)
         , _serviceName(serviceName)
         , _tags(tags)
         , _sampler(sampler)
@@ -83,6 +88,8 @@ class Config {
     }
 
     bool disabled() const { return _disabled; }
+
+    bool traceId128Bit() const { return _traceId128Bit; }
 
     const samplers::Config& sampler() const { return _sampler; }
 
@@ -103,6 +110,7 @@ class Config {
 
   private:
     bool _disabled;
+    bool _traceId128Bit;
     std::string _serviceName;
     std::vector< Tag > _tags;
     samplers::Config _sampler;

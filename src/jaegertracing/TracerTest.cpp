@@ -325,6 +325,7 @@ TEST(Tracer, testConstructorFailure)
 TEST(Tracer, testDisabledConfig)
 {
     Config config(true,
+                  false,
                   samplers::Config(),
                   reporters::Config(),
                   propagation::HeadersConfig(),
@@ -471,6 +472,7 @@ TEST(Tracer, testTracerTags)
 
     Config config(
         false,
+        false,
         samplers::Config(
             "const", 1, "", 0, samplers::Config::Clock::duration()),
         reporters::Config(0, std::chrono::milliseconds(100), false, "", ""),
@@ -550,6 +552,30 @@ TEST(Tracer, testTracerSpanSelfRefWithOtherRefs)
         ASSERT_FALSE(spanChild);
     }
     tracer->Close();
+}
+
+TEST(Tracer, testTracerWithTraceId128Bit)
+{
+    Config config(
+        false,
+        true,
+        samplers::Config(
+            "const", 1, "", 0, samplers::Config::Clock::duration()),
+        reporters::Config(0, std::chrono::milliseconds(100), false, "", ""),
+        propagation::HeadersConfig(),
+        baggage::RestrictionsConfig(),
+        "test-service",
+        std::vector<Tag>());
+
+    auto tracer = Tracer::make(config);
+
+    opentracing::StartSpanOptions options;
+    std::unique_ptr<Span> span(static_cast<Span*>(
+        tracer->StartSpanWithOptions("test-operation", options).release()));
+
+    auto traceID = span->context().traceID();
+
+    ASSERT_GT(traceID.high(), 0);
 }
 
 }  // namespace jaegertracing
