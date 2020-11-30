@@ -55,7 +55,7 @@ class HeadersConfig {
             jaegerBaggageHeader,
             traceContextHeaderName,
             traceBaggageHeaderPrefix,
-            traceContextHeaderFormat == "W3C" ? Format::W3C : Format::JAEGER);
+            traceContextHeaderFormat == "w3c" ? Format::W3C : Format::JAEGER);
     }
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP

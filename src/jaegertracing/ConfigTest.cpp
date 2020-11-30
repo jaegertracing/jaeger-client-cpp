@@ -99,7 +99,7 @@ TEST(Config, testW3CTraceContextHeaderFormat)
     {
         constexpr auto kConfigYAML = R"cfg(
 headers:
-    TraceContextHeaderFormat: W3C
+    TraceContextHeaderFormat: w3c
 )cfg";
         const auto config = Config::parse(YAML::Load(kConfigYAML));
         ASSERT_EQ(kW3CTraceContextHeaderName,
