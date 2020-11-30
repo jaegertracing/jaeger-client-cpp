@@ -463,6 +463,46 @@ TEST(Tracer, testPropagation)
     tracer->Close();
 }
 
+TEST(Tracer, testPropagationWithW3CHeaderAndFormat)
+{
+    const auto handle =
+        testutils::TracerUtil::installGlobalTracer(propagation::Format::W3C);
+    const auto tracer =
+        std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
+    const std::unique_ptr<Span> span(static_cast<Span*>(
+        tracer->StartSpanWithOptions("test-inject", {}).release()));
+    const auto spanContext = span->context();
+
+    std::ostringstream oss;
+    oss << "00";
+    oss << '-';
+    oss << std::setw(16) << std::setfill('0') << std::hex
+        << spanContext.traceID().high() << std::hex
+        << spanContext.traceID().low();
+    oss << '-';
+    oss << std::setw(16) << std::setfill('0') << std::hex
+        << spanContext.spanID();
+    oss << '-';
+    oss << (spanContext.isSampled() ? "01" : "00");
+
+    StrMap headerMap;
+    WriterMock<opentracing::HTTPHeadersWriter> headerWriter(headerMap);
+    ASSERT_TRUE(
+        static_cast<bool>(tracer->Inject(span->context(), headerWriter)));
+    ASSERT_EQ(1, headerMap.size());
+    ASSERT_EQ(oss.str(), headerMap.at(kW3CTraceContextHeaderName));
+
+    ReaderMock<opentracing::HTTPHeadersReader> headerReader(headerMap);
+    auto result = tracer->Extract(headerReader);
+    ASSERT_TRUE(static_cast<bool>(result));
+    std::unique_ptr<const SpanContext> extractedCtx(
+        static_cast<SpanContext*>(result->release()));
+    ASSERT_TRUE(static_cast<bool>(extractedCtx));
+    ASSERT_EQ(span->context(), *extractedCtx);
+
+    tracer->Close();
+}
+
 TEST(Tracer, testTracerTags)
 {
     std::vector<Tag> tags;

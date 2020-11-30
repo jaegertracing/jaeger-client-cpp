@@ -94,6 +94,21 @@ sampler:
     }
 }
 
+TEST(Config, testW3CTraceContextHeaderFormat)
+{
+    {
+        constexpr auto kConfigYAML = R"cfg(
+headers:
+    TraceContextHeaderFormat: W3C
+)cfg";
+        const auto config = Config::parse(YAML::Load(kConfigYAML));
+        ASSERT_EQ(kW3CTraceContextHeaderName,
+                  config.headers().traceContextHeaderName());
+        ASSERT_EQ(propagation::Format::W3C,
+                  config.headers().traceContextHeaderFormat());
+    }
+}
+
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
 TEST(Config, testFromEnv)

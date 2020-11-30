@@ -20,7 +20,7 @@
 
 namespace jaegertracing {
 
-SpanContext SpanContext::fromStream(std::istream& in)
+SpanContext SpanContext::parseJaegerFormat(std::istream& in)
 {
     SpanContext spanContext;
     spanContext._traceID = TraceID::fromStream(in);
@@ -63,6 +63,70 @@ SpanContext SpanContext::fromStream(std::istream& in)
 
     in.clear();
     return spanContext;
+}
+
+SpanContext SpanContext::parseW3CFormat(std::istream& in)
+{
+    char ch = '\0';
+    if (!in.get(ch) || ch != '0') {
+        return SpanContext();
+    }
+
+    if (!in.get(ch) || ch != '0') {
+        return SpanContext();
+    }
+
+    if (!in.get(ch) || ch != '-') {
+        return SpanContext();
+    }
+
+    SpanContext spanContext;
+    spanContext._traceID = TraceID::fromStream(in, PropagationFormat::W3C);
+    if (!spanContext._traceID.isValid()) {
+        return SpanContext();
+    }
+
+    if (!in.get(ch) || ch != '-') {
+        return SpanContext();
+    }
+
+    constexpr auto kMaxUInt64Chars = static_cast<size_t>(16);
+    auto buffer = utils::HexParsing::readSegment(in, kMaxUInt64Chars, '-');
+    if (buffer.empty()) {
+        return SpanContext();
+    }
+    spanContext._spanID = utils::HexParsing::decodeHex<uint64_t>(buffer);
+
+    if (!in.get(ch) || ch != '-') {
+        return SpanContext();
+    }
+
+    constexpr auto kMaxByteChars = static_cast<size_t>(2);
+    buffer = utils::HexParsing::readSegment(in, kMaxByteChars, '-');
+    if (buffer.empty() || buffer.size() != 2) {
+        return SpanContext();
+    }
+    spanContext._flags = utils::HexParsing::decodeHex<unsigned char>(buffer);
+
+    in.clear();
+    return spanContext;
+}
+
+SpanContext SpanContext::fromStream(std::istream& in, PropagationFormat format)
+{
+    switch (format) {
+    case PropagationFormat::JAEGER:
+        return parseJaegerFormat(in);
+    case PropagationFormat::W3C:
+        return parseW3CFormat(in);
+    }
+
+    return SpanContext();
+}
+
+SpanContext SpanContext::fromStream(std::istream& in)
+{
+    return fromStream(in, PropagationFormat::JAEGER);
 }
 
 }  // namespace jaegertracing

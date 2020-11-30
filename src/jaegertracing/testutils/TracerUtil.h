@@ -20,11 +20,14 @@
 #include <string>
 
 #include "jaegertracing/Tracer.h"
+#include "jaegertracing/propagation/Format.h"
 #include "jaegertracing/testutils/MockAgent.h"
 
 namespace jaegertracing {
 namespace testutils {
 namespace TracerUtil {
+
+using PropagationFormat = propagation::Format;
 
 struct ResourceHandle {
     ResourceHandle()
@@ -40,6 +43,7 @@ struct ResourceHandle {
     std::shared_ptr<MockAgent> _mockAgent;
 };
 
+std::shared_ptr<ResourceHandle> installGlobalTracer(PropagationFormat format);
 std::shared_ptr<ResourceHandle> installGlobalTracer();
 std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint);
 

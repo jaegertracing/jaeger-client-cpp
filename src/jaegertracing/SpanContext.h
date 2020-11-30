@@ -27,17 +27,19 @@
 #include <opentracing/span.h>
 
 #include "jaegertracing/Compilers.h"
-
 #include "jaegertracing/TraceID.h"
+#include "jaegertracing/propagation/Format.h"
 
 namespace jaegertracing {
 
 class SpanContext : public opentracing::SpanContext {
   public:
     using StrMap = std::unordered_map<std::string, std::string>;
+    using PropagationFormat = propagation::Format;
 
     enum class Flag : unsigned char { kSampled = 1, kDebug = 2 };
 
+    static SpanContext fromStream(std::istream& in, PropagationFormat format);
     static SpanContext fromStream(std::istream& in);
 
     SpanContext()
@@ -153,11 +155,31 @@ class SpanContext : public opentracing::SpanContext {
     bool isValid() const { return _traceID.isValid() && _spanID != 0; }
 
     template <typename Stream>
+    void print(Stream& out, PropagationFormat format) const
+    {
+        switch (format) {
+        case PropagationFormat::JAEGER:
+            _traceID.print(out, PropagationFormat::JAEGER);
+            out << ':' << std::hex << _spanID << ':' << std::hex << _parentID
+                << ':' << std::hex << static_cast<size_t>(_flags);
+            break;
+        case PropagationFormat::W3C:
+            out << "00";
+            out << '-';
+            _traceID.print(out, PropagationFormat::W3C);
+            out << '-';
+            out << std::setw(16) << std::setfill('0') << std::hex << _spanID;
+            out << '-';
+            out << std::setw(2) << std::setfill('0') << std::hex
+                << static_cast<size_t>(_flags);
+            break;
+        }
+    }
+
+    template <typename Stream>
     void print(Stream& out) const
     {
-        _traceID.print(out);
-        out << ':' << std::hex << _spanID << ':' << std::hex << _parentID << ':'
-            << std::hex << static_cast<size_t>(_flags);
+        print(out, PropagationFormat::JAEGER);
     }
 
     void ForeachBaggageItem(
@@ -195,6 +217,9 @@ class SpanContext : public opentracing::SpanContext {
     }
 
   private:
+    static SpanContext parseJaegerFormat(std::istream& in);
+    static SpanContext parseW3CFormat(std::istream& in);
+
     TraceID _traceID;
     uint64_t _spanID;
     uint64_t _parentID;

@@ -20,11 +20,36 @@
 
 namespace jaegertracing {
 
-TEST(TraceID, testPrint)
+using PropagationFormat = propagation::Format;
+
+TEST(TraceID, testPrintJaegerFormat)
 {
     std::ostringstream oss;
-    oss << TraceID(0, 10);
+    TraceID(0, 10).print(oss, PropagationFormat::JAEGER);
     ASSERT_EQ("a", oss.str());
+}
+
+TEST(TraceID, testPrintW3CFormat)
+{
+    std::ostringstream oss;
+    TraceID(0, 10).print(oss, PropagationFormat::W3C);
+    ASSERT_EQ("0000000000000000000000000000000a", oss.str());
+}
+
+TEST(TraceID, testfromStreamJaegerFormat)
+{
+    std::stringstream ss;
+    ss << "a";
+    auto traceID = TraceID::fromStream(ss, PropagationFormat::JAEGER);
+    ASSERT_EQ(TraceID(0, 10), traceID);
+}
+
+TEST(TraceID, testfromStreamW3CFormat)
+{
+    std::stringstream ss;
+    ss << "0000000000000000000000000000000a";
+    auto traceID = TraceID::fromStream(ss, PropagationFormat::JAEGER);
+    ASSERT_EQ(TraceID(0, 10), traceID);
 }
 
 }  // namespace jaegertracing

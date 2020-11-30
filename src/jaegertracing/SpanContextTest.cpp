@@ -24,6 +24,8 @@
 namespace jaegertracing {
 namespace {
 
+using PropagationFormat = propagation::Format;
+
 struct FromStreamTestCase {
     std::string _input;
     bool _success;
@@ -31,7 +33,7 @@ struct FromStreamTestCase {
 
 }  // anonymous namespace
 
-TEST(SpanContext, testFromStream)
+TEST(SpanContext, testFromStreamWithJaegerFormat)
 {
     const FromStreamTestCase testCases[] = {
         { "", false },
@@ -57,7 +59,7 @@ TEST(SpanContext, testFromStream)
         {
             std::stringstream ss;
             ss << testCase._input;
-            spanContext = SpanContext::fromStream(ss);
+            spanContext = SpanContext::fromStream(ss, PropagationFormat::JAEGER);
             ASSERT_EQ(testCase._success, spanContext.isValid())
                 << "input=" << testCase._input;
         }
@@ -73,12 +75,67 @@ TEST(SpanContext, testFromStream)
     }
 }
 
-TEST(SpanContext, testFormatting)
+TEST(SpanContext, testFromStreamWithW3CFormat)
 {
-    SpanContext spanContext(TraceID(255, 255), 0, 0, 0, SpanContext::StrMap());
+    const FromStreamTestCase testCases[] = {
+        { "00-0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-01", true },
+        { "00-0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-00", true },
+        { "00-11111111111111111111111111111111-2222222222222222-01", true },
+        { "00-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-BBBBBBBBBBBBBBBB-01", true },
+        { "", false },
+        { "000af7651916cd43dd8448eb211c80319cb9c7c989f97918e101", false },
+        { "000af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-01", false },
+        { "00-0af7651916cd43dd8448eb211c80319cb9c7c989f97918e1-01", false },
+        { "00-0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e101", false },
+        { "000af7651916cd43dd8448eb211c80319cb9c7c989f97918e1-01", false },
+        { "00-0af7651916cd43dd8448eb211c80319cb9c7c989f97918e101", false },
+        { "01-0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-01", false },
+        { "-0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-01", false },
+        { "0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-01", false },
+        { "0-0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-01", false },
+        { "000-0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-01", false },
+        { "0k-0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-01", false },
+        { "k0-0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-01", false },
+        { "00-00000000000000000000000000000000-b9c7c989f97918e1-01", false },
+        { "01-0af7651916cd43dd8448eb211c80319-b9c7c989f97918e1-01", false },
+        { "01-0af7651916cd43dd8448eb211c80319cc-b9c7c989f97918e1-01", false },
+        { "00-0af7651916cd43dd8448eb211c80319c-0000000000000000-01", false }
+    };
+
+    for (auto&& testCase : testCases) {
+        SpanContext spanContext;
+        {
+            std::stringstream ss;
+            ss << testCase._input;
+            spanContext = SpanContext::fromStream(ss, PropagationFormat::W3C);
+            ASSERT_EQ(testCase._success, spanContext.isValid())
+                << "input=" << testCase._input;
+        }
+    }
+}
+
+TEST(SpanContext, testJaegerFormatting)
+{
+    SpanContext spanContext(TraceID(255, 1), 2, 3, 1, SpanContext::StrMap());
+    {
+        std::ostringstream oss;
+        spanContext.print(oss, PropagationFormat::JAEGER);
+        ASSERT_EQ("ff0000000000000001:2:3:1", oss.str());
+    }
+    {
+        std::ostringstream oss;
+        oss << spanContext;
+        ASSERT_EQ("ff0000000000000001:2:3:1", oss.str());
+    }
+}
+
+TEST(SpanContext, testW3CFormatting)
+{
+    SpanContext spanContext(TraceID(255, 1), 2, 3, 1, SpanContext::StrMap());
     std::ostringstream oss;
-    oss << spanContext;
-    ASSERT_EQ("ff00000000000000ff:0:0:0", oss.str());
+    spanContext.print(oss, PropagationFormat::W3C);
+    ASSERT_EQ("00-00000000000000ff0000000000000001-0000000000000002-01",
+              oss.str());
 }
 
 TEST(SpanContext, testBaggage)

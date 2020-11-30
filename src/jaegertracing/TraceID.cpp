@@ -22,7 +22,7 @@
 
 namespace jaegertracing {
 
-TraceID TraceID::fromStream(std::istream& in)
+TraceID TraceID::parseJaegerFormat(std::istream& in)
 {
     TraceID traceID;
     constexpr auto kMaxChars = static_cast<size_t>(32);
@@ -44,6 +44,42 @@ TraceID TraceID::fromStream(std::istream& in)
     }
 
     return traceID;
+}
+
+TraceID TraceID::parseW3CFormat(std::istream& in)
+{
+    TraceID traceID;
+    constexpr auto kMaxChars = static_cast<size_t>(32);
+    auto buffer = utils::HexParsing::readSegment(in, kMaxChars, '-');
+
+    if (buffer.empty() || buffer.size() != kMaxChars) {
+        return TraceID();
+    }
+
+    auto beginLowStr = std::end(buffer) - kMaxChars / 2;
+    const std::string highStr(std::begin(buffer), beginLowStr);
+    traceID._high = utils::HexParsing::decodeHex<uint64_t>(highStr);
+    const std::string lowStr(beginLowStr, std::end(buffer));
+    traceID._low = utils::HexParsing::decodeHex<uint64_t>(lowStr);
+
+    return traceID;
+}
+
+TraceID TraceID::fromStream(std::istream& in, PropagationFormat format)
+{
+    switch (format) {
+    case PropagationFormat::JAEGER:
+        return parseJaegerFormat(in);
+    case PropagationFormat::W3C:
+        return parseW3CFormat(in);
+    }
+
+    return TraceID();
+}
+
+TraceID TraceID::fromStream(std::istream& in)
+{
+    return fromStream(in, PropagationFormat::JAEGER);
 }
 
 }  // namespace jaegertracing

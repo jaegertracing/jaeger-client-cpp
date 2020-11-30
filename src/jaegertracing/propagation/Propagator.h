@@ -69,7 +69,9 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
                 if (key == _headerKeys.traceContextHeaderName()) {
                     const auto safeValue = decodeValue(value);
                     std::istringstream iss(safeValue);
-                    if (!(iss >> ctx) || ctx == SpanContext()) {
+                    ctx = SpanContext::fromStream(
+                        iss, _headerKeys.traceContextHeaderFormat());
+                    if (!iss || ctx == SpanContext()) {
                         return opentracing::make_expected_from_error<void>(
                             opentracing::span_context_corrupted_error);
                     }
@@ -120,7 +122,7 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
     void inject(const SpanContext& ctx, const Writer& writer) const override
     {
         std::ostringstream oss;
-        oss << ctx;
+        ctx.print(oss, _headerKeys.traceContextHeaderFormat());
         writer.Set(_headerKeys.traceContextHeaderName(), oss.str());
         ctx.forEachBaggageItem(
             [this, &writer](const std::string& key, const std::string& value) {

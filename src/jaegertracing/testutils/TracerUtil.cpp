@@ -31,7 +31,7 @@ namespace jaegertracing {
 namespace testutils {
 namespace TracerUtil {
 
-std::shared_ptr<ResourceHandle> installGlobalTracer()
+std::shared_ptr<ResourceHandle> installGlobalTracer(PropagationFormat format)
 {
     std::unique_ptr<ResourceHandle> handle(new ResourceHandle());
     handle->_mockAgent->start();
@@ -49,12 +49,17 @@ std::shared_ptr<ResourceHandle> installGlobalTracer()
                           reporters::Config::Clock::duration(),
                           false,
                           handle->_mockAgent->spanServerAddress().authority()),
-        propagation::HeadersConfig(),
+        propagation::HeadersConfig("", "", "", "", format),
         baggage::RestrictionsConfig());
 
     auto tracer = Tracer::make("test-service", config, logging::nullLogger());
     opentracing::Tracer::InitGlobal(tracer);
     return std::move(handle);
+}
+
+std::shared_ptr<ResourceHandle> installGlobalTracer()
+{
+    return installGlobalTracer(PropagationFormat::JAEGER);
 }
 
 std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint)

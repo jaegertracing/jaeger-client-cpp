@@ -21,10 +21,15 @@
 #include <iomanip>
 #include <iostream>
 
+#include "jaegertracing/propagation/Format.h"
+
 namespace jaegertracing {
 
 class TraceID {
   public:
+    using PropagationFormat = propagation::Format;
+
+    static TraceID fromStream(std::istream& in, PropagationFormat format);
     static TraceID fromStream(std::istream& in);
 
     TraceID()
@@ -41,15 +46,29 @@ class TraceID {
     bool isValid() const { return _high != 0 || _low != 0; }
 
     template <typename Stream>
+    void print(Stream& out, PropagationFormat format) const
+    {
+        switch (format) {
+        case PropagationFormat::JAEGER:
+            if (_high == 0) {
+                out << std::hex << _low;
+            }
+            else {
+                out << std::hex << _high << std::setw(16) << std::setfill('0')
+                    << std::hex << _low;
+            }
+            break;
+        case PropagationFormat::W3C:
+            out << std::setw(16) << std::setfill('0') << std::hex << _high;
+            out << std::setw(16) << std::setfill('0') << std::hex << _low;
+            break;
+        }
+    }
+
+    template <typename Stream>
     void print(Stream& out) const
     {
-        if (_high == 0) {
-            out << std::hex << _low;
-        }
-        else {
-            out << std::hex << _high << std::setw(16) << std::setfill('0')
-                << std::hex << _low;
-        }
+        print(out, PropagationFormat::JAEGER);
     }
 
     uint64_t high() const { return _high; }
@@ -62,6 +81,9 @@ class TraceID {
     }
 
   private:
+    static TraceID parseJaegerFormat(std::istream& in);
+    static TraceID parseW3CFormat(std::istream& in);
+
     uint64_t _high;
     uint64_t _low;
 };
