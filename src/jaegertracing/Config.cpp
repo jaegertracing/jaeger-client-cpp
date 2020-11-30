@@ -62,6 +62,7 @@ void Config::fromEnv()
     }
     _reporter.fromEnv();
     _sampler.fromEnv();
+    _headers.fromEnv();
 }
 
 }  // namespace jaegertracing

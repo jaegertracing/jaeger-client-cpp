@@ -194,6 +194,12 @@ TEST(Config, testFromEnv)
     ASSERT_EQ(std::string("host33:445"),
               config.reporter().localAgentHostPort());
 
+    testutils::EnvVariable::setEnv("JAEGER_PROPAGATION", "w3c");
+
+    config.fromEnv();
+    ASSERT_EQ(kW3CTraceContextHeaderName, config.headers().traceContextHeaderName());
+    ASSERT_EQ(propagation::Format::W3C, config.headers().traceContextHeaderFormat());
+
     testutils::EnvVariable::setEnv("JAEGER_AGENT_HOST", "");
     testutils::EnvVariable::setEnv("JAEGER_AGENT_PORT", "");
     testutils::EnvVariable::setEnv("JAEGER_ENDPOINT", "");
@@ -205,6 +211,7 @@ TEST(Config, testFromEnv)
     testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "");
     testutils::EnvVariable::setEnv("JAEGER_TAGS", "");
     testutils::EnvVariable::setEnv("JAEGER_DISABLED", "");
+    testutils::EnvVariable::setEnv("JAEGER_PROPAGATION", "");
 }
 
 }  // namespace jaegertracing

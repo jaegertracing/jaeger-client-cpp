@@ -19,6 +19,7 @@
 
 #include "jaegertracing/Constants.h"
 #include "jaegertracing/propagation/Format.h"
+#include "jaegertracing/utils/EnvVariable.h"
 #include "jaegertracing/utils/YAML.h"
 #include <string>
 
@@ -27,6 +28,9 @@ namespace propagation {
 
 class HeadersConfig {
   public:
+
+    static constexpr auto kJAEGER_PROPAGATION_ENV_PROP = "JAEGER_PROPAGATION";
+
 #ifdef JAEGERTRACING_WITH_YAML_CPP
 
     static HeadersConfig parse(const YAML::Node& configYAML)
@@ -126,6 +130,20 @@ class HeadersConfig {
     Format traceContextHeaderFormat() const
     {
         return _traceContextHeaderFormat;
+    }
+
+    void fromEnv() {
+        const auto propagationFormat =
+        utils::EnvVariable::getStringVariable(kJAEGER_PROPAGATION_ENV_PROP);
+        if (!propagationFormat.empty()) {
+            if(propagationFormat == "jaeger") {
+                _traceContextHeaderName = kTraceContextHeaderName;
+                _traceContextHeaderFormat: Format::JAEGER;
+            } else if(propagationFormat == "w3c") {
+                _traceContextHeaderName = kW3CTraceContextHeaderName;
+                _traceContextHeaderFormat = Format::W3C;
+            }
+        }
     }
 
   private:
