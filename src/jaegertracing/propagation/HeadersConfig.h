@@ -138,7 +138,7 @@ class HeadersConfig {
         if (!propagationFormat.empty()) {
             if(propagationFormat == "jaeger") {
                 _traceContextHeaderName = kTraceContextHeaderName;
-                _traceContextHeaderFormat: Format::JAEGER;
+                _traceContextHeaderFormat = Format::JAEGER;
             } else if(propagationFormat == "w3c") {
                 _traceContextHeaderName = kW3CTraceContextHeaderName;
                 _traceContextHeaderFormat = Format::W3C;
