@@ -503,6 +503,32 @@ TEST(Tracer, testPropagationWithW3CHeaderAndFormat)
     tracer->Close();
 }
 
+TEST(Tracer, testPropagationWithW3CTraceState)
+{
+    const auto handle =
+        testutils::TracerUtil::installGlobalTracer(propagation::Format::W3C);
+    const auto tracer =
+        std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
+    StrMap headerMap{
+        { kW3CTraceContextHeaderName,
+          "00-00000000000000000000000000000001-0000000000000001-01" },
+        { kW3CTraceStateHeaderName, "foo=bar" }
+    };
+
+    ReaderMock<opentracing::HTTPHeadersReader> headerReader(headerMap);
+    auto result = tracer->Extract(headerReader);
+    std::unique_ptr<const SpanContext> ctx(
+        static_cast<SpanContext*>(result->release()));
+    ASSERT_EQ("foo=bar", ctx->traceState());
+
+    headerMap.clear();
+
+    WriterMock<opentracing::HTTPHeadersWriter> headerWriter(headerMap);
+    tracer->Inject(*ctx, headerWriter);
+    ASSERT_EQ(2, headerMap.size());
+    ASSERT_EQ("foo=bar", headerMap.at(kW3CTraceStateHeaderName));
+}
+
 TEST(Tracer, testTracerTags)
 {
     std::vector<Tag> tags;

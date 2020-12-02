@@ -62,9 +62,10 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
         SpanContext ctx;
         StrMap baggage;
         std::string debugID;
+        std::string traceState;
         const auto result = reader.ForeachKey(
-            [this, &ctx, &debugID, &baggage](const std::string& rawKey,
-                                             const std::string& value) {
+            [this, &ctx, &debugID, &baggage, &traceState](
+                const std::string& rawKey, const std::string& value) {
                 const auto key = normalizeKey(rawKey);
                 if (key == _headerKeys.traceContextHeaderName()) {
                     const auto safeValue = decodeValue(value);
@@ -83,6 +84,9 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
                     for (auto&& pair : parseCommaSeparatedMap(value)) {
                         baggage[pair.first] = pair.second;
                     }
+                }
+                else if (key == _headerKeys.traceStateHeaderName()) {
+                    traceState = value;
                 }
                 else {
                     const auto prefix = _headerKeys.traceBaggageHeaderPrefix();
@@ -116,7 +120,8 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
                            ctx.parentID(),
                            flags,
                            baggage,
-                           debugID);
+                           debugID,
+                           traceState);
     }
 
     void inject(const SpanContext& ctx, const Writer& writer) const override
@@ -131,6 +136,10 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
                 writer.Set(safeKey, safeValue);
                 return true;
             });
+        if (!_headerKeys.traceStateHeaderName().empty() &&
+            !ctx.traceState().empty()) {
+            writer.Set(_headerKeys.traceStateHeaderName(), ctx.traceState());
+        }
     }
 
   protected:

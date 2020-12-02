@@ -56,13 +56,15 @@ class SpanContext : public opentracing::SpanContext {
                 uint64_t parentID,
                 unsigned char flags,
                 const StrMap& baggage,
-                const std::string& debugID = "")
+                const std::string& debugID = "",
+                const std::string& traceState = "")
         : _traceID(traceID)
         , _spanID(spanID)
         , _parentID(parentID)
         , _flags(flags)
         , _baggage(baggage)
         , _debugID(debugID)
+        , _traceState(traceState)
         , _mutex()
     {
     }
@@ -74,6 +76,7 @@ class SpanContext : public opentracing::SpanContext {
         , _flags(ctx._flags)
         , _baggage(ctx._baggage)
         , _debugID(ctx._debugID)
+        , _traceState(ctx._traceState)
     {
     }
 
@@ -92,6 +95,7 @@ class SpanContext : public opentracing::SpanContext {
         swap(_flags, ctx._flags);
         swap(_baggage, ctx._baggage);
         swap(_debugID, ctx._debugID);
+        swap(_traceState, ctx._traceState);
     }
 
     friend void swap(SpanContext& lhs, SpanContext& rhs) { lhs.swap(rhs); }
@@ -107,8 +111,13 @@ class SpanContext : public opentracing::SpanContext {
     SpanContext withBaggage(const StrMap& baggage) const
     {
         std::lock_guard<std::mutex> lock(_mutex);
-        return SpanContext(
-            _traceID, _spanID, _parentID, _flags, baggage, _debugID);
+        return SpanContext(_traceID,
+                           _spanID,
+                           _parentID,
+                           _flags,
+                           baggage,
+                           _debugID,
+                           _traceState);
     }
 
     template <typename Function>
@@ -136,6 +145,8 @@ class SpanContext : public opentracing::SpanContext {
     unsigned char flags() const { return _flags; }
 
     const std::string& debugID() const { return _debugID; }
+
+    const std::string& traceState() const { return _traceState; }
 
     bool isSampled() const
     {
@@ -208,7 +219,8 @@ class SpanContext : public opentracing::SpanContext {
         }
         return lhs._traceID == rhs._traceID && lhs._spanID == rhs._spanID &&
                lhs._parentID == rhs._parentID && lhs._flags == rhs._flags &&
-               lhs._debugID == rhs._debugID;
+               lhs._debugID == rhs._debugID &&
+               lhs._traceState == rhs._traceState;
     }
 
     friend bool operator!=(const SpanContext& lhs, const SpanContext& rhs)
@@ -226,6 +238,7 @@ class SpanContext : public opentracing::SpanContext {
     unsigned char _flags;
     StrMap _baggage;
     std::string _debugID;
+    std::string _traceState;
     mutable std::mutex _mutex;  // Protects _baggage.
 };
 

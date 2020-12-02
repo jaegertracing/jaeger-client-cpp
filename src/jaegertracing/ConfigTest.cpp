@@ -197,8 +197,12 @@ TEST(Config, testFromEnv)
     testutils::EnvVariable::setEnv("JAEGER_PROPAGATION", "w3c");
 
     config.fromEnv();
-    ASSERT_EQ(kW3CTraceContextHeaderName, config.headers().traceContextHeaderName());
-    ASSERT_EQ(propagation::Format::W3C, config.headers().traceContextHeaderFormat());
+    ASSERT_EQ(kW3CTraceContextHeaderName,
+              config.headers().traceContextHeaderName());
+    ASSERT_EQ(kW3CTraceStateHeaderName,
+              config.headers().traceStateHeaderName());
+    ASSERT_EQ(propagation::Format::W3C,
+              config.headers().traceContextHeaderFormat());
 
     testutils::EnvVariable::setEnv("JAEGER_AGENT_HOST", "");
     testutils::EnvVariable::setEnv("JAEGER_AGENT_PORT", "");

@@ -49,7 +49,7 @@ std::shared_ptr<ResourceHandle> installGlobalTracer(PropagationFormat format)
                           reporters::Config::Clock::duration(),
                           false,
                           handle->_mockAgent->spanServerAddress().authority()),
-        propagation::HeadersConfig("", "", "", "", format),
+        propagation::HeadersConfig("", "", "", "", "", format),
         baggage::RestrictionsConfig());
 
     auto tracer = Tracer::make("test-service", config, logging::nullLogger());
