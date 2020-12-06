@@ -18,8 +18,6 @@
 #define JAEGERTRACING_PROPAGATION_HEADERSCONFIG_H
 
 #include "jaegertracing/Constants.h"
-#include "jaegertracing/propagation/Format.h"
-#include "jaegertracing/utils/EnvVariable.h"
 #include "jaegertracing/utils/YAML.h"
 #include <string>
 
@@ -28,9 +26,6 @@ namespace propagation {
 
 class HeadersConfig {
   public:
-
-    static constexpr auto kJAEGER_PROPAGATION_ENV_PROP = "JAEGER_PROPAGATION";
-
 #ifdef JAEGERTRACING_WITH_YAML_CPP
 
     static HeadersConfig parse(const YAML::Node& configYAML)
@@ -50,26 +45,17 @@ class HeadersConfig {
         const auto traceBaggageHeaderPrefix =
             utils::yaml::findOrDefault<std::string>(
                 configYAML, "traceBaggageHeaderPrefix", "");
-        const auto traceStateHeaderName =
-            utils::yaml::findOrDefault<std::string>(
-                configYAML, "TraceStateHeaderName", "");
-        const auto traceContextHeaderFormat =
-            utils::yaml::findOrDefault<std::string>(
-                configYAML, "TraceContextHeaderFormat", "");
 
-        return HeadersConfig(
-            jaegerDebugHeader,
-            jaegerBaggageHeader,
-            traceContextHeaderName,
-            traceBaggageHeaderPrefix,
-            traceStateHeaderName,
-            traceContextHeaderFormat == "w3c" ? Format::W3C : Format::JAEGER);
+        return HeadersConfig(jaegerDebugHeader,
+                             jaegerBaggageHeader,
+                             traceContextHeaderName,
+                             traceBaggageHeaderPrefix);
     }
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
     HeadersConfig()
-        : HeadersConfig("", "", "", "", "", Format::JAEGER)
+        : HeadersConfig("", "", "", "")
     {
     }
 
@@ -88,35 +74,6 @@ class HeadersConfig {
         , _traceBaggageHeaderPrefix(traceBaggageHeaderPrefix.empty()
                                         ? kTraceBaggageHeaderPrefix
                                         : traceBaggageHeaderPrefix)
-        , _traceContextHeaderFormat(Format::JAEGER)
-    {
-    }
-
-    HeadersConfig(const std::string& jaegerDebugHeader,
-                  const std::string& jaegerBaggageHeader,
-                  const std::string& traceContextHeaderName,
-                  const std::string& traceBaggageHeaderPrefix,
-                  const std::string& traceStateHeaderName,
-                  Format traceContextHeaderFormat)
-        : _jaegerDebugHeader(jaegerDebugHeader.empty() ? kJaegerDebugHeader
-                                                       : jaegerDebugHeader)
-        , _jaegerBaggageHeader(jaegerBaggageHeader.empty()
-                                   ? kJaegerBaggageHeader
-                                   : jaegerBaggageHeader)
-        , _traceContextHeaderName(traceContextHeaderName.empty()
-                                      ? (traceContextHeaderFormat == Format::W3C
-                                             ? kW3CTraceContextHeaderName
-                                             : kTraceContextHeaderName)
-                                      : traceContextHeaderName)
-        , _traceBaggageHeaderPrefix(traceBaggageHeaderPrefix.empty()
-                                        ? kTraceBaggageHeaderPrefix
-                                        : traceBaggageHeaderPrefix)
-        , _traceStateHeaderName(traceStateHeaderName.empty()
-                                    ? (traceContextHeaderFormat == Format::W3C
-                                           ? kW3CTraceStateHeaderName
-                                           : "")
-                                    : traceStateHeaderName)
-        , _traceContextHeaderFormat(traceContextHeaderFormat)
     {
     }
 
@@ -137,40 +94,11 @@ class HeadersConfig {
         return _traceContextHeaderName;
     }
 
-    const std::string& traceStateHeaderName() const
-    {
-        return _traceStateHeaderName;
-    }
-
-    Format traceContextHeaderFormat() const
-    {
-        return _traceContextHeaderFormat;
-    }
-
-    void fromEnv()
-    {
-        const auto propagationFormat =
-            utils::EnvVariable::getStringVariable(kJAEGER_PROPAGATION_ENV_PROP);
-        if (!propagationFormat.empty()) {
-            if (propagationFormat == "jaeger") {
-                _traceContextHeaderName = kTraceContextHeaderName;
-                _traceContextHeaderFormat = Format::JAEGER;
-            }
-            else if (propagationFormat == "w3c") {
-                _traceContextHeaderName = kW3CTraceContextHeaderName;
-                _traceStateHeaderName = kW3CTraceStateHeaderName;
-                _traceContextHeaderFormat = Format::W3C;
-            }
-        }
-    }
-
   private:
     std::string _jaegerDebugHeader;
     std::string _jaegerBaggageHeader;
     std::string _traceContextHeaderName;
     std::string _traceBaggageHeaderPrefix;
-    std::string _traceStateHeaderName;
-    Format _traceContextHeaderFormat;
 };
 
 }  // namespace propagation

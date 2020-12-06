@@ -31,7 +31,8 @@ namespace jaegertracing {
 namespace testutils {
 namespace TracerUtil {
 
-std::shared_ptr<ResourceHandle> installGlobalTracer(PropagationFormat format)
+std::shared_ptr<ResourceHandle>
+installGlobalTracer(propagation::Format propagationFormat)
 {
     std::unique_ptr<ResourceHandle> handle(new ResourceHandle());
     handle->_mockAgent->start();
@@ -49,8 +50,11 @@ std::shared_ptr<ResourceHandle> installGlobalTracer(PropagationFormat format)
                           reporters::Config::Clock::duration(),
                           false,
                           handle->_mockAgent->spanServerAddress().authority()),
-        propagation::HeadersConfig("", "", "", "", "", format),
-        baggage::RestrictionsConfig());
+        propagation::HeadersConfig("", "", "", ""),
+        baggage::RestrictionsConfig(),
+        "",
+        std::vector<Tag>(),
+        propagationFormat);
 
     auto tracer = Tracer::make("test-service", config, logging::nullLogger());
     opentracing::Tracer::InitGlobal(tracer);
@@ -59,7 +63,7 @@ std::shared_ptr<ResourceHandle> installGlobalTracer(PropagationFormat format)
 
 std::shared_ptr<ResourceHandle> installGlobalTracer()
 {
-    return installGlobalTracer(PropagationFormat::JAEGER);
+    return installGlobalTracer(propagation::Format::JAEGER);
 }
 
 std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint)
@@ -68,13 +72,13 @@ std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint)
     Config config(
         false,
         samplers::Config("const",
-                         1,
-                         samplingServerURLStream.str(),
-                         0,
-                         samplers::Config::Clock::duration()),
+                                   1,
+                                   samplingServerURLStream.str(),
+                                   0,
+                                   samplers::Config::Clock::duration()),
         reporters::Config(0,
                           std::chrono::milliseconds(100),
-                          false, "", endpoint),
+                          false, "", endpoint),      
         propagation::HeadersConfig(),
         baggage::RestrictionsConfig());
 

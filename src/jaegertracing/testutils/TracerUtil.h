@@ -27,8 +27,6 @@ namespace jaegertracing {
 namespace testutils {
 namespace TracerUtil {
 
-using PropagationFormat = propagation::Format;
-
 struct ResourceHandle {
     ResourceHandle()
         : _mockAgent(testutils::MockAgent::make())
@@ -43,7 +41,7 @@ struct ResourceHandle {
     std::shared_ptr<MockAgent> _mockAgent;
 };
 
-std::shared_ptr<ResourceHandle> installGlobalTracer(PropagationFormat format);
+std::shared_ptr<ResourceHandle> installGlobalTracer(propagation::Format format);
 std::shared_ptr<ResourceHandle> installGlobalTracer();
 std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint);
 

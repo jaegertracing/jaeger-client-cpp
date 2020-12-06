@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2020 Uber Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,4 @@
  * limitations under the License.
  */
 
-#include "jaegertracing/TraceID.h"
-#include <gtest/gtest.h>
-#include <sstream>
-
-namespace jaegertracing {
-
-TEST(TraceID, testPrint)
-{
-    std::ostringstream oss;
-    oss << TraceID(0, 10);
-    ASSERT_EQ("a", oss.str());
-}
-
-}  // namespace jaegertracing
+#include "jaegertracing/propagation/W3CPropagator.h"

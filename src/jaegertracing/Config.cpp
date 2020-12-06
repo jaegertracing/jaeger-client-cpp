@@ -32,6 +32,17 @@ void Config::fromEnv()
         _disabled = disabled.second;
     }
 
+    const auto propagationFormat =
+        utils::EnvVariable::getStringVariable(kJAEGER_PROPAGATION_ENV_PROP);
+    if(!propagationFormat.empty()) {
+        if (propagationFormat == "w3c") {
+            _propagationFormat = propagation::Format::W3C;
+        }
+        else {
+            _propagationFormat = propagation::Format::JAEGER;
+        }
+    }
+
     const auto serviceName =
         utils::EnvVariable::getStringVariable(kJAEGER_SERVICE_NAME_ENV_PROP);
     if (!serviceName.empty()) {
@@ -62,7 +73,6 @@ void Config::fromEnv()
     }
     _reporter.fromEnv();
     _sampler.fromEnv();
-    _headers.fromEnv();
 }
 
 }  // namespace jaegertracing

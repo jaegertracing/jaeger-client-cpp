@@ -477,7 +477,8 @@ TEST(Tracer, testPropagationWithW3CHeaderAndFormat)
     oss << "00";
     oss << '-';
     oss << std::setw(16) << std::setfill('0') << std::hex
-        << spanContext.traceID().high() << std::hex
+        << spanContext.traceID().high();
+    oss << std::setw(16) << std::setfill('0') << std::hex
         << spanContext.traceID().low();
     oss << '-';
     oss << std::setw(16) << std::setfill('0') << std::hex
@@ -490,7 +491,7 @@ TEST(Tracer, testPropagationWithW3CHeaderAndFormat)
     ASSERT_TRUE(
         static_cast<bool>(tracer->Inject(span->context(), headerWriter)));
     ASSERT_EQ(1, headerMap.size());
-    ASSERT_EQ(oss.str(), headerMap.at(kW3CTraceContextHeaderName));
+    ASSERT_EQ(oss.str(), headerMap.at(kW3CTraceParentHeaderName));
 
     ReaderMock<opentracing::HTTPHeadersReader> headerReader(headerMap);
     auto result = tracer->Extract(headerReader);
@@ -510,7 +511,7 @@ TEST(Tracer, testPropagationWithW3CTraceState)
     const auto tracer =
         std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
     StrMap headerMap{
-        { kW3CTraceContextHeaderName,
+        { kW3CTraceParentHeaderName,
           "00-00000000000000000000000000000001-0000000000000001-01" },
         { kW3CTraceStateHeaderName, "foo=bar" }
     };

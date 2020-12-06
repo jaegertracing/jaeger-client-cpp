@@ -18,6 +18,8 @@
 #include "jaegertracing/Tracer.h"
 #include "jaegertracing/Reference.h"
 #include "jaegertracing/TraceID.h"
+#include "jaegertracing/propagation/JaegerPropagator.h"
+#include "jaegertracing/propagation/W3CPropagator.h"
 #include "jaegertracing/samplers/SamplingStatus.h"
 #include <algorithm>
 #include <cassert>
@@ -258,6 +260,22 @@ Tracer::make(const std::string& serviceName,
     }
 
     auto metrics = std::make_shared<metrics::Metrics>(statsFactory);
+
+    TextMapPropagator* textPropagator;
+    HTTPHeaderPropagator* httpHeaderPropagator;
+    if (config.propagationFormat() == propagation::Format::W3C) {
+        textPropagator =
+            new propagation::W3CTextMapPropagator(config.headers(), metrics);
+        httpHeaderPropagator =
+            new propagation::W3CHTTPHeaderPropagator(config.headers(), metrics);
+    }
+    else {
+        textPropagator =
+            new propagation::JaegerTextMapPropagator(config.headers(), metrics);
+        httpHeaderPropagator = new propagation::JaegerHTTPHeaderPropagator(
+            config.headers(), metrics);
+    }
+
     std::shared_ptr<samplers::Sampler> sampler(
         config.sampler().makeSampler(serviceName, *logger, *metrics));
     std::shared_ptr<reporters::Reporter> reporter(
@@ -267,7 +285,8 @@ Tracer::make(const std::string& serviceName,
                                               reporter,
                                               logger,
                                               metrics,
-                                              config.headers(),
+                                              textPropagator,
+                                              httpHeaderPropagator,
                                               config.tags(),
                                               options));
 }

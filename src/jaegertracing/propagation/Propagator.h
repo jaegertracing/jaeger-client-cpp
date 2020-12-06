@@ -40,7 +40,6 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
   public:
     using Reader = ReaderType;
     using Writer = WriterType;
-    using StrMap = SpanContext::StrMap;
 
     Propagator()
         : _headerKeys()
@@ -59,54 +58,21 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
 
     SpanContext extract(const Reader& reader) const override
     {
-        SpanContext ctx;
-        StrMap baggage;
         std::string debugID;
-        std::string traceState;
-        const auto result = reader.ForeachKey(
-            [this, &ctx, &debugID, &baggage, &traceState](
-                const std::string& rawKey, const std::string& value) {
+        const auto result =
+            reader.ForeachKey([this, &debugID](const std::string& rawKey,
+                                               const std::string& value) {
                 const auto key = normalizeKey(rawKey);
-                if (key == _headerKeys.traceContextHeaderName()) {
-                    const auto safeValue = decodeValue(value);
-                    std::istringstream iss(safeValue);
-                    ctx = SpanContext::fromStream(
-                        iss, _headerKeys.traceContextHeaderFormat());
-                    if (!iss || ctx == SpanContext()) {
-                        return opentracing::make_expected_from_error<void>(
-                            opentracing::span_context_corrupted_error);
-                    }
-                }
-                else if (key == _headerKeys.jaegerDebugHeader()) {
+                if (key == _headerKeys.jaegerDebugHeader()) {
                     debugID = value;
                 }
-                else if (key == _headerKeys.jaegerBaggageHeader()) {
-                    for (auto&& pair : parseCommaSeparatedMap(value)) {
-                        baggage[pair.first] = pair.second;
-                    }
-                }
-                else if (key == _headerKeys.traceStateHeaderName()) {
-                    traceState = value;
-                }
-                else {
-                    const auto prefix = _headerKeys.traceBaggageHeaderPrefix();
-                    if (key.size() >= prefix.size() &&
-                        key.substr(0, prefix.size()) == prefix) {
-                        const auto safeKey = removeBaggageKeyPrefix(key);
-                        const auto safeValue = decodeValue(value);
-                        baggage[safeKey] = safeValue;
-                    }
-                }
+
                 return opentracing::make_expected();
             });
 
-        if (!result &&
-            result.error() == opentracing::span_context_corrupted_error) {
-            _metrics->decodingErrors().inc(1);
-            return SpanContext();
-        }
-
-        if (!ctx.traceID().isValid() && debugID.empty() && baggage.empty()) {
+        SpanContext ctx = doExtract(reader);
+        if (!ctx.traceID().isValid() && ctx.baggage().empty() &&
+            debugID.empty()) {
             return SpanContext();
         }
 
@@ -119,30 +85,21 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
                            ctx.spanID(),
                            ctx.parentID(),
                            flags,
-                           baggage,
+                           ctx.baggage(),
                            debugID,
-                           traceState);
+                           ctx.traceState());
     }
 
     void inject(const SpanContext& ctx, const Writer& writer) const override
     {
-        std::ostringstream oss;
-        ctx.print(oss, _headerKeys.traceContextHeaderFormat());
-        writer.Set(_headerKeys.traceContextHeaderName(), oss.str());
-        ctx.forEachBaggageItem(
-            [this, &writer](const std::string& key, const std::string& value) {
-                const auto safeKey = addBaggageKeyPrefix(key);
-                const auto safeValue = encodeValue(value);
-                writer.Set(safeKey, safeValue);
-                return true;
-            });
-        if (!_headerKeys.traceStateHeaderName().empty() &&
-            !ctx.traceState().empty()) {
-            writer.Set(_headerKeys.traceStateHeaderName(), ctx.traceState());
-        }
+        doInject(ctx, writer);
     }
 
   protected:
+    virtual SpanContext doExtract(const Reader& reader) const = 0;
+
+    virtual void doInject(const SpanContext& ctx, const Writer& writer) const = 0;
+
     virtual std::string encodeValue(const std::string& str) const
     {
         return str;
@@ -158,67 +115,8 @@ class Propagator : public Extractor<ReaderType>, public Injector<WriterType> {
         return rawKey;
     }
 
-  private:
-    static StrMap parseCommaSeparatedMap(const std::string& escapedValue)
-    {
-        StrMap map;
-        std::istringstream iss(net::URI::queryUnescape(escapedValue));
-        std::string piece;
-        while (std::getline(iss, piece, ',')) {
-            const auto eqPos = piece.find('=');
-            if (eqPos != std::string::npos) {
-                const auto key = piece.substr(0, eqPos);
-                const auto value = piece.substr(eqPos + 1);
-                map[key] = value;
-            }
-        }
-        return map;
-    }
-
-    std::string addBaggageKeyPrefix(const std::string& key) const
-    {
-        return _headerKeys.traceBaggageHeaderPrefix() + key;
-    }
-
-    std::string removeBaggageKeyPrefix(const std::string& key) const
-    {
-        return key.substr(_headerKeys.traceBaggageHeaderPrefix().size());
-    }
-
     HeadersConfig _headerKeys;
     std::shared_ptr<metrics::Metrics> _metrics;
-};
-
-using TextMapPropagator = Propagator<const opentracing::TextMapReader&,
-                                     const opentracing::TextMapWriter&>;
-
-class HTTPHeaderPropagator
-    : public Propagator<const opentracing::HTTPHeadersReader&,
-                        const opentracing::HTTPHeadersWriter&> {
-  public:
-    using Propagator<Reader, Writer>::Propagator;
-
-  protected:
-    std::string encodeValue(const std::string& str) const override
-    {
-        return net::URI::queryEscape(str);
-    }
-
-    std::string decodeValue(const std::string& str) const override
-    {
-        return net::URI::queryUnescape(str);
-    }
-
-    std::string normalizeKey(const std::string& rawKey) const override
-    {
-        std::string key;
-        key.reserve(rawKey.size());
-        std::transform(std::begin(rawKey),
-                       std::end(rawKey),
-                       std::back_inserter(key),
-                       [](char ch) { return std::tolower(ch); });
-        return key;
-    }
 };
 
 class BinaryPropagator : public Extractor<std::istream&>,

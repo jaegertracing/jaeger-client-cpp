@@ -22,6 +22,7 @@
 #include "jaegertracing/Tag.h"
 #include "jaegertracing/baggage/RestrictionsConfig.h"
 #include "jaegertracing/propagation/HeadersConfig.h"
+#include "jaegertracing/propagation/Format.h"
 #include "jaegertracing/reporters/Config.h"
 #include "jaegertracing/samplers/Config.h"
 #include "jaegertracing/utils/YAML.h"
@@ -34,6 +35,7 @@ class Config {
     static constexpr auto kJAEGER_SERVICE_NAME_ENV_PROP = "JAEGER_SERVICE_NAME";
     static constexpr auto kJAEGER_TAGS_ENV_PROP = "JAEGER_TAGS";
     static constexpr auto kJAEGER_JAEGER_DISABLED_ENV_PROP = "JAEGER_DISABLED";
+    static constexpr auto kJAEGER_PROPAGATION_ENV_PROP = "JAEGER_PROPAGATION";
 
 #ifdef JAEGERTRACING_WITH_YAML_CPP
 
@@ -48,6 +50,8 @@ class Config {
 
         const auto disabled =
             utils::yaml::findOrDefault<bool>(configYAML, "disabled", false);
+        const auto propagationFormat = utils::yaml::findOrDefault<std::string>(
+            configYAML, "propagation_format", "jaeger");
         const auto samplerNode = configYAML["sampler"];
         const auto sampler = samplers::Config::parse(samplerNode);
         const auto reporterNode = configYAML["reporter"];
@@ -57,8 +61,15 @@ class Config {
         const auto baggageRestrictionsNode = configYAML["baggage_restrictions"];
         const auto baggageRestrictions =
             baggage::RestrictionsConfig::parse(baggageRestrictionsNode);
-        return Config(
-            disabled, sampler, reporter, headers, baggageRestrictions, serviceName);
+        return Config(disabled,
+                      sampler,
+                      reporter,
+                      headers,
+                      baggageRestrictions,
+                      serviceName,
+                      std::vector<Tag>(),
+                      propagationFormat == "w3c" ? propagation::Format::W3C
+                                                 : propagation::Format::JAEGER);
     }
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
@@ -71,8 +82,11 @@ class Config {
                     const baggage::RestrictionsConfig& baggageRestrictions =
                         baggage::RestrictionsConfig(),
                     const std::string& serviceName = "",
-                    const std::vector<Tag>&  tags = std::vector<Tag>())
+                    const std::vector<Tag>&  tags = std::vector<Tag>(),
+                    const propagation::Format propagationFormat =
+                        propagation::Format::JAEGER)
         : _disabled(disabled)
+        , _propagationFormat(propagationFormat)
         , _serviceName(serviceName)
         , _tags(tags)
         , _sampler(sampler)
@@ -83,6 +97,8 @@ class Config {
     }
 
     bool disabled() const { return _disabled; }
+
+    propagation::Format propagationFormat() const { return _propagationFormat; }
 
     const samplers::Config& sampler() const { return _sampler; }
 
@@ -103,6 +119,7 @@ class Config {
 
   private:
     bool _disabled;
+    propagation::Format _propagationFormat;
     std::string _serviceName;
     std::vector< Tag > _tags;
     samplers::Config _sampler;
