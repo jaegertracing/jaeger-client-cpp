@@ -17,7 +17,7 @@
 #ifndef JAEGERTRACING_PROPAGATION_W3CPROPAGATOR_H
 #define JAEGERTRACING_PROPAGATION_W3CPROPAGATOR_H
 
-#include "jaegertracing/propagation/propagator.h"
+#include "jaegertracing/propagation/Propagator.h"
 #include "jaegertracing/utils/HexParsing.h"
 
 namespace jaegertracing {

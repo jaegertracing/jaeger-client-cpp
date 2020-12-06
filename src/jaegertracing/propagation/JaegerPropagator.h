@@ -17,7 +17,7 @@
 #ifndef JAEGERTRACING_PROPAGATION_JAEGERPROPAGATOR_H
 #define JAEGERTRACING_PROPAGATION_JAEGERPROPAGATOR_H
 
-#include "jaegertracing/propagation/propagator.h"
+#include "jaegertracing/propagation/Propagator.h"
 
 namespace jaegertracing {
 namespace propagation {
