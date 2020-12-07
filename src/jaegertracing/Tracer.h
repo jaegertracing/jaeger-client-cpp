@@ -213,8 +213,8 @@ class Tracer : public opentracing::Tracer,
            const std::shared_ptr<reporters::Reporter>& reporter,
            const std::shared_ptr<logging::Logger>& logger,
            const std::shared_ptr<metrics::Metrics>& metrics,
-           const TextMapPropagator* textPropagator,
-           const HTTPHeaderPropagator* httpHeaderPropagator,
+           const std::shared_ptr<TextMapPropagator> &textPropagator,
+           const std::shared_ptr<HTTPHeaderPropagator> &httpHeaderPropagator,
            const std::vector<Tag>& tags,
            int options)
         : _serviceName(serviceName)
@@ -302,8 +302,8 @@ class Tracer : public opentracing::Tracer,
     std::shared_ptr<logging::Logger> _logger;
     mutable std::mt19937_64 _randomNumberGenerator;
     mutable std::mutex _randomMutex;
-    std::unique_ptr<const TextMapPropagator> _textPropagator;
-    std::unique_ptr<const HTTPHeaderPropagator> _httpHeaderPropagator;
+    std::shared_ptr<TextMapPropagator> _textPropagator;
+    std::shared_ptr<HTTPHeaderPropagator> _httpHeaderPropagator;
     propagation::BinaryPropagator _binaryPropagator;
     std::vector<Tag> _tags;
     std::unique_ptr<baggage::RestrictionManager> _restrictionManager;

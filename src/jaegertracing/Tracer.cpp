@@ -261,19 +261,22 @@ Tracer::make(const std::string& serviceName,
 
     auto metrics = std::make_shared<metrics::Metrics>(statsFactory);
 
-    TextMapPropagator* textPropagator;
-    HTTPHeaderPropagator* httpHeaderPropagator;
+    std::shared_ptr<TextMapPropagator> textPropagator;
+    std::shared_ptr<HTTPHeaderPropagator> httpHeaderPropagator;
     if (config.propagationFormat() == propagation::Format::W3C) {
-        textPropagator =
-            new propagation::W3CTextMapPropagator(config.headers(), metrics);
-        httpHeaderPropagator =
-            new propagation::W3CHTTPHeaderPropagator(config.headers(), metrics);
+        textPropagator = std::shared_ptr<TextMapPropagator>(
+            new propagation::W3CTextMapPropagator(config.headers(), metrics));
+        httpHeaderPropagator = std::shared_ptr<HTTPHeaderPropagator>(
+            new propagation::W3CHTTPHeaderPropagator(config.headers(),
+                                                     metrics));
     }
     else {
-        textPropagator =
-            new propagation::JaegerTextMapPropagator(config.headers(), metrics);
-        httpHeaderPropagator = new propagation::JaegerHTTPHeaderPropagator(
-            config.headers(), metrics);
+        textPropagator = std::shared_ptr<TextMapPropagator>(
+            new propagation::JaegerTextMapPropagator(config.headers(),
+                                                     metrics));
+        httpHeaderPropagator = std::shared_ptr<HTTPHeaderPropagator>(
+            new propagation::JaegerHTTPHeaderPropagator(config.headers(),
+                                                        metrics));
     }
 
     std::shared_ptr<samplers::Sampler> sampler(
