@@ -15,8 +15,8 @@ include(HunterGate)
 option(HUNTER_BUILD_SHARED_LIBS "Build Shared Library" ON)
 
 HunterGate(
-    URL "https://github.com/cpp-pm/hunter/archive/v0.23.249.tar.gz"
-    SHA1 "d45d77d8bba9da13e9290a180e0477e90accd89b"
+    URL "https://github.com/cpp-pm/hunter/archive/v0.23.289.tar.gz"
+    SHA1 "7d7323704780200a1575fc089d26f8a8a393a1fa"
     LOCAL # load `${CMAKE_CURRENT_LIST_DIR}/cmake/Hunter/config.cmake`
 )
 
@@ -26,7 +26,7 @@ option(JAEGERTRACING_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(cxx_flags -Wall -pedantic)
+  set(cxx_flags -Wall -pedantic -Wno-error=deprecated-copy)
   if(JAEGERTRACING_WARNINGS_AS_ERRORS)
     list(APPEND cxx_flags -Werror)
   endif()
@@ -102,8 +102,6 @@ if(JAEGERTRACING_WITH_YAML_CPP)
   # yaml-cpp-config.cmake file
   find_package(yaml-cpp CONFIG REQUIRED)
   if(HUNTER_ENABLED)
-      list(APPEND LIBS yaml-cpp::yaml-cpp)
-  else()
       list(APPEND LIBS yaml-cpp)
   endif()
   list(APPEND package_deps yaml-cpp)
@@ -113,6 +111,7 @@ include(CTest)
 if(BUILD_TESTING)
   hunter_add_package(GTest)
   find_package(GTest ${hunter_config} REQUIRED)
+
 
   if(JAEGERTRACING_COVERAGE)
       include(CodeCoverage)
