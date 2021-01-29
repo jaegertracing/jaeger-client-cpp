@@ -20,11 +20,18 @@
 
 namespace jaegertracing {
 
-TEST(TraceID, testPrint)
+TEST(TraceID, testPrintWithouthHigh)
 {
     std::ostringstream oss;
     oss << TraceID(0, 10);
-    ASSERT_EQ("a", oss.str());
+    ASSERT_EQ("000000000000000a", oss.str());
+}
+
+TEST(TraceID, testPrintWithHigh)
+{
+    std::ostringstream oss;
+    oss << TraceID(1, 10);
+    ASSERT_EQ("0000000000000001000000000000000a", oss.str());
 }
 
 }  // namespace jaegertracing

@@ -78,7 +78,7 @@ TEST(SpanContext, testFormatting)
     SpanContext spanContext(TraceID(255, 255), 0, 0, 0, SpanContext::StrMap());
     std::ostringstream oss;
     oss << spanContext;
-    ASSERT_EQ("ff00000000000000ff:0:0:0", oss.str());
+    ASSERT_EQ("00000000000000ff00000000000000ff:0000000000000000:0000000000000000:0", oss.str());
 }
 
 TEST(SpanContext, testBaggage)
