@@ -32,6 +32,12 @@ void Config::fromEnv()
         _disabled = disabled.second;
     }
 
+    const auto traceId128Bit =
+        utils::EnvVariable::getBoolVariable(kJAEGER_JAEGER_TRACEID_128BIT_ENV_PROP);
+    if (traceId128Bit.first) {
+        _traceId128Bit = traceId128Bit.second;
+    }
+
     const auto serviceName =
         utils::EnvVariable::getStringVariable(kJAEGER_SERVICE_NAME_ENV_PROP);
     if (!serviceName.empty()) {
