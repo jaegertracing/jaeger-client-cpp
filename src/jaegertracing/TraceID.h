@@ -43,8 +43,13 @@ class TraceID {
     template <typename Stream>
     void print(Stream& out) const
     {
-        out << std::setw(16) << std::setfill('0') << std::hex << _high
-            << std::setw(16) << std::setfill('0') << std::hex << _low;
+        if (_high == 0) {
+            out << std::setw(16) << std::setfill('0') << std::hex << _low;
+        }
+        else {
+            out << std::setw(16) << std::setfill('0') << std::hex << _high
+                << std::setw(16) << std::setfill('0') << std::hex << _low;
+        }
     }
 
     uint64_t high() const { return _high; }
