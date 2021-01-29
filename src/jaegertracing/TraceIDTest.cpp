@@ -24,7 +24,7 @@ TEST(TraceID, testPrint)
 {
     std::ostringstream oss;
     oss << TraceID(0, 10);
-    ASSERT_EQ("a", oss.str());
+    ASSERT_EQ("0000000000000000000000000000000a", oss.str());
 }
 
 }  // namespace jaegertracing
