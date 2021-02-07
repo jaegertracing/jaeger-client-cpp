@@ -82,7 +82,7 @@ class Tracer : public opentracing::Tracer,
          const std::shared_ptr<logging::Logger>& logger,
          metrics::StatsFactory& statsFactory)
     {
-        return make(serviceName, config, logger, statsFactory, 0);
+        return make(serviceName, config, logger, statsFactory, config.traceId128Bit() ? kGen128BitOption : 0);
     }
     static std::shared_ptr<opentracing::Tracer>
     make(const std::string& serviceName,

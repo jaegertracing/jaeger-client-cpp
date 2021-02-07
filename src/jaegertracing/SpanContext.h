@@ -167,8 +167,9 @@ class SpanContext : public opentracing::SpanContext {
     void print(Stream& out) const
     {
         _traceID.print(out);
-        out << ':' << std::hex << _spanID << ':' << std::hex << _parentID << ':'
-            << std::hex << static_cast<size_t>(_flags);
+        out << ':' << std::setw(16) << std::setfill('0') << std::hex << _spanID
+            << ':' << std::setw(16) << std::setfill('0') << std::hex << _parentID
+            << ':' << std::hex << static_cast<size_t>(_flags);
     }
 
     void ForeachBaggageItem(

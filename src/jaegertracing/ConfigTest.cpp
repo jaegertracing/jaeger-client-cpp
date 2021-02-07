@@ -33,6 +33,7 @@ TEST(Config, testParse)
     {
         constexpr auto kConfigYAML = R"cfg(
 disabled: true
+traceid_128bit: true
 sampler:
     type: probabilistic
     param: 0.001
@@ -62,6 +63,7 @@ baggage_restrictions:
     {
         Config::parse(YAML::Load(R"cfg(
 disabled: false
+traceid_128bit: false
 sampler: 1
 reporter: 2
 headers: 3
@@ -114,6 +116,7 @@ TEST(Config, testFromEnv)
     tags.emplace_back("my.app.version", std::string("1.2.3"));
 
     Config config(false,
+                  false,
                   samplers::Config("probabilistic",
                                    0.7,
                                    "http://host34:57/sampling",
@@ -157,6 +160,8 @@ TEST(Config, testFromEnv)
     testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "AService");
     testutils::EnvVariable::setEnv("JAEGER_TAGS", "hostname=foobar,my.app.version=4.5.6");
 
+    testutils::EnvVariable::setEnv("JAEGER_TRACEID_128BIT", "true");
+
     config.fromEnv();
 
     ASSERT_EQ(std::string("http://host34:56567"), config.reporter().endpoint());
@@ -182,6 +187,8 @@ TEST(Config, testFromEnv)
 
     ASSERT_EQ(false, config.disabled());
 
+    ASSERT_EQ(true, config.traceId128Bit());
+
     testutils::EnvVariable::setEnv("JAEGER_DISABLED", "TRue");  // case-insensitive
     testutils::EnvVariable::setEnv("JAEGER_AGENT_PORT", "445");
 
@@ -206,6 +213,7 @@ TEST(Config, testFromEnv)
     testutils::EnvVariable::setEnv("JAEGER_SERVICE_NAME", "");
     testutils::EnvVariable::setEnv("JAEGER_TAGS", "");
     testutils::EnvVariable::setEnv("JAEGER_DISABLED", "");
+    testutils::EnvVariable::setEnv("JAEGER_TRACE_ID_128BIT", "");
     testutils::EnvVariable::setEnv("JAEGER_PROPAGATION", "");
 }
 
