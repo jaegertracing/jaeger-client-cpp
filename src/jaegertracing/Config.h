@@ -50,8 +50,23 @@ class Config {
 
         const auto disabled =
             utils::yaml::findOrDefault<bool>(configYAML, "disabled", false);
-        const auto propagationFormat = utils::yaml::findOrDefault<std::string>(
+
+        const auto strPropagationFormat = utils::yaml::findOrDefault<std::string>(
             configYAML, "propagation_format", "jaeger");
+        propagation::Format propagationFormat;
+        if (strPropagationFormat == "w3c") {
+            propagationFormat = propagation::Format::W3C;
+        }
+        else if (strPropagationFormat == "jaeger") {
+            propagationFormat = propagation::Format::JAEGER;
+        }
+        else {
+            std::cerr << "ERROR: unknown propagation format '"
+                      << strPropagationFormat
+                      << "', falling back to jaeger propagation format";
+            propagationFormat = propagation::Format::JAEGER;
+        }
+
         const auto samplerNode = configYAML["sampler"];
         const auto sampler = samplers::Config::parse(samplerNode);
         const auto reporterNode = configYAML["reporter"];
@@ -68,8 +83,7 @@ class Config {
                       baggageRestrictions,
                       serviceName,
                       std::vector<Tag>(),
-                      propagationFormat == "w3c" ? propagation::Format::W3C
-                                                 : propagation::Format::JAEGER);
+                      propagationFormat);
     }
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP

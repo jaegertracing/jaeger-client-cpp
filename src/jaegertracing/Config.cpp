@@ -34,11 +34,17 @@ void Config::fromEnv()
 
     const auto propagationFormat =
         utils::EnvVariable::getStringVariable(kJAEGER_PROPAGATION_ENV_PROP);
-    if(!propagationFormat.empty()) {
+    if (!propagationFormat.empty()) {
         if (propagationFormat == "w3c") {
             _propagationFormat = propagation::Format::W3C;
         }
+        else if (propagationFormat == "jaeger") {
+            _propagationFormat = propagation::Format::JAEGER;
+        }
         else {
+            std::cerr << "ERROR: unknown propagation format '"
+                      << propagationFormat
+                      << "', falling back to jaeger propagation format";
             _propagationFormat = propagation::Format::JAEGER;
         }
     }
