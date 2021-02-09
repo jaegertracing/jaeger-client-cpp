@@ -73,7 +73,7 @@ TEST(ThriftSender, testManyMessages)
         std::static_pointer_cast<const Tracer>(opentracing::Tracer::Global());
 
     std::unique_ptr<utils::Transport> transporter(
-        new utils::UDPTransporter(handle->_mockAgent->spanServerAddress(), 0));
+        new utils::UDPTransporter(handle->_mockAgent->spanServerAddress(), 9216));
     ThriftSender sender(
         std::forward<std::unique_ptr<utils::Transport>>(transporter));
     constexpr auto kNumMessages = 2000;
