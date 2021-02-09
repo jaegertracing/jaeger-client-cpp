@@ -31,11 +31,6 @@ namespace jaegertracing {
 namespace testutils {
 namespace TracerUtil {
 
-std::shared_ptr<ResourceHandle> installGlobalTracer()
-{
-    return installGlobalTracer(false);
-}
-
 std::shared_ptr<ResourceHandle> installGlobalTracer(bool traceId128Bit)
 {
     std::unique_ptr<ResourceHandle> handle(new ResourceHandle());
@@ -61,6 +56,16 @@ std::shared_ptr<ResourceHandle> installGlobalTracer(bool traceId128Bit)
     auto tracer = Tracer::make("test-service", config, logging::nullLogger());
     opentracing::Tracer::InitGlobal(tracer);
     return std::move(handle);
+}
+
+std::shared_ptr<ResourceHandle> installGlobalTracer()
+{
+    return installGlobalTracer(false);
+}
+
+std::shared_ptr<ResourceHandle> installGlobalTracer128Bit()
+{
+    return installGlobalTracer(true);
 }
 
 std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint)

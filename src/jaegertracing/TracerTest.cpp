@@ -556,7 +556,7 @@ TEST(Tracer, testTracerSpanSelfRefWithOtherRefs)
 
 TEST(Tracer, testTracerWithTraceId128Bit)
 {
-    const auto handle = testutils::TracerUtil::installGlobalTracer(true);
+    const auto handle = testutils::TracerUtil::installGlobalTracer128Bit();
     const auto tracer = std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
     {
         auto span = tracer->StartSpan("test-operation");

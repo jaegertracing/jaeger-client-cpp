@@ -41,7 +41,7 @@ struct ResourceHandle {
 };
 
 std::shared_ptr<ResourceHandle> installGlobalTracer();
-std::shared_ptr<ResourceHandle> installGlobalTracer(bool traceId128Bit);
+std::shared_ptr<ResourceHandle> installGlobalTracer128Bit();
 std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint);
 
 }  // namespace TracerUtil
