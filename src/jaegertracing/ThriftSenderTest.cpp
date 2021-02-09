@@ -100,7 +100,7 @@ TEST(ThriftSender, testExceptions)
         MockUDPSender::ExceptionType::kString
     };
     for (auto type : exceptionTypes) {
-      MockThriftSender mockSender(net::IPAddress::v4("localhost", 0), 0, type);
+      MockThriftSender mockSender(net::IPAddress::v4("localhost", 1234), 0, type);
       mockSender.append(span);
         ASSERT_THROW(mockSender.flush(), Sender::Exception);
     }
