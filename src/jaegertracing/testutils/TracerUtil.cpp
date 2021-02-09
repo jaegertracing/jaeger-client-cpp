@@ -33,6 +33,11 @@ namespace TracerUtil {
 
 std::shared_ptr<ResourceHandle> installGlobalTracer()
 {
+    return installGlobalTracer(false);
+}
+
+std::shared_ptr<ResourceHandle> installGlobalTracer(bool traceId128Bit)
+{
     std::unique_ptr<ResourceHandle> handle(new ResourceHandle());
     handle->_mockAgent->start();
     std::ostringstream samplingServerURLStream;
@@ -40,7 +45,7 @@ std::shared_ptr<ResourceHandle> installGlobalTracer()
         << "http://" << handle->_mockAgent->samplingServerAddress().authority();
     Config config(
         false,
-        false,
+        traceId128Bit,
         samplers::Config("const",
                          1,
                          samplingServerURLStream.str(),

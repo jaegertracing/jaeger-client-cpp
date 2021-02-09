@@ -556,26 +556,16 @@ TEST(Tracer, testTracerSpanSelfRefWithOtherRefs)
 
 TEST(Tracer, testTracerWithTraceId128Bit)
 {
-    Config config(
-        false,
-        true,
-        samplers::Config(
-            "const", 1, "", 0, samplers::Config::Clock::duration()),
-        reporters::Config(0, std::chrono::milliseconds(100), false, "", ""),
-        propagation::HeadersConfig(),
-        baggage::RestrictionsConfig(),
-        "test-service",
-        std::vector<Tag>());
-
-    auto tracer = Tracer::make(config);
-
-    opentracing::StartSpanOptions options;
-    std::unique_ptr<Span> span(static_cast<Span*>(
-        tracer->StartSpanWithOptions("test-operation", options).release()));
-
-    auto traceID = span->context().traceID();
-
-    ASSERT_GT(traceID.high(), 0);
+    const auto handle = testutils::TracerUtil::installGlobalTracer(true);
+    const auto tracer = std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
+    {
+        auto span = tracer->StartSpan("test-operation");
+        ASSERT_TRUE(span);
+        auto jaegerSpan = dynamic_cast<jaegertracing::Span&>(*span.get());
+        auto traceID = jaegerSpan.context().traceID();
+        ASSERT_GT(traceID.high(), 0);
+    }
+    tracer->close();
 }
 
 }  // namespace jaegertracing
