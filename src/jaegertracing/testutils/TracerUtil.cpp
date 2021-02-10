@@ -31,8 +31,7 @@ namespace jaegertracing {
 namespace testutils {
 namespace TracerUtil {
 
-std::shared_ptr<ResourceHandle>
-installGlobalTracer(propagation::Format propagationFormat)
+std::shared_ptr<ResourceHandle> installGlobalTracer(bool traceId128Bit, propagation::Format propagationFormat)
 {
     std::unique_ptr<ResourceHandle> handle(new ResourceHandle());
     handle->_mockAgent->start();
@@ -41,7 +40,7 @@ installGlobalTracer(propagation::Format propagationFormat)
         << "http://" << handle->_mockAgent->samplingServerAddress().authority();
     Config config(
         false,
-        false,
+        traceId128Bit,
         samplers::Config("const",
                          1,
                          samplingServerURLStream.str(),
@@ -51,7 +50,7 @@ installGlobalTracer(propagation::Format propagationFormat)
                           reporters::Config::Clock::duration(),
                           false,
                           handle->_mockAgent->spanServerAddress().authority()),
-        propagation::HeadersConfig("", "", "", ""),
+        propagation::HeadersConfig(),
         baggage::RestrictionsConfig(),
         "",
         std::vector<Tag>(),
@@ -64,7 +63,17 @@ installGlobalTracer(propagation::Format propagationFormat)
 
 std::shared_ptr<ResourceHandle> installGlobalTracer()
 {
-    return installGlobalTracer(propagation::Format::JAEGER);
+    return installGlobalTracer(false, propagation::Format::JAEGER);
+}
+
+std::shared_ptr<ResourceHandle> installGlobalTracer128Bit()
+{
+    return installGlobalTracer(true, propagation::Format::JAEGER);
+}
+
+std::shared_ptr<ResourceHandle> installGlobalTracerW3CPropagation()
+{
+    return installGlobalTracer(false, propagation::Format::W3C);
 }
 
 std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint)
@@ -74,13 +83,13 @@ std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint)
         false,
         false,
         samplers::Config("const",
-                                   1,
-                                   samplingServerURLStream.str(),
-                                   0,
-                                   samplers::Config::Clock::duration()),
+                         1,
+                         samplingServerURLStream.str(),
+                         0,
+                         samplers::Config::Clock::duration()),
         reporters::Config(0,
                           std::chrono::milliseconds(100),
-                          false, "", endpoint),      
+                          false, "", endpoint),
         propagation::HeadersConfig(),
         baggage::RestrictionsConfig());
 

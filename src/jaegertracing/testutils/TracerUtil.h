@@ -41,8 +41,9 @@ struct ResourceHandle {
     std::shared_ptr<MockAgent> _mockAgent;
 };
 
-std::shared_ptr<ResourceHandle> installGlobalTracer(propagation::Format format);
 std::shared_ptr<ResourceHandle> installGlobalTracer();
+std::shared_ptr<ResourceHandle> installGlobalTracer128Bit();
+std::shared_ptr<ResourceHandle> installGlobalTracerW3CPropagation();
 std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint);
 
 }  // namespace TracerUtil
