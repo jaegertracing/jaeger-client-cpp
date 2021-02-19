@@ -470,29 +470,18 @@ TEST(Tracer, testPropagationWithW3CHeaderAndFormat)
         testutils::TracerUtil::installGlobalTracerW3CPropagation();
     const auto tracer =
         std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
-    const std::unique_ptr<Span> span(static_cast<Span*>(
-        tracer->StartSpanWithOptions("test-inject", {}).release()));
-    const auto spanContext = span->context();
-
-    std::ostringstream oss;
-    oss << "00";
-    oss << '-';
-    oss << std::setw(16) << std::setfill('0') << std::hex
-        << spanContext.traceID().high();
-    oss << std::setw(16) << std::setfill('0') << std::hex
-        << spanContext.traceID().low();
-    oss << '-';
-    oss << std::setw(16) << std::setfill('0') << std::hex
-        << spanContext.spanID();
-    oss << '-';
-    oss << (spanContext.isSampled() ? "01" : "00");
+    SpanContext spanContext(TraceID(1, 2),
+                            3,
+                            0,
+                            static_cast<unsigned char>(SpanContext::Flag::kSampled),
+                            StrMap());
 
     StrMap headerMap;
     WriterMock<opentracing::HTTPHeadersWriter> headerWriter(headerMap);
-    ASSERT_TRUE(
-        static_cast<bool>(tracer->Inject(span->context(), headerWriter)));
+    ASSERT_TRUE(static_cast<bool>(tracer->Inject(spanContext, headerWriter)));
     ASSERT_EQ(1, headerMap.size());
-    ASSERT_EQ(oss.str(), headerMap.at(kW3CTraceParentHeaderName));
+    ASSERT_EQ("00-00000000000000010000000000000002-0000000000000003-01",
+        headerMap.at(kW3CTraceParentHeaderName));
 
     ReaderMock<opentracing::HTTPHeadersReader> headerReader(headerMap);
     auto result = tracer->Extract(headerReader);
@@ -500,7 +489,7 @@ TEST(Tracer, testPropagationWithW3CHeaderAndFormat)
     std::unique_ptr<const SpanContext> extractedCtx(
         static_cast<SpanContext*>(result->release()));
     ASSERT_TRUE(static_cast<bool>(extractedCtx));
-    ASSERT_EQ(span->context(), *extractedCtx);
+    ASSERT_EQ(spanContext, *extractedCtx);
 
     tracer->Close();
 }
