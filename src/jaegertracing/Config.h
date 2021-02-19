@@ -55,21 +55,9 @@ class Config {
         const auto traceId128Bit =
             utils::yaml::findOrDefault<bool>(configYAML, "traceid_128bit", false);
 
-        const auto strPropagationFormat = utils::yaml::findOrDefault<std::string>(
-            configYAML, "propagation_format", "jaeger");
-        propagation::Format propagationFormat;
-        if (strPropagationFormat == "w3c") {
-            propagationFormat = propagation::Format::W3C;
-        }
-        else if (strPropagationFormat == "jaeger") {
-            propagationFormat = propagation::Format::JAEGER;
-        }
-        else {
-            std::cerr << "ERROR: unknown propagation format '"
-                      << strPropagationFormat
-                      << "', falling back to jaeger propagation format";
-            propagationFormat = propagation::Format::JAEGER;
-        }
+        const auto propagationFormat =
+            parsePropagationFormat(utils::yaml::findOrDefault<std::string>(
+                configYAML, "propagation_format", "jaeger"));
 
         const auto samplerNode = configYAML["sampler"];
         const auto sampler = samplers::Config::parse(samplerNode);
@@ -141,6 +129,9 @@ class Config {
     void fromEnv();
 
   private:
+    static propagation::Format
+    parsePropagationFormat(std::string strPropagationFormat);
+
     bool _disabled;
     bool _traceId128Bit;
     propagation::Format _propagationFormat;
