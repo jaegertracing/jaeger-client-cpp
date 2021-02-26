@@ -96,6 +96,17 @@ sampler:
     }
 }
 
+TEST(Config, testPropagationFormat)
+{
+    {
+        constexpr auto kConfigYAML = R"cfg(
+propagation_format: w3c
+)cfg";
+        const auto config = Config::parse(YAML::Load(kConfigYAML));
+        ASSERT_EQ(propagation::Format::W3C, config.propagationFormat());
+    }
+}
+
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
 TEST(Config, testFromEnv)
@@ -186,6 +197,11 @@ TEST(Config, testFromEnv)
     ASSERT_EQ(std::string("host33:445"),
               config.reporter().localAgentHostPort());
 
+    testutils::EnvVariable::setEnv("JAEGER_PROPAGATION", "w3c");
+
+    config.fromEnv();
+    ASSERT_EQ(propagation::Format::W3C, config.propagationFormat());
+
     testutils::EnvVariable::setEnv("JAEGER_AGENT_HOST", "");
     testutils::EnvVariable::setEnv("JAEGER_AGENT_PORT", "");
     testutils::EnvVariable::setEnv("JAEGER_ENDPOINT", "");
@@ -198,6 +214,7 @@ TEST(Config, testFromEnv)
     testutils::EnvVariable::setEnv("JAEGER_TAGS", "");
     testutils::EnvVariable::setEnv("JAEGER_DISABLED", "");
     testutils::EnvVariable::setEnv("JAEGER_TRACE_ID_128BIT", "");
+    testutils::EnvVariable::setEnv("JAEGER_PROPAGATION", "");
 }
 
 }  // namespace jaegertracing

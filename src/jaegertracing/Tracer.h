@@ -119,7 +119,7 @@ class Tracer : public opentracing::Tracer,
             return opentracing::make_expected_from_error<void>(
                 opentracing::invalid_span_context_error);
         }
-        _textPropagator.inject(*jaegerCtx, writer);
+        _textPropagator->inject(*jaegerCtx, writer);
         return opentracing::make_expected();
     }
 
@@ -132,7 +132,7 @@ class Tracer : public opentracing::Tracer,
             return opentracing::make_expected_from_error<void>(
                 opentracing::invalid_span_context_error);
         }
-        _httpHeaderPropagator.inject(*jaegerCtx, writer);
+        _httpHeaderPropagator->inject(*jaegerCtx, writer);
         return opentracing::make_expected();
     }
 
@@ -150,7 +150,7 @@ class Tracer : public opentracing::Tracer,
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(const opentracing::TextMapReader& reader) const override
     {
-        const auto spanContext = _textPropagator.extract(reader);
+        const auto spanContext = _textPropagator->extract(reader);
         if (spanContext == SpanContext()) {
             return std::unique_ptr<opentracing::SpanContext>();
         }
@@ -161,7 +161,7 @@ class Tracer : public opentracing::Tracer,
     opentracing::expected<std::unique_ptr<opentracing::SpanContext>>
     Extract(const opentracing::HTTPHeadersReader& reader) const override
     {
-        const auto spanContext = _httpHeaderPropagator.extract(reader);
+        const auto spanContext = _httpHeaderPropagator->extract(reader);
         if (spanContext == SpanContext()) {
             return std::unique_ptr<opentracing::SpanContext>();
         }
@@ -201,12 +201,20 @@ class Tracer : public opentracing::Tracer,
     }
 
   private:
+    using TextMapPropagator =
+        propagation::Propagator<const opentracing::TextMapReader&,
+                                const opentracing::TextMapWriter&>;
+    using HTTPHeaderPropagator =
+        propagation::Propagator<const opentracing::HTTPHeadersReader&,
+                                const opentracing::HTTPHeadersWriter&>;
+
     Tracer(const std::string& serviceName,
            const std::shared_ptr<samplers::Sampler>& sampler,
            const std::shared_ptr<reporters::Reporter>& reporter,
            const std::shared_ptr<logging::Logger>& logger,
            const std::shared_ptr<metrics::Metrics>& metrics,
-           const propagation::HeadersConfig& headersConfig,
+           const std::shared_ptr<TextMapPropagator> &textPropagator,
+           const std::shared_ptr<HTTPHeaderPropagator> &httpHeaderPropagator,
            const std::vector<Tag>& tags,
            int options)
         : _serviceName(serviceName)
@@ -216,8 +224,8 @@ class Tracer : public opentracing::Tracer,
         , _metrics(metrics)
         , _logger(logger)
         , _randomNumberGenerator()
-        , _textPropagator(headersConfig, _metrics)
-        , _httpHeaderPropagator(headersConfig, _metrics)
+        , _textPropagator(textPropagator)
+        , _httpHeaderPropagator(httpHeaderPropagator)
         , _binaryPropagator(_metrics)
         , _tags()
         , _restrictionManager(new baggage::DefaultRestrictionManager(0))
@@ -294,8 +302,8 @@ class Tracer : public opentracing::Tracer,
     std::shared_ptr<logging::Logger> _logger;
     mutable std::mt19937_64 _randomNumberGenerator;
     mutable std::mutex _randomMutex;
-    propagation::TextMapPropagator _textPropagator;
-    propagation::HTTPHeaderPropagator _httpHeaderPropagator;
+    std::shared_ptr<TextMapPropagator> _textPropagator;
+    std::shared_ptr<HTTPHeaderPropagator> _httpHeaderPropagator;
     propagation::BinaryPropagator _binaryPropagator;
     std::vector<Tag> _tags;
     std::unique_ptr<baggage::RestrictionManager> _restrictionManager;

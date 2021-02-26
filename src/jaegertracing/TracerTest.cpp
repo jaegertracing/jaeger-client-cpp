@@ -464,6 +464,62 @@ TEST(Tracer, testPropagation)
     tracer->Close();
 }
 
+TEST(Tracer, testPropagationWithW3CHeaderAndFormat)
+{
+    const auto handle =
+        testutils::TracerUtil::installGlobalTracerW3CPropagation();
+    const auto tracer =
+        std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
+    SpanContext spanContext(TraceID(1, 2),
+                            3,
+                            0,
+                            static_cast<unsigned char>(SpanContext::Flag::kSampled),
+                            StrMap());
+
+    StrMap headerMap;
+    WriterMock<opentracing::HTTPHeadersWriter> headerWriter(headerMap);
+    ASSERT_TRUE(static_cast<bool>(tracer->Inject(spanContext, headerWriter)));
+    ASSERT_EQ(1, headerMap.size());
+    ASSERT_EQ("00-00000000000000010000000000000002-0000000000000003-01",
+        headerMap.at(kW3CTraceParentHeaderName));
+
+    ReaderMock<opentracing::HTTPHeadersReader> headerReader(headerMap);
+    auto result = tracer->Extract(headerReader);
+    ASSERT_TRUE(static_cast<bool>(result));
+    std::unique_ptr<const SpanContext> extractedCtx(
+        static_cast<SpanContext*>(result->release()));
+    ASSERT_TRUE(static_cast<bool>(extractedCtx));
+    ASSERT_EQ(spanContext, *extractedCtx);
+
+    tracer->Close();
+}
+
+TEST(Tracer, testPropagationWithW3CTraceState)
+{
+    const auto handle =
+        testutils::TracerUtil::installGlobalTracerW3CPropagation();
+    const auto tracer =
+        std::static_pointer_cast<Tracer>(opentracing::Tracer::Global());
+    StrMap headerMap{
+        { kW3CTraceParentHeaderName,
+          "00-00000000000000000000000000000001-0000000000000001-01" },
+        { kW3CTraceStateHeaderName, "foo=bar" }
+    };
+
+    ReaderMock<opentracing::HTTPHeadersReader> headerReader(headerMap);
+    auto result = tracer->Extract(headerReader);
+    std::unique_ptr<const SpanContext> ctx(
+        static_cast<SpanContext*>(result->release()));
+    ASSERT_EQ("foo=bar", ctx->traceState());
+
+    headerMap.clear();
+
+    WriterMock<opentracing::HTTPHeadersWriter> headerWriter(headerMap);
+    tracer->Inject(*ctx, headerWriter);
+    ASSERT_EQ(2, headerMap.size());
+    ASSERT_EQ("foo=bar", headerMap.at(kW3CTraceStateHeaderName));
+}
+
 TEST(Tracer, testTracerTags)
 {
     std::vector<Tag> tags;

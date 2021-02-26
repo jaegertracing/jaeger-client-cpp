@@ -171,6 +171,8 @@ set(SRC
     src/jaegertracing/propagation/HeadersConfig.cpp
     src/jaegertracing/propagation/Injector.cpp
     src/jaegertracing/propagation/Propagator.cpp
+    src/jaegertracing/propagation/JaegerPropagator.cpp
+    src/jaegertracing/propagation/W3CPropagator.cpp
     src/jaegertracing/reporters/CompositeReporter.cpp
     src/jaegertracing/reporters/Config.cpp
     src/jaegertracing/reporters/InMemoryReporter.cpp
@@ -332,6 +334,7 @@ if(BUILD_TESTING)
       src/jaegertracing/net/http/MethodTest.cpp
       src/jaegertracing/net/http/ResponseTest.cpp
       src/jaegertracing/propagation/PropagatorTest.cpp
+      src/jaegertracing/propagation/W3CPropagatorTest.cpp
       src/jaegertracing/reporters/ConfigTest.cpp
       src/jaegertracing/reporters/ReporterTest.cpp
       src/jaegertracing/samplers/SamplerTest.cpp

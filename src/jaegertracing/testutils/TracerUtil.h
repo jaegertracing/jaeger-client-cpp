@@ -20,6 +20,7 @@
 #include <string>
 
 #include "jaegertracing/Tracer.h"
+#include "jaegertracing/propagation/Format.h"
 #include "jaegertracing/testutils/MockAgent.h"
 
 namespace jaegertracing {
@@ -42,6 +43,7 @@ struct ResourceHandle {
 
 std::shared_ptr<ResourceHandle> installGlobalTracer();
 std::shared_ptr<ResourceHandle> installGlobalTracer128Bit();
+std::shared_ptr<ResourceHandle> installGlobalTracerW3CPropagation();
 std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint);
 
 }  // namespace TracerUtil
