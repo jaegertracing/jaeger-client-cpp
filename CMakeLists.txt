@@ -20,7 +20,7 @@ HunterGate(
     LOCAL # load `${CMAKE_CURRENT_LIST_DIR}/cmake/Hunter/config.cmake`
 )
 
-project(jaegertracing VERSION 0.7.0)
+project(jaegertracing VERSION 0.7.1)
 
 option(JAEGERTRACING_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
