@@ -27,10 +27,9 @@ option(JAEGERTRACING_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(cxx_flags -Wall -pedantic -Wno-error=deprecated-copy)
-  # https://github.com/google/myanmar-tools/issues/42#issuecomment-575607626
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-copy")
+
   if(JAEGERTRACING_WARNINGS_AS_ERRORS)
-    list(APPEND cxx_flags -Werror)
+    list(APPEND cxx_flags -Wno-error=deprecated-copy)
   endif()
 endif()
 
