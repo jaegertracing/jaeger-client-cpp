@@ -26,7 +26,9 @@ option(JAEGERTRACING_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(cxx_flags -Wall -pedantic -Wno-error=deprecated-copy)
+  set(cxx_flags -Wall -pedantic)
+  # https://github.com/google/myanmar-tools/issues/42#issuecomment-575607626
+  list(APPEND cxx_flags -Wno-error=deprecated-copy)
   if(JAEGERTRACING_WARNINGS_AS_ERRORS)
     list(APPEND cxx_flags -Werror)
   endif()
@@ -239,7 +241,7 @@ function(update_path_for_test atest)
     # If dependent library is a DLL we have to add location of DLL to PATH
     set(new_path "")
 
-    foreach(LIB OpenTracing::opentracing yaml-cpp::yaml-cpp GTest::main)
+    foreach(LIB OpenTracing::opentracing yaml-cpp GTest::main)
       list(APPEND new_path $<TARGET_FILE_DIR:${LIB}>)
     endforeach()
     list(APPEND new_path $ENV{PATH})
