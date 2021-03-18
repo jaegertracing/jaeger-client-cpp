@@ -26,10 +26,10 @@ option(JAEGERTRACING_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(cxx_flags -Wall -pedantic -Wno-error=deprecated-copy)
+  set(cxx_flags -Wno-error=deprecated-copy) # -Wall -pedantic
 
   if(JAEGERTRACING_WARNINGS_AS_ERRORS)
-    list(APPEND cxx_flags -Wno-error=deprecated-copy)
+    # list(APPEND cxx_flags -Wno-error=deprecated-copy)
   endif()
 endif()
 
@@ -231,7 +231,7 @@ function(add_lib_deps lib)
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>)
   target_link_libraries(${lib} PUBLIC ${link_flags} ${LIBS})
-  target_compile_options(${lib} PUBLIC ${cxx_flags})
+  target_compile_options(${lib} PRIVATE ${cxx_flags})
 endfunction()
 
 function(update_path_for_test atest)
