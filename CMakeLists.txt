@@ -113,6 +113,7 @@ include(CTest)
 if(BUILD_TESTING)
   hunter_add_package(GTest)
   find_package(GTest ${hunter_config} REQUIRED)
+  target_compile_options(GTest PUBLIC -Wno-error=deprecated-copy)
 
   if(JAEGERTRACING_COVERAGE)
       include(CodeCoverage)
