@@ -113,7 +113,7 @@ include(CTest)
 if(BUILD_TESTING)
   hunter_add_package(GTest)
   find_package(GTest ${hunter_config} REQUIRED)
-  target_compile_options(GTest PUBLIC -Wno-error=deprecated-copy)
+  
 
   if(JAEGERTRACING_COVERAGE)
       include(CodeCoverage)
@@ -346,7 +346,7 @@ if(BUILD_TESTING)
       src/jaegertracing/utils/UDPSenderTest.cpp
       src/jaegertracing/utils/HTTPTransporterTest.cpp)
   target_link_libraries(
-      UnitTest PRIVATE testutils PUBLIC GTest::main ${JAEGERTRACING_LIB})
+      UnitTest PRIVATE testutils PUBLIC GTest::main ${JAEGERTRACING_LIB} -Wno-error=deprecated-copy)
   add_test(NAME UnitTest COMMAND UnitTest)
 
   update_path_for_test(UnitTest)
