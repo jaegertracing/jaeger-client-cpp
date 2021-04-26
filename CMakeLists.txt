@@ -15,14 +15,16 @@ include(HunterGate)
 option(HUNTER_BUILD_SHARED_LIBS "Build Shared Library" ON)
 
 HunterGate(
-    URL "https://github.com/cpp-pm/hunter/archive/v0.23.249.tar.gz"
-    SHA1 "d45d77d8bba9da13e9290a180e0477e90accd89b"
+    URL "https://github.com/cpp-pm/hunter/archive/v0.23.299.tar.gz"
+    SHA1 "3d215b4bfac80824778fe9a93510e5f651d79e3a"
     LOCAL # load `${CMAKE_CURRENT_LIST_DIR}/cmake/Hunter/config.cmake`
 )
 
 project(jaegertracing VERSION 0.7.1)
 
 option(JAEGERTRACING_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
+
+string(APPEND CMAKE_CXX_FLAGS " -Wno-error=deprecated-copy")
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -102,7 +104,7 @@ if(JAEGERTRACING_WITH_YAML_CPP)
   # yaml-cpp-config.cmake file
   find_package(yaml-cpp CONFIG REQUIRED)
   if(HUNTER_ENABLED)
-      list(APPEND LIBS yaml-cpp::yaml-cpp)
+      list(APPEND LIBS yaml-cpp)
   else()
       list(APPEND LIBS yaml-cpp)
   endif()
@@ -113,6 +115,7 @@ include(CTest)
 if(BUILD_TESTING)
   hunter_add_package(GTest)
   find_package(GTest ${hunter_config} REQUIRED)
+  #target_link_libraries(jaegertracing PUBLIC GTest::main)
 
   if(JAEGERTRACING_COVERAGE)
       include(CodeCoverage)
@@ -240,7 +243,7 @@ function(update_path_for_test atest)
     # If dependent library is a DLL we have to add location of DLL to PATH
     set(new_path "")
 
-    foreach(LIB OpenTracing::opentracing yaml-cpp::yaml-cpp GTest::main)
+    foreach(LIB OpenTracing::opentracing yaml-cpp GTest::main)
       list(APPEND new_path $<TARGET_FILE_DIR:${LIB}>)
     endforeach()
     list(APPEND new_path $ENV{PATH})
