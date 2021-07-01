@@ -13,29 +13,70 @@ env:
 
 jobs:
   build:
-
+    if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'ci osx') && !contains(github.event.head_commit.message, 'ci win')"
+    
     runs-on: ubuntu-latest
     
     steps:
 
-    - name: Set up cache
-      uses: actions/cache@v2
-      with:
-        path: ~\.hunter
-        key: ${{ runner.os }}-hunter-${{ hashFiles('**/') }}
-        restore-keys: |
-          ${{ runner.os }}-hunter-
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+          lfs: true
+          fetch-depth: 0
 
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Set up cache
+        uses: actions/cache@v2
+        with:
+          path: ~\.hunter
+          key: ${{ runner.os }}-hunter-${{ hashFiles('**/') }}
+          restore-keys: |
+            ${{ runner.os }}-hunter-
 
-    - name: Configure
-      run: cmake -Bbuild
+      - name: Set env
+        run: |
+          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo "GIT_TAG=$(git describe --tag --always --long | sed -e 's/\(.*\)-\(.*\)-.*/\1.\2/')" >> $GITHUB_ENV
+          echo "GIT_RELEASE_NOTES="$(git log $(git describe --tags --abbrev=0 --always)..HEAD --pretty=format:"%h - %s (%an)<br>")"" >> $GITHUB_ENV
 
-    - name: Build
-      run: cmake --build build -j4
+      - name: Configure
+        run: CXXFLAGS="-Wno-error=deprecated-copy" cmake -Bbuild
 
-    - name: Test
-      run: |
-        cd build
-        ctest -V --timeout 600
+      - name: Build
+        run: cmake --build build -j4
+
+      - name: Test
+        run: |
+          cd build
+          ctest -V --timeout 600
+
+      - name: Build plugin
+        run: |
+          chmod +x ./scripts/build-plugin.sh
+          ./scripts/build-plugin.sh
+
+      - name: create release ${{ env.GIT_TAG }}
+        if: github.ref == 'refs/heads/master'
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.GIT_TAG }}
+          release_name: ${{ format('{0} - {1}', env.GIT_TAG, 'Plugin Release') }}
+          body: ${{ env.GIT_RELEASE_NOTES }}
+          draft: false
+          prerelease: false
+
+      - name: upload release asset - libjaegertracing_plugin.so
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ '/home/runner/work/jaeger-client-cpp/jaeger-client-cpp/build/utest/libjaegertracing_plugin.so' }}
+          asset_name: ${{ 'libjaegertracing_plugin.so' }}
+          asset_content_type: application/zip
+

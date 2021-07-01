@@ -18,15 +18,17 @@ function main() {
     local: *;
 };
 EOF
-
+    CXXFLAGS="-Wno-error=deprecated-copy"
     cmake -DCMAKE_BUILD_TYPE=Release \
         -DJAEGERTRACING_PLUGIN=ON \
         -DBUILD_TESTING=ON \
         -DHUNTER_CONFIGURATION_TYPES=Release \
         ..
     make -j3
-    mv libjaegertracing_plugin.so /libjaegertracing_plugin.so
-    ./DynamicallyLoadTracerTest /libjaegertracing_plugin.so
+    pwd
+    mkdir ./utest
+    mv libjaegertracing_plugin.so ./utest/libjaegertracing_plugin.so
+    ./DynamicallyLoadTracerTest ./utest/libjaegertracing_plugin.so
 }
 
 main
