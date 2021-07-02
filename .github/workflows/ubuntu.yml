@@ -37,7 +37,8 @@ jobs:
       - name: Set env
         run: |
           echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-          echo "GIT_TAG=$(git describe --tag --always --long | sed -e 's/\(.*\)-\(.*\)-.*/\1.\2/')" >> $GITHUB_ENV
+          echo "GIT_TAG_NAME=$(git describe --tag --always --long | sed -e 's/v\([0-9].*\).\([0-9].*\).\([0-9].*\)-\(.*\)-.*/\1.\2.\4/')" >> $GITHUB_ENV
+          echo "GIT_TAG=v$GIT_TAG_NAME" >> $GITHUB_ENV
           echo "GIT_RELEASE_NOTES="$(git log $(git describe --tags --abbrev=0 --always)..HEAD --pretty=format:"%h - %s (%an)<br>")"" >> $GITHUB_ENV
 
       - name: Configure
@@ -64,7 +65,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.GIT_TAG }}
-          release_name: ${{ format('{0} - {1}', env.GIT_TAG, 'Plugin Release') }}
+          release_name: ${{ format('{0} {1} - {2}', '', env.GIT_TAG, 'Plugin') }}
           body: ${{ env.GIT_RELEASE_NOTES }}
           draft: false
           prerelease: false
