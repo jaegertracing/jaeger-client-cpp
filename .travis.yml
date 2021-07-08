@@ -52,6 +52,18 @@ matrix:
     - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_OPTIONS='-DCMAKE_BUILD_TYPE=Debug
       -DBUILD_SHARED_LIBS=ON -DJAEGERTRACING_COVERAGE=ON'"
   - os: linux
+    arch: ppc64le
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - *1
+        - g++-7
+    env:
+    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_OPTIONS='-DCMAKE_BUILD_TYPE=Debug
+      -DBUILD_SHARED_LIBS=ON -DJAEGERTRACING_COVERAGE=ON'"
+  - os: linux
     addons:
       apt:
         sources:
