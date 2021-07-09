@@ -1,5 +1,5 @@
 ARCH=`arch`
-if [[ "$ARCH" == "ppc64le" ]] 
+if [ "$ARCH" = "ppc64le" ]
 then
   apt-get install make gcc g++ wget libncurses5-dev -y
   wget https://cmake.org/files/v3.11/cmake-3.11.0.tar.gz
