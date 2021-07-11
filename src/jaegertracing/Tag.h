@@ -18,7 +18,6 @@
 #define JAEGERTRACING_TAG_H
 
 #include "jaegertracing/Compilers.h"
-#include "jaegertracing/utils/YAML.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -60,21 +59,6 @@ class Tag {
     const ValueType& value() const { return _value; }
 
     void thrift(thrift::Tag& tag) const;
-
-    static std::vector<Tag> parse(const YAML::Node& node) {
-        if (!node.IsDefined() || !node.IsMap()) {
-            return std::vector<Tag>();
-        }
-        std::vector<Tag> tags;
-        for (auto it=node.begin(); it != node.end(); it++) {
-            if (it->second.IsScalar()) {
-              std::string key = it->first.as<std::string>();
-              std::string value = it->second.as<std::string>();
-              tags.emplace_back(key, value);
-            }
-        }
-        return tags;
-    }
 
   private:
     std::string _key;

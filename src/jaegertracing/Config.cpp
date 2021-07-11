@@ -92,7 +92,22 @@ Config::parsePropagationFormat(std::string strPropagationFormat)
     return propagationFormat;
 }
 
-void Config::SetTag(const std::string& key, Tag::ValueType&& value)
+std::vector<Tag> Config::parseTags(const YAML::Node& node) {
+    if (!node.IsDefined() || !node.IsMap()) {
+        return std::vector<Tag>();
+    }
+    std::vector<Tag> tags;
+    for (auto it=node.begin(); it != node.end(); it++) {
+        if (it->second.IsScalar()) {
+          std::string key = it->first.as<std::string>();
+          std::string value = it->second.as<std::string>();
+          tags.emplace_back(key, value);
+        }
+    }
+    return tags;
+}
+
+void Config::setTag(const std::string& key, Tag::ValueType&& value)
 {
     _tags.push_back(Tag(key, value));
 }
