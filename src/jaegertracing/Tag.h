@@ -67,8 +67,8 @@ class Tag {
         }
         std::vector<Tag> tags;
         for (auto it=node.begin(); it != node.end(); it++) {
-            std::string key = it->first.as<std::string>();
             if (it->second.IsScalar()) {
+              std::string key = it->first.as<std::string>();
               std::string value = it->second.as<std::string>();
               tags.emplace_back(key, value);
             }
