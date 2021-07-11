@@ -92,4 +92,9 @@ Config::parsePropagationFormat(std::string strPropagationFormat)
     return propagationFormat;
 }
 
+void Config::SetTag(const std::string& key, Tag::ValueType&& value)
+{
+    _tags.push_back(Tag(key, value));
+}
+
 }  // namespace jaegertracing

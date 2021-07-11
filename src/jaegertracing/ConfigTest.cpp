@@ -107,7 +107,36 @@ propagation_format: w3c
     }
 }
 
+TEST(Config, testTags)
+{
+    {
+        constexpr auto kConfigYAML = R"cfg(
+tags:
+    some_tag: some value
+    ignored:
+        a: 1
+        b: 2
+)cfg";
+        const auto config = Config::parse(YAML::Load(kConfigYAML));
+        std::vector<Tag> expectedTags;
+        expectedTags.emplace_back("some_tag", std::string("some value"));
+        ASSERT_EQ(expectedTags, config.tags());
+    }
+}
+
 #endif  // JAEGERTRACING_WITH_YAML_CPP
+
+TEST(Config, testSetTag)
+{
+    Config config;
+    std::vector<Tag> expectedTags;
+    ASSERT_EQ(expectedTags, config.tags());
+    config.SetTag("tag1", "test");
+    config.SetTag("tag2", 2);
+    expectedTags.push_back(Tag("tag1", "test"));
+    expectedTags.push_back(Tag("tag2", 2));
+    ASSERT_EQ(expectedTags, config.tags());
+}
 
 TEST(Config, testFromEnv)
 {

@@ -1,6 +1,9 @@
 disabled: false
 reporter:
     logSpans: true
+tags:
+  tag1: some value
+  tag2: 1337
 sampler:
   type: const
   param: 1
