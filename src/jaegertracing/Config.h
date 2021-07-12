@@ -128,9 +128,6 @@ class Config {
 
     const std::vector<Tag>& tags() const { return _tags; }
 
-    // set a tracer-level tag
-    void setTag(const std::string& key, Tag::ValueType&& value);
-
     void fromEnv();
 
   private:
