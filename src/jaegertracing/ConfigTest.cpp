@@ -126,18 +126,6 @@ tags:
 
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
-TEST(Config, testSetTag)
-{
-    Config config;
-    std::vector<Tag> expectedTags;
-    ASSERT_EQ(expectedTags, config.tags());
-    config.setTag("tag1", std::string("test"));
-    config.setTag("tag2", 2);
-    ASSERT_EQ(2, config.tags().size());
-    ASSERT_EQ(Tag("tag1", std::string("test")), config.tags()[0]);
-    ASSERT_EQ(Tag("tag2", 2), config.tags()[1]);
-}
-
 TEST(Config, testFromEnv)
 {
     std::vector<Tag> tags;

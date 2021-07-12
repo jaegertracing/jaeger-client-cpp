@@ -107,9 +107,4 @@ std::vector<Tag> Config::parseTags(const YAML::Node& node) {
     return tags;
 }
 
-void Config::setTag(const std::string& key, Tag::ValueType&& value)
-{
-    _tags.push_back(Tag(key, value));
-}
-
 }  // namespace jaegertracing
