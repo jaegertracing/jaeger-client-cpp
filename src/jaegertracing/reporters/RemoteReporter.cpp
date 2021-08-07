@@ -95,9 +95,11 @@ void RemoteReporter::sweepQueue() noexcept
                 const auto span = _queue.front();
                 _queue.pop_front();
                 --_queueLength;
+                lock.unlock();
                 sendSpan(span);
             }
             else if (bufferFlushIntervalExpired()) {
+                lock.unlock();
                 flush();
             }
         } catch (...) {
