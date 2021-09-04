@@ -18,6 +18,11 @@ jobs:
     
     steps:
 
+    - name: Set up GCC
+      uses: egor-tensin/setup-gcc@v1
+      with:
+        version: 7
+
     - name: Set up cache
       uses: actions/cache@v2
       with:
