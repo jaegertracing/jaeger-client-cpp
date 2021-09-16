@@ -1,10 +1,24 @@
 Changes by Version
 ==================
 
-0.6.1 (unreleased)
+0.8.1 (unreleased)
 ------------------
 
-- Nothing yet.
+--- Nothing yet.
+
+
+0.8.0 (2021-09-13)
+------------------
+
+- Add support for setting tracer tags via the configuration (#284) -- Tobias Stadler
+
+
+0.7.0 (2021-02-28)
+------------------
+
+- Add support for W3C traceparent/tracestate propagation (#255)
+- Add support for generating 128 bit trace ids (#254)
+- Do not strip leading zeros from trace IDs and span IDs (#259)
 
 
 0.6.0 (2020-06-08)

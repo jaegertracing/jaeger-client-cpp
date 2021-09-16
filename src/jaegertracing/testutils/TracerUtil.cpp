@@ -31,7 +31,7 @@ namespace jaegertracing {
 namespace testutils {
 namespace TracerUtil {
 
-std::shared_ptr<ResourceHandle> installGlobalTracer()
+std::shared_ptr<ResourceHandle> installGlobalTracer(bool traceId128Bit, propagation::Format propagationFormat)
 {
     std::unique_ptr<ResourceHandle> handle(new ResourceHandle());
     handle->_mockAgent->start();
@@ -40,6 +40,7 @@ std::shared_ptr<ResourceHandle> installGlobalTracer()
         << "http://" << handle->_mockAgent->samplingServerAddress().authority();
     Config config(
         false,
+        traceId128Bit,
         samplers::Config("const",
                          1,
                          samplingServerURLStream.str(),
@@ -50,17 +51,36 @@ std::shared_ptr<ResourceHandle> installGlobalTracer()
                           false,
                           handle->_mockAgent->spanServerAddress().authority()),
         propagation::HeadersConfig(),
-        baggage::RestrictionsConfig());
+        baggage::RestrictionsConfig(),
+        "",
+        std::vector<Tag>(),
+        propagationFormat);
 
     auto tracer = Tracer::make("test-service", config, logging::nullLogger());
     opentracing::Tracer::InitGlobal(tracer);
     return std::move(handle);
 }
 
+std::shared_ptr<ResourceHandle> installGlobalTracer()
+{
+    return installGlobalTracer(false, propagation::Format::JAEGER);
+}
+
+std::shared_ptr<ResourceHandle> installGlobalTracer128Bit()
+{
+    return installGlobalTracer(true, propagation::Format::JAEGER);
+}
+
+std::shared_ptr<ResourceHandle> installGlobalTracerW3CPropagation()
+{
+    return installGlobalTracer(false, propagation::Format::W3C);
+}
+
 std::shared_ptr<opentracing::Tracer> buildTracer(const std::string& endpoint)
 {
     std::ostringstream samplingServerURLStream;
     Config config(
+        false,
         false,
         samplers::Config("const",
                          1,

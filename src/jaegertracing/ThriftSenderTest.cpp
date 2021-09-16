@@ -73,7 +73,7 @@ TEST(ThriftSender, testManyMessages)
         std::static_pointer_cast<const Tracer>(opentracing::Tracer::Global());
 
     std::unique_ptr<utils::Transport> transporter(
-        new utils::UDPTransporter(handle->_mockAgent->spanServerAddress(), 0));
+        new utils::UDPTransporter(handle->_mockAgent->spanServerAddress(), 9216));
     ThriftSender sender(
         std::forward<std::unique_ptr<utils::Transport>>(transporter));
     constexpr auto kNumMessages = 2000;
@@ -100,7 +100,7 @@ TEST(ThriftSender, testExceptions)
         MockUDPSender::ExceptionType::kString
     };
     for (auto type : exceptionTypes) {
-      MockThriftSender mockSender(net::IPAddress::v4("localhost", 0), 0, type);
+      MockThriftSender mockSender(net::IPAddress::v4("localhost", 1234), 0, type);
       mockSender.append(span);
         ASSERT_THROW(mockSender.flush(), Sender::Exception);
     }

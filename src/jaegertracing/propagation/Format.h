@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Uber Technologies, Inc.
+ * Copyright (c) 2020 The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,15 @@
  * limitations under the License.
  */
 
-#include "jaegertracing/TraceID.h"
-#include <gtest/gtest.h>
-#include <sstream>
+#ifndef JAEGERTRACING_PROPAGATION_FORMAT_H
+#define JAEGERTRACING_PROPAGATION_FORMAT_H
 
 namespace jaegertracing {
+namespace propagation {
 
-TEST(TraceID, testPrintWithouthHigh)
-{
-    std::ostringstream oss;
-    oss << TraceID(0, 10);
-    ASSERT_EQ("000000000000000a", oss.str());
-}
+enum Format { JAEGER, W3C };
 
-TEST(TraceID, testPrintWithHigh)
-{
-    std::ostringstream oss;
-    oss << TraceID(1, 10);
-    ASSERT_EQ("0000000000000001000000000000000a", oss.str());
-}
-
+}  // namespace propagation
 }  // namespace jaegertracing
+
+#endif  // JAEGERTRACING_PROPAGATION_FORMAT_H

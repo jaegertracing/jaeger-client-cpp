@@ -32,6 +32,18 @@ void Config::fromEnv()
         _disabled = disabled.second;
     }
 
+    const auto traceId128Bit = utils::EnvVariable::getBoolVariable(
+        kJAEGER_JAEGER_TRACEID_128BIT_ENV_PROP);
+    if (traceId128Bit.first) {
+        _traceId128Bit = traceId128Bit.second;
+    }
+
+    const auto propagationFormat =
+        utils::EnvVariable::getStringVariable(kJAEGER_PROPAGATION_ENV_PROP);
+    if (!propagationFormat.empty()) {
+        _propagationFormat = parsePropagationFormat(propagationFormat);
+    }
+
     const auto serviceName =
         utils::EnvVariable::getStringVariable(kJAEGER_SERVICE_NAME_ENV_PROP);
     if (!serviceName.empty()) {
@@ -62,6 +74,22 @@ void Config::fromEnv()
     }
     _reporter.fromEnv();
     _sampler.fromEnv();
+}
+
+propagation::Format
+Config::parsePropagationFormat(std::string strPropagationFormat)
+{
+    auto propagationFormat = propagation::Format::JAEGER;
+    if (strPropagationFormat == "w3c") {
+        propagationFormat = propagation::Format::W3C;
+    }
+    else if (strPropagationFormat != "jaeger") {
+        std::cerr << "ERROR: unknown propagation format '"
+                  << strPropagationFormat
+                  << "', falling back to jaeger propagation format";
+    }
+
+    return propagationFormat;
 }
 
 }  // namespace jaegertracing
