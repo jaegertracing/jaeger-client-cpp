@@ -44,7 +44,7 @@ class BaggageRestrictionManagerIfFactory {
 
 class BaggageRestrictionManagerIfSingletonFactory : virtual public BaggageRestrictionManagerIfFactory {
  public:
-  BaggageRestrictionManagerIfSingletonFactory(const ::apache::thrift::stdcxx::shared_ptr<BaggageRestrictionManagerIf>& iface) : iface_(iface) {}
+  BaggageRestrictionManagerIfSingletonFactory(const ::std::shared_ptr<BaggageRestrictionManagerIf>& iface) : iface_(iface) {}
   virtual ~BaggageRestrictionManagerIfSingletonFactory() {}
 
   virtual BaggageRestrictionManagerIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
@@ -53,7 +53,7 @@ class BaggageRestrictionManagerIfSingletonFactory : virtual public BaggageRestri
   virtual void releaseHandler(BaggageRestrictionManagerIf* /* handler */) {}
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<BaggageRestrictionManagerIf> iface_;
+  ::std::shared_ptr<BaggageRestrictionManagerIf> iface_;
 };
 
 class BaggageRestrictionManagerNull : virtual public BaggageRestrictionManagerIf {
@@ -170,42 +170,42 @@ class BaggageRestrictionManager_getBaggageRestrictions_presult {
 
 class BaggageRestrictionManagerClient : virtual public BaggageRestrictionManagerIf {
  public:
-  BaggageRestrictionManagerClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  BaggageRestrictionManagerClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  BaggageRestrictionManagerClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  BaggageRestrictionManagerClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void getBaggageRestrictions(std::vector<BaggageRestriction> & _return, const std::string& serviceName);
   void send_getBaggageRestrictions(const std::string& serviceName);
   void recv_getBaggageRestrictions(std::vector<BaggageRestriction> & _return);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
 };
 
 class BaggageRestrictionManagerProcessor : public ::apache::thrift::TDispatchProcessor {
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<BaggageRestrictionManagerIf> iface_;
+  ::std::shared_ptr<BaggageRestrictionManagerIf> iface_;
   virtual bool dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext);
  private:
   typedef  void (BaggageRestrictionManagerProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
@@ -213,7 +213,7 @@ class BaggageRestrictionManagerProcessor : public ::apache::thrift::TDispatchPro
   ProcessMap processMap_;
   void process_getBaggageRestrictions(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
-  BaggageRestrictionManagerProcessor(::apache::thrift::stdcxx::shared_ptr<BaggageRestrictionManagerIf> iface) :
+  BaggageRestrictionManagerProcessor(::std::shared_ptr<BaggageRestrictionManagerIf> iface) :
     iface_(iface) {
     processMap_["getBaggageRestrictions"] = &BaggageRestrictionManagerProcessor::process_getBaggageRestrictions;
   }
@@ -223,24 +223,24 @@ class BaggageRestrictionManagerProcessor : public ::apache::thrift::TDispatchPro
 
 class BaggageRestrictionManagerProcessorFactory : public ::apache::thrift::TProcessorFactory {
  public:
-  BaggageRestrictionManagerProcessorFactory(const ::apache::thrift::stdcxx::shared_ptr< BaggageRestrictionManagerIfFactory >& handlerFactory) :
+  BaggageRestrictionManagerProcessorFactory(const ::std::shared_ptr< BaggageRestrictionManagerIfFactory >& handlerFactory) :
       handlerFactory_(handlerFactory) {}
 
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr< BaggageRestrictionManagerIfFactory > handlerFactory_;
+  ::std::shared_ptr< BaggageRestrictionManagerIfFactory > handlerFactory_;
 };
 
 class BaggageRestrictionManagerMultiface : virtual public BaggageRestrictionManagerIf {
  public:
-  BaggageRestrictionManagerMultiface(std::vector<apache::thrift::stdcxx::shared_ptr<BaggageRestrictionManagerIf> >& ifaces) : ifaces_(ifaces) {
+  BaggageRestrictionManagerMultiface(std::vector<std::shared_ptr<BaggageRestrictionManagerIf> >& ifaces) : ifaces_(ifaces) {
   }
   virtual ~BaggageRestrictionManagerMultiface() {}
  protected:
-  std::vector<apache::thrift::stdcxx::shared_ptr<BaggageRestrictionManagerIf> > ifaces_;
+  std::vector<std::shared_ptr<BaggageRestrictionManagerIf> > ifaces_;
   BaggageRestrictionManagerMultiface() {}
-  void add(::apache::thrift::stdcxx::shared_ptr<BaggageRestrictionManagerIf> iface) {
+  void add(::std::shared_ptr<BaggageRestrictionManagerIf> iface) {
     ifaces_.push_back(iface);
   }
  public:
@@ -261,35 +261,35 @@ class BaggageRestrictionManagerMultiface : virtual public BaggageRestrictionMana
 // only be used when you need to share a connection among multiple threads
 class BaggageRestrictionManagerConcurrentClient : virtual public BaggageRestrictionManagerIf {
  public:
-  BaggageRestrictionManagerConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  BaggageRestrictionManagerConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  BaggageRestrictionManagerConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  BaggageRestrictionManagerConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void getBaggageRestrictions(std::vector<BaggageRestriction> & _return, const std::string& serviceName);
   int32_t send_getBaggageRestrictions(const std::string& serviceName);
   void recv_getBaggageRestrictions(std::vector<BaggageRestriction> & _return, const int32_t seqid);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
   ::apache::thrift::async::TConcurrentClientSyncInfo sync_;

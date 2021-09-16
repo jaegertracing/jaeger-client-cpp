@@ -386,10 +386,10 @@ void CollectorProcessor::process_submitBatches(int32_t seqid, ::apache::thrift::
   }
 }
 
-::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > CollectorProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
+::std::shared_ptr< ::apache::thrift::TProcessor > CollectorProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
   ::apache::thrift::ReleaseHandler< CollectorIfFactory > cleanup(handlerFactory_);
-  ::apache::thrift::stdcxx::shared_ptr< CollectorIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > processor(new CollectorProcessor(handler));
+  ::std::shared_ptr< CollectorIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > processor(new CollectorProcessor(handler));
   return processor;
 }
 

@@ -464,10 +464,10 @@ void DependencyProcessor::process_saveDependencies(int32_t, ::apache::thrift::pr
   return;
 }
 
-::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > DependencyProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
+::std::shared_ptr< ::apache::thrift::TProcessor > DependencyProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
   ::apache::thrift::ReleaseHandler< DependencyIfFactory > cleanup(handlerFactory_);
-  ::apache::thrift::stdcxx::shared_ptr< DependencyIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > processor(new DependencyProcessor(handler));
+  ::std::shared_ptr< DependencyIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > processor(new DependencyProcessor(handler));
   return processor;
 }
 
