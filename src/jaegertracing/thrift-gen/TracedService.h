@@ -37,7 +37,7 @@ class TracedServiceIfFactory {
 
 class TracedServiceIfSingletonFactory : virtual public TracedServiceIfFactory {
  public:
-  TracedServiceIfSingletonFactory(const ::apache::thrift::stdcxx::shared_ptr<TracedServiceIf>& iface) : iface_(iface) {}
+  TracedServiceIfSingletonFactory(const ::std::shared_ptr<TracedServiceIf>& iface) : iface_(iface) {}
   virtual ~TracedServiceIfSingletonFactory() {}
 
   virtual TracedServiceIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
@@ -46,7 +46,7 @@ class TracedServiceIfSingletonFactory : virtual public TracedServiceIfFactory {
   virtual void releaseHandler(TracedServiceIf* /* handler */) {}
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<TracedServiceIf> iface_;
+  ::std::shared_ptr<TracedServiceIf> iface_;
 };
 
 class TracedServiceNull : virtual public TracedServiceIf {
@@ -270,27 +270,27 @@ class TracedService_joinTrace_presult {
 
 class TracedServiceClient : virtual public TracedServiceIf {
  public:
-  TracedServiceClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  TracedServiceClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  TracedServiceClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  TracedServiceClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void startTrace(TraceResponse& _return, const StartTraceRequest& request);
@@ -300,15 +300,15 @@ class TracedServiceClient : virtual public TracedServiceIf {
   void send_joinTrace(const JoinTraceRequest& request);
   void recv_joinTrace(TraceResponse& _return);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
 };
 
 class TracedServiceProcessor : public ::apache::thrift::TDispatchProcessor {
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<TracedServiceIf> iface_;
+  ::std::shared_ptr<TracedServiceIf> iface_;
   virtual bool dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext);
  private:
   typedef  void (TracedServiceProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
@@ -317,7 +317,7 @@ class TracedServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_startTrace(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_joinTrace(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
-  TracedServiceProcessor(::apache::thrift::stdcxx::shared_ptr<TracedServiceIf> iface) :
+  TracedServiceProcessor(::std::shared_ptr<TracedServiceIf> iface) :
     iface_(iface) {
     processMap_["startTrace"] = &TracedServiceProcessor::process_startTrace;
     processMap_["joinTrace"] = &TracedServiceProcessor::process_joinTrace;
@@ -328,24 +328,24 @@ class TracedServiceProcessor : public ::apache::thrift::TDispatchProcessor {
 
 class TracedServiceProcessorFactory : public ::apache::thrift::TProcessorFactory {
  public:
-  TracedServiceProcessorFactory(const ::apache::thrift::stdcxx::shared_ptr< TracedServiceIfFactory >& handlerFactory) :
+  TracedServiceProcessorFactory(const ::std::shared_ptr< TracedServiceIfFactory >& handlerFactory) :
       handlerFactory_(handlerFactory) {}
 
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr< TracedServiceIfFactory > handlerFactory_;
+  ::std::shared_ptr< TracedServiceIfFactory > handlerFactory_;
 };
 
 class TracedServiceMultiface : virtual public TracedServiceIf {
  public:
-  TracedServiceMultiface(std::vector<apache::thrift::stdcxx::shared_ptr<TracedServiceIf> >& ifaces) : ifaces_(ifaces) {
+  TracedServiceMultiface(std::vector<std::shared_ptr<TracedServiceIf> >& ifaces) : ifaces_(ifaces) {
   }
   virtual ~TracedServiceMultiface() {}
  protected:
-  std::vector<apache::thrift::stdcxx::shared_ptr<TracedServiceIf> > ifaces_;
+  std::vector<std::shared_ptr<TracedServiceIf> > ifaces_;
   TracedServiceMultiface() {}
-  void add(::apache::thrift::stdcxx::shared_ptr<TracedServiceIf> iface) {
+  void add(::std::shared_ptr<TracedServiceIf> iface) {
     ifaces_.push_back(iface);
   }
  public:
@@ -376,27 +376,27 @@ class TracedServiceMultiface : virtual public TracedServiceIf {
 // only be used when you need to share a connection among multiple threads
 class TracedServiceConcurrentClient : virtual public TracedServiceIf {
  public:
-  TracedServiceConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  TracedServiceConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  TracedServiceConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  TracedServiceConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void startTrace(TraceResponse& _return, const StartTraceRequest& request);
@@ -406,8 +406,8 @@ class TracedServiceConcurrentClient : virtual public TracedServiceIf {
   int32_t send_joinTrace(const JoinTraceRequest& request);
   void recv_joinTrace(TraceResponse& _return, const int32_t seqid);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
   ::apache::thrift::async::TConcurrentClientSyncInfo sync_;

@@ -36,7 +36,7 @@ class ZipkinCollectorIfFactory {
 
 class ZipkinCollectorIfSingletonFactory : virtual public ZipkinCollectorIfFactory {
  public:
-  ZipkinCollectorIfSingletonFactory(const ::apache::thrift::stdcxx::shared_ptr<ZipkinCollectorIf>& iface) : iface_(iface) {}
+  ZipkinCollectorIfSingletonFactory(const ::std::shared_ptr<ZipkinCollectorIf>& iface) : iface_(iface) {}
   virtual ~ZipkinCollectorIfSingletonFactory() {}
 
   virtual ZipkinCollectorIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
@@ -45,7 +45,7 @@ class ZipkinCollectorIfSingletonFactory : virtual public ZipkinCollectorIfFactor
   virtual void releaseHandler(ZipkinCollectorIf* /* handler */) {}
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<ZipkinCollectorIf> iface_;
+  ::std::shared_ptr<ZipkinCollectorIf> iface_;
 };
 
 class ZipkinCollectorNull : virtual public ZipkinCollectorIf {
@@ -162,42 +162,42 @@ class ZipkinCollector_submitZipkinBatch_presult {
 
 class ZipkinCollectorClient : virtual public ZipkinCollectorIf {
  public:
-  ZipkinCollectorClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  ZipkinCollectorClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  ZipkinCollectorClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  ZipkinCollectorClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void submitZipkinBatch(std::vector<Response> & _return, const std::vector<Span> & spans);
   void send_submitZipkinBatch(const std::vector<Span> & spans);
   void recv_submitZipkinBatch(std::vector<Response> & _return);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
 };
 
 class ZipkinCollectorProcessor : public ::apache::thrift::TDispatchProcessor {
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<ZipkinCollectorIf> iface_;
+  ::std::shared_ptr<ZipkinCollectorIf> iface_;
   virtual bool dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext);
  private:
   typedef  void (ZipkinCollectorProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
@@ -205,7 +205,7 @@ class ZipkinCollectorProcessor : public ::apache::thrift::TDispatchProcessor {
   ProcessMap processMap_;
   void process_submitZipkinBatch(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
-  ZipkinCollectorProcessor(::apache::thrift::stdcxx::shared_ptr<ZipkinCollectorIf> iface) :
+  ZipkinCollectorProcessor(::std::shared_ptr<ZipkinCollectorIf> iface) :
     iface_(iface) {
     processMap_["submitZipkinBatch"] = &ZipkinCollectorProcessor::process_submitZipkinBatch;
   }
@@ -215,24 +215,24 @@ class ZipkinCollectorProcessor : public ::apache::thrift::TDispatchProcessor {
 
 class ZipkinCollectorProcessorFactory : public ::apache::thrift::TProcessorFactory {
  public:
-  ZipkinCollectorProcessorFactory(const ::apache::thrift::stdcxx::shared_ptr< ZipkinCollectorIfFactory >& handlerFactory) :
+  ZipkinCollectorProcessorFactory(const ::std::shared_ptr< ZipkinCollectorIfFactory >& handlerFactory) :
       handlerFactory_(handlerFactory) {}
 
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr< ZipkinCollectorIfFactory > handlerFactory_;
+  ::std::shared_ptr< ZipkinCollectorIfFactory > handlerFactory_;
 };
 
 class ZipkinCollectorMultiface : virtual public ZipkinCollectorIf {
  public:
-  ZipkinCollectorMultiface(std::vector<apache::thrift::stdcxx::shared_ptr<ZipkinCollectorIf> >& ifaces) : ifaces_(ifaces) {
+  ZipkinCollectorMultiface(std::vector<std::shared_ptr<ZipkinCollectorIf> >& ifaces) : ifaces_(ifaces) {
   }
   virtual ~ZipkinCollectorMultiface() {}
  protected:
-  std::vector<apache::thrift::stdcxx::shared_ptr<ZipkinCollectorIf> > ifaces_;
+  std::vector<std::shared_ptr<ZipkinCollectorIf> > ifaces_;
   ZipkinCollectorMultiface() {}
-  void add(::apache::thrift::stdcxx::shared_ptr<ZipkinCollectorIf> iface) {
+  void add(::std::shared_ptr<ZipkinCollectorIf> iface) {
     ifaces_.push_back(iface);
   }
  public:
@@ -253,35 +253,35 @@ class ZipkinCollectorMultiface : virtual public ZipkinCollectorIf {
 // only be used when you need to share a connection among multiple threads
 class ZipkinCollectorConcurrentClient : virtual public ZipkinCollectorIf {
  public:
-  ZipkinCollectorConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  ZipkinCollectorConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  ZipkinCollectorConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  ZipkinCollectorConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void submitZipkinBatch(std::vector<Response> & _return, const std::vector<Span> & spans);
   int32_t send_submitZipkinBatch(const std::vector<Span> & spans);
   void recv_submitZipkinBatch(std::vector<Response> & _return, const int32_t seqid);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
   ::apache::thrift::async::TConcurrentClientSyncInfo sync_;

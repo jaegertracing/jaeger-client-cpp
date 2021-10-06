@@ -107,6 +107,21 @@ propagation_format: w3c
     }
 }
 
+TEST(Config, testTags)
+{
+    {
+        constexpr auto kConfigYAML = R"cfg(
+tags:
+  foo: bar
+)cfg";
+        const auto config = Config::parse(YAML::Load(kConfigYAML));
+
+        std::vector<Tag> expectedTags;
+        expectedTags.emplace_back("foo", std::string("bar"));
+        ASSERT_EQ(expectedTags, config.tags());
+    }
+}
+
 #endif  // JAEGERTRACING_WITH_YAML_CPP
 
 TEST(Config, testFromEnv)

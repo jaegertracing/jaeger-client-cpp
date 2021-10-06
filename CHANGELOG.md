@@ -1,10 +1,16 @@
 Changes by Version
 ==================
 
-0.7.1 (unreleased)
+0.8.1 (unreleased)
 ------------------
 
--- Nothing yet.
+--- Nothing yet.
+
+
+0.8.0 (2021-09-13)
+------------------
+
+- Add support for setting tracer tags via the configuration (#284) -- Tobias Stadler
 
 
 0.7.0 (2021-02-28)

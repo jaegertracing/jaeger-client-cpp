@@ -15,7 +15,6 @@
 #include <thrift/protocol/TProtocol.h>
 #include <thrift/transport/TTransport.h>
 
-#include <thrift/stdcxx.h>
 #include "jaeger_types.h"
 #include "zipkincore_types.h"
 

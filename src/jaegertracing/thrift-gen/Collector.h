@@ -36,7 +36,7 @@ class CollectorIfFactory {
 
 class CollectorIfSingletonFactory : virtual public CollectorIfFactory {
  public:
-  CollectorIfSingletonFactory(const ::apache::thrift::stdcxx::shared_ptr<CollectorIf>& iface) : iface_(iface) {}
+  CollectorIfSingletonFactory(const ::std::shared_ptr<CollectorIf>& iface) : iface_(iface) {}
   virtual ~CollectorIfSingletonFactory() {}
 
   virtual CollectorIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
@@ -45,7 +45,7 @@ class CollectorIfSingletonFactory : virtual public CollectorIfFactory {
   virtual void releaseHandler(CollectorIf* /* handler */) {}
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<CollectorIf> iface_;
+  ::std::shared_ptr<CollectorIf> iface_;
 };
 
 class CollectorNull : virtual public CollectorIf {
@@ -162,42 +162,42 @@ class Collector_submitBatches_presult {
 
 class CollectorClient : virtual public CollectorIf {
  public:
-  CollectorClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  CollectorClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  CollectorClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  CollectorClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void submitBatches(std::vector<BatchSubmitResponse> & _return, const std::vector<Batch> & batches);
   void send_submitBatches(const std::vector<Batch> & batches);
   void recv_submitBatches(std::vector<BatchSubmitResponse> & _return);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
 };
 
 class CollectorProcessor : public ::apache::thrift::TDispatchProcessor {
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<CollectorIf> iface_;
+  ::std::shared_ptr<CollectorIf> iface_;
   virtual bool dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext);
  private:
   typedef  void (CollectorProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
@@ -205,7 +205,7 @@ class CollectorProcessor : public ::apache::thrift::TDispatchProcessor {
   ProcessMap processMap_;
   void process_submitBatches(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
-  CollectorProcessor(::apache::thrift::stdcxx::shared_ptr<CollectorIf> iface) :
+  CollectorProcessor(::std::shared_ptr<CollectorIf> iface) :
     iface_(iface) {
     processMap_["submitBatches"] = &CollectorProcessor::process_submitBatches;
   }
@@ -215,24 +215,24 @@ class CollectorProcessor : public ::apache::thrift::TDispatchProcessor {
 
 class CollectorProcessorFactory : public ::apache::thrift::TProcessorFactory {
  public:
-  CollectorProcessorFactory(const ::apache::thrift::stdcxx::shared_ptr< CollectorIfFactory >& handlerFactory) :
+  CollectorProcessorFactory(const ::std::shared_ptr< CollectorIfFactory >& handlerFactory) :
       handlerFactory_(handlerFactory) {}
 
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr< CollectorIfFactory > handlerFactory_;
+  ::std::shared_ptr< CollectorIfFactory > handlerFactory_;
 };
 
 class CollectorMultiface : virtual public CollectorIf {
  public:
-  CollectorMultiface(std::vector<apache::thrift::stdcxx::shared_ptr<CollectorIf> >& ifaces) : ifaces_(ifaces) {
+  CollectorMultiface(std::vector<std::shared_ptr<CollectorIf> >& ifaces) : ifaces_(ifaces) {
   }
   virtual ~CollectorMultiface() {}
  protected:
-  std::vector<apache::thrift::stdcxx::shared_ptr<CollectorIf> > ifaces_;
+  std::vector<std::shared_ptr<CollectorIf> > ifaces_;
   CollectorMultiface() {}
-  void add(::apache::thrift::stdcxx::shared_ptr<CollectorIf> iface) {
+  void add(::std::shared_ptr<CollectorIf> iface) {
     ifaces_.push_back(iface);
   }
  public:
@@ -253,35 +253,35 @@ class CollectorMultiface : virtual public CollectorIf {
 // only be used when you need to share a connection among multiple threads
 class CollectorConcurrentClient : virtual public CollectorIf {
  public:
-  CollectorConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  CollectorConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  CollectorConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  CollectorConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void submitBatches(std::vector<BatchSubmitResponse> & _return, const std::vector<Batch> & batches);
   int32_t send_submitBatches(const std::vector<Batch> & batches);
   void recv_submitBatches(std::vector<BatchSubmitResponse> & _return, const int32_t seqid);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
   ::apache::thrift::async::TConcurrentClientSyncInfo sync_;

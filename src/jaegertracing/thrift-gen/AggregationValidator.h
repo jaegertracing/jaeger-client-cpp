@@ -36,7 +36,7 @@ class AggregationValidatorIfFactory {
 
 class AggregationValidatorIfSingletonFactory : virtual public AggregationValidatorIfFactory {
  public:
-  AggregationValidatorIfSingletonFactory(const ::apache::thrift::stdcxx::shared_ptr<AggregationValidatorIf>& iface) : iface_(iface) {}
+  AggregationValidatorIfSingletonFactory(const ::std::shared_ptr<AggregationValidatorIf>& iface) : iface_(iface) {}
   virtual ~AggregationValidatorIfSingletonFactory() {}
 
   virtual AggregationValidatorIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
@@ -45,7 +45,7 @@ class AggregationValidatorIfSingletonFactory : virtual public AggregationValidat
   virtual void releaseHandler(AggregationValidatorIf* /* handler */) {}
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<AggregationValidatorIf> iface_;
+  ::std::shared_ptr<AggregationValidatorIf> iface_;
 };
 
 class AggregationValidatorNull : virtual public AggregationValidatorIf {
@@ -156,42 +156,42 @@ class AggregationValidator_validateTrace_presult {
 
 class AggregationValidatorClient : virtual public AggregationValidatorIf {
  public:
-  AggregationValidatorClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  AggregationValidatorClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  AggregationValidatorClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  AggregationValidatorClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void validateTrace(ValidateTraceResponse& _return, const std::string& traceId);
   void send_validateTrace(const std::string& traceId);
   void recv_validateTrace(ValidateTraceResponse& _return);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
 };
 
 class AggregationValidatorProcessor : public ::apache::thrift::TDispatchProcessor {
  protected:
-  ::apache::thrift::stdcxx::shared_ptr<AggregationValidatorIf> iface_;
+  ::std::shared_ptr<AggregationValidatorIf> iface_;
   virtual bool dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext);
  private:
   typedef  void (AggregationValidatorProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
@@ -199,7 +199,7 @@ class AggregationValidatorProcessor : public ::apache::thrift::TDispatchProcesso
   ProcessMap processMap_;
   void process_validateTrace(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
-  AggregationValidatorProcessor(::apache::thrift::stdcxx::shared_ptr<AggregationValidatorIf> iface) :
+  AggregationValidatorProcessor(::std::shared_ptr<AggregationValidatorIf> iface) :
     iface_(iface) {
     processMap_["validateTrace"] = &AggregationValidatorProcessor::process_validateTrace;
   }
@@ -209,24 +209,24 @@ class AggregationValidatorProcessor : public ::apache::thrift::TDispatchProcesso
 
 class AggregationValidatorProcessorFactory : public ::apache::thrift::TProcessorFactory {
  public:
-  AggregationValidatorProcessorFactory(const ::apache::thrift::stdcxx::shared_ptr< AggregationValidatorIfFactory >& handlerFactory) :
+  AggregationValidatorProcessorFactory(const ::std::shared_ptr< AggregationValidatorIfFactory >& handlerFactory) :
       handlerFactory_(handlerFactory) {}
 
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
 
  protected:
-  ::apache::thrift::stdcxx::shared_ptr< AggregationValidatorIfFactory > handlerFactory_;
+  ::std::shared_ptr< AggregationValidatorIfFactory > handlerFactory_;
 };
 
 class AggregationValidatorMultiface : virtual public AggregationValidatorIf {
  public:
-  AggregationValidatorMultiface(std::vector<apache::thrift::stdcxx::shared_ptr<AggregationValidatorIf> >& ifaces) : ifaces_(ifaces) {
+  AggregationValidatorMultiface(std::vector<std::shared_ptr<AggregationValidatorIf> >& ifaces) : ifaces_(ifaces) {
   }
   virtual ~AggregationValidatorMultiface() {}
  protected:
-  std::vector<apache::thrift::stdcxx::shared_ptr<AggregationValidatorIf> > ifaces_;
+  std::vector<std::shared_ptr<AggregationValidatorIf> > ifaces_;
   AggregationValidatorMultiface() {}
-  void add(::apache::thrift::stdcxx::shared_ptr<AggregationValidatorIf> iface) {
+  void add(::std::shared_ptr<AggregationValidatorIf> iface) {
     ifaces_.push_back(iface);
   }
  public:
@@ -247,35 +247,35 @@ class AggregationValidatorMultiface : virtual public AggregationValidatorIf {
 // only be used when you need to share a connection among multiple threads
 class AggregationValidatorConcurrentClient : virtual public AggregationValidatorIf {
  public:
-  AggregationValidatorConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  AggregationValidatorConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
     setProtocol(prot);
   }
-  AggregationValidatorConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  AggregationValidatorConcurrentClient(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     setProtocol(iprot,oprot);
   }
  private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
   setProtocol(prot,prot);
   }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
+  void setProtocol(std::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, std::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
     piprot_=iprot;
     poprot_=oprot;
     iprot_ = iprot.get();
     oprot_ = oprot.get();
   }
  public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
     return piprot_;
   }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
   void validateTrace(ValidateTraceResponse& _return, const std::string& traceId);
   int32_t send_validateTrace(const std::string& traceId);
   void recv_validateTrace(ValidateTraceResponse& _return, const int32_t seqid);
  protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
+  std::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
   ::apache::thrift::protocol::TProtocol* iprot_;
   ::apache::thrift::protocol::TProtocol* oprot_;
   ::apache::thrift::async::TConcurrentClientSyncInfo sync_;

@@ -358,10 +358,10 @@ void BaggageRestrictionManagerProcessor::process_getBaggageRestrictions(int32_t 
   }
 }
 
-::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > BaggageRestrictionManagerProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
+::std::shared_ptr< ::apache::thrift::TProcessor > BaggageRestrictionManagerProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
   ::apache::thrift::ReleaseHandler< BaggageRestrictionManagerIfFactory > cleanup(handlerFactory_);
-  ::apache::thrift::stdcxx::shared_ptr< BaggageRestrictionManagerIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > processor(new BaggageRestrictionManagerProcessor(handler));
+  ::std::shared_ptr< BaggageRestrictionManagerIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
+  ::std::shared_ptr< ::apache::thrift::TProcessor > processor(new BaggageRestrictionManagerProcessor(handler));
   return processor;
 }
 
