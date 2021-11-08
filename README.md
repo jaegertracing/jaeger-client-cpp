@@ -1,6 +1,6 @@
-# 🛑🛑🛑 Deprecation Notice 🛑🛑🛑
+# 🛑 This library is being deprecated!
 
-This repository is scheduled to be deprecated. Please see https://github.com/jaegertracing/jaeger-client-cpp/issues/292.
+We urge all users to migrate to [OpenTelemetry](https://opentelemetry.io/). Please refer to the [notice in the documentation](https://www.jaegertracing.io/docs/latest/client-libraries/#deprecating-jaeger-clients) for details.
 
 <hr/>
 
