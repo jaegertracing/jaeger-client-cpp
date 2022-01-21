@@ -1,10 +1,10 @@
 Changes by Version
 ==================
 
-0.8.1 (unreleased)
+0.9.0 (2022-01-20)
 ------------------
 
---- Nothing yet.
+--- [thrift]: drop stdcxx namespace to unblock upgrading Thrift versions (#239) -- @ideepika
 
 
 0.8.0 (2021-09-13)
